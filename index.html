@@ -352,6 +352,14 @@
           <div class="code-block"><button class="btn btn-sm copy-btn" data-copy-target="outConvert">📋 一键复制</button><pre id="outConvert"></pre></div>
           <h4>③ Vina 运行命令</h4>
           <div class="code-block"><button class="btn btn-sm copy-btn" data-copy-target="outRun">📋 一键复制</button><pre id="outRun"></pre></div>
+          <h4>④ Windows 原生一键对接包（无需 WSL）</h4>
+          <div class="row">
+            <button class="btn btn-ghost" id="paramWinBat">🪟 下载 windows_docking.bat</button>
+            <span class="hint">把 .bat 与 receptor.pdb / ligand.pdb 放同一文件夹双击：自动下载 vina.exe、安装 Meeko、转换 PDBQT、生成 config.txt 并对接。需 Windows 10+（自带 curl）与已安装的 Python。</span>
+          </div>
+          <div class="hidden" id="paramWinBatOut">
+            <div class="code-block"><button class="btn btn-sm copy-btn" data-copy-target="outWinBat">📋 一键复制</button><pre id="outWinBat"></pre></div>
+          </div>
         </div>
       </div>
 
@@ -521,6 +529,20 @@
             <button class="btn btn-ghost btn-sm" id="agentUniToAln">送入序列比对（序列 1）</button>
             <button class="btn btn-ghost btn-sm" id="agentUniCopy">📋 复制 FASTA</button>
           </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>③ 找配体 Agent（按蛋白检索全库共晶配体）</h3>
+        <div class="row">
+          <input type="text" id="agentLigandQuery" placeholder="UniProt 登录号（如 P69905）或 PDB ID（如 6LU7）" style="max-width:360px">
+          <button class="btn" id="agentLigRun">▶ 检索配体</button>
+          <span class="hint">UniProt 登录号 → RCSB 全库检索该蛋白共晶结构并列出配体；PDB ID → 直接解析该条目</span>
+        </div>
+        <div id="agentLigLog" style="margin-top:8px"></div>
+        <div class="hidden" id="agentLigResult" style="margin-top:12px">
+          <h4>检索结果（点"分析"自动下载结构、识别配体与口袋并进入对接准备）</h4>
+          <div style="overflow-x:auto"><table class="data" id="agentLigTable"></table></div>
         </div>
       </div>
     </section>
@@ -2520,6 +2542,210 @@ async function agentRunUni() {
   }
 }
 
+/** 找配体 Agent：UniProt 全库检索 / PDB 直连 → GraphQL 批量取配体列表 */
+async function agentRunLigands() {
+  $("agentLigLog").innerHTML = "";
+  $("agentLigResult").classList.add("hidden");
+  const q = $("agentLigandQuery").value.trim().toUpperCase();
+  if (!q) {
+    agentLog("agentLigLog", "错误：请输入 UniProt 登录号或 PDB ID", "err");
+    return;
+  }
+  let entryIds, label;
+  try {
+    if (/^[0-9][0-9A-Z]{3}$/.test(q)) {
+      entryIds = [q];
+      label = "PDB 条目 " + q;
+      agentLog("agentLigLog", "① 输入为 PDB ID，直接解析条目 " + q);
+    } else {
+      agentLog("agentLigLog", "① 在 RCSB 全库检索 " + q + " 的共晶结构…");
+      const resp = await fetch("https://search.rcsb.org/rcsbsearch/v2/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: { type: "terminal", service: "text", parameters: {
+            attribute: "rcsb_polymer_entity_container_identifiers.reference_sequence_identifiers.database_accession",
+            operator: "exact_match", value: q } },
+          return_type: "entry",
+          request_options: { paginate: { start: 0, rows: 10 }, results_content_type: ["experimental"] }
+        })
+      });
+      if (!resp.ok) throw new Error("HTTP " + resp.status + "（检索接口不可达或登录号无效）");
+      const data = await resp.json();
+      entryIds = (data.result_set || []).map(r => r.identifier).slice(0, 10);
+      label = q + "（全库共 " + data.total_count + " 个条目，取前 " + entryIds.length + "）";
+      if (!entryIds.length) {
+        agentLog("agentLigLog", "未找到 " + q + " 的共晶结构", "err");
+        return;
+      }
+    }
+    agentLog("agentLigLog", "② 批量获取 " + entryIds.length + " 个条目的配体信息…");
+    const gq = await fetch("https://data.rcsb.org/graphql", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: '{entries(entry_ids:[' + entryIds.map(i => '"' + i + '"').join(",") +
+        ']){rcsb_id exptl{method} rcsb_entry_info{resolution_combined} nonpolymer_entities{nonpolymer_comp{chem_comp{id name formula_weight type}}}}}' })
+    });
+    const gd = await gq.json();
+    const entries = (gd.data && gd.data.entries) || [];
+    AGENT_STATE.ligandSearch = entries.map(e => ({
+      id: e.rcsb_id,
+      method: e.exptl && e.exptl[0] ? e.exptl[0].method : "—",
+      resolution: e.rcsb_entry_info && e.rcsb_entry_info.resolution_combined ? e.rcsb_entry_info.resolution_combined[0] : null,
+      ligands: (e.nonpolymer_entities || []).map(n => n.nonpolymer_comp.chem_comp).filter(c => !AGENT_SKIP.has(c.id))
+    }));
+    renderAgentLigandTable();
+    agentLog("agentLigLog", "③ 检索完成：" + label + "。表内为非水/非离子组分；点「分析」做 PDB 级完整解析（GraphQL 未记录的条目也会兜底解析）", "ok");
+  } catch (e) {
+    agentLog("agentLigLog", "✘ 失败：" + e.message, "err");
+  }
+}
+
+function renderAgentLigandTable() {
+  const rows = AGENT_STATE.ligandSearch || [];
+  if (!rows.length) return;
+  let html = "<tr><th>PDB ID</th><th>方法 / 分辨率</th><th>共晶配体（非水/非离子）</th><th>操作</th></tr>";
+  for (const r of rows) {
+    const ligText = r.ligands.length
+      ? r.ligands.map(l => "<b>" + escapeHtml(l.id) + "</b> " + escapeHtml(l.name.slice(0, 26)) + "（" + Math.round(l.formula_weight) + " Da）").join("<br>")
+      : '<span class="hint">GraphQL 未记录，点「分析」用 PDB 级解析</span>';
+    html += "<tr><th>" + escapeHtml(r.id) + "</th><td>" + escapeHtml(r.method) + (r.resolution ? " / " + r.resolution.toFixed(2) + " Å" : "") +
+      "</td><td style='text-align:left'>" + ligText +
+      '</td><td><button class="btn btn-sm" data-agent-analyze="' + escapeHtml(r.id) + '">🧪 分析</button></td></tr>';
+  }
+  $("agentLigTable").innerHTML = html;
+  $("agentLigResult").classList.remove("hidden");
+  $("agentLigTable").querySelectorAll("button[data-agent-analyze]").forEach(btn => {
+    btn.addEventListener("click", () => agentAnalyzeAndPrep(btn.dataset.agentAnalyze));
+  });
+}
+
+/** 下载指定条目 → 完整解析 → 直接一键对接准备 */
+async function agentAnalyzeAndPrep(id) {
+  agentLog("agentLigLog", "▶ [" + id + "] 下载并解析结构…");
+  try {
+    const text = await agentFetchPdb(id);
+    const info = agentParsePdbText(text);
+    info.id = id; info.text = text;
+    if (!info.ligands.length) {
+      agentLog("agentLigLog", "[" + id + "] 未发现可用共晶配体", "err");
+      return;
+    }
+    info.pocket = agentComputePocket(info.ligands[0].atomLines);
+    AGENT_STATE.pdbResults = AGENT_STATE.pdbResults.filter(r => r.id !== id).concat([info]);
+    agentLog("agentLigLog", "[" + id + "] 完成：主配体 " + info.ligands[0].resName +
+      "（" + info.ligands[0].atomLines.length + " 原子），进入对接准备", "ok");
+    agentPrepareDocking(id);
+  } catch (e) {
+    agentLog("agentLigLog", "✘ [" + id + "] 失败：" + e.message, "err");
+  }
+}
+
+/** 构建 Windows 原生一键对接批处理脚本（纯函数，便于测试） */
+function agentBuildWindowsBat(cfg) {
+  const c = cfg || {};
+  const v = (k, def) => isFinite(c[k]) ? c[k] : def;
+  const L = [
+    "@echo off",
+    "chcp 65001 >nul",
+    "title 生信工具站 - Windows 原生自动对接",
+    "cd /d %~dp0",
+    "echo ============================================",
+    "echo   Windows 原生自动对接（无需 WSL）",
+    "echo ============================================",
+    "where python >nul 2>&1",
+    "if errorlevel 1 (",
+    "  echo [错误] 未检测到 Python。请安装 Python 并勾选 Add to PATH 后重试。",
+    "  pause",
+    "  exit /b 1",
+    ")",
+    "if not exist receptor.pdb for %%f in (receptor_*.pdb) do copy /y \"%%f\" receptor.pdb >nul",
+    "if not exist ligand.pdb for %%f in (ligand_*.pdb) do copy /y \"%%f\" ligand.pdb >nul",
+    "if not exist receptor.pdb (",
+    "  echo [错误] 缺少 receptor.pdb。请先在站点自动化 Agent 页下载受体文件。",
+    "  pause",
+    "  exit /b 1",
+    ")",
+    "if not exist ligand.pdb (",
+    "  echo [错误] 缺少 ligand.pdb。请先在站点自动化 Agent 页下载配体文件。",
+    "  pause",
+    "  exit /b 1",
+    ")",
+    "echo [1/5] 检查 AutoDock Vina ...",
+    "if not exist vina.exe (",
+    "  echo   首次运行：下载官方 vina.exe（约 2 MB）...",
+    "  curl -L -# -o vina.exe \"https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_win.exe\"",
+    "  if not exist vina.exe (",
+    "    echo [错误] vina.exe 下载失败。请手动下载后放入本目录。",
+    "    pause",
+    "    exit /b 1",
+    "  )",
+    ")",
+    "echo [2/5] 检查 Meeko（PDB 转 PDBQT，含 RDKit，仅首次安装较慢）...",
+    "python -m pip show meeko >nul 2>&1",
+    "if errorlevel 1 python -m pip install --quiet meeko",
+    "echo [3/5] 转换受体 receptor.pdb -^> receptor.pdbqt ...",
+    "python -m meeko.cli.mk_prepare_receptor -r receptor.pdb -o receptor -p 2>nul",
+    "if not exist receptor.pdbqt mk_prepare_receptor.py -r receptor.pdb -o receptor -p 2>nul",
+    "if not exist receptor.pdbqt (",
+    "  echo [错误] 受体转换失败。请执行 python -m pip install --upgrade meeko 后重试。",
+    "  pause",
+    "  exit /b 1",
+    ")",
+    "echo [4/5] 转换配体 ligand.pdb -^> ligand.pdbqt ...",
+    "python -m meeko.cli.mk_prepare_ligand -i ligand.pdb -o ligand.pdbqt 2>nul",
+    "if not exist ligand.pdbqt mk_prepare_ligand.py -i ligand.pdb -o ligand.pdbqt 2>nul",
+    "if not exist ligand.pdbqt (",
+    "  echo [错误] 配体转换失败。请检查配体是否为小分子（肽类配体暂不支持自动转换）。",
+    "  pause",
+    "  exit /b 1",
+    ")",
+    "echo [5/5] 生成 config.txt 并启动对接 ...",
+    "> config.txt echo receptor = receptor.pdbqt",
+    ">> config.txt echo ligand = ligand.pdbqt",
+    ">> config.txt echo out = vina_out.pdbqt",
+    ">> config.txt echo center_x = " + v("centerX", 0),
+    ">> config.txt echo center_y = " + v("centerY", 0),
+    ">> config.txt echo center_z = " + v("centerZ", 0),
+    ">> config.txt echo size_x = " + v("sizeX", 22),
+    ">> config.txt echo size_y = " + v("sizeY", 22),
+    ">> config.txt echo size_z = " + v("sizeZ", 22),
+    ">> config.txt echo exhaustiveness = " + v("exhaust", 8),
+    ">> config.txt echo num_modes = " + v("modes", 9),
+    ">> config.txt echo energy_range = " + v("energy", 3),
+    ">> config.txt echo seed = " + v("seed", 42),
+    ">> config.txt echo cpu = " + v("cpu", 4),
+    "vina.exe --config config.txt --log vina.log",
+    "echo.",
+    "echo ===== 对接结果（亲和力从低到高，单位 kcal/mol）=====",
+    "findstr /C:\"REMARK VINA RESULT\" vina.log",
+    "echo 完成！构象文件 vina_out.pdbqt 可上传回站点对接结果查看。",
+    "pause"
+  ];
+  return L.join("\r\n") + "\r\n";
+}
+
+/** 生成并下载 windows_docking.bat */
+function generateWindowsBatDownload() {
+  const num = (id, def) => { const v = parseFloat($(id).value); return isFinite(v) ? v : def; };
+  const cfg = {
+    centerX: num("paramCenterX", 0), centerY: num("paramCenterY", 0), centerZ: num("paramCenterZ", 0),
+    sizeX: num("paramSizeX", 22), sizeY: num("paramSizeY", 22), sizeZ: num("paramSizeZ", 22),
+    exhaust: num("paramExhaust", 8), modes: num("paramModes", 9), energy: num("paramEnergy", 3),
+    seed: num("paramSeed", 42), cpu: num("paramCpu", 4)
+  };
+  const bat = agentBuildWindowsBat(cfg);
+  $("outWinBat").textContent = bat;
+  $("paramWinBatOut").classList.remove("hidden");
+  const blob = new Blob([bat], { type: "application/octet-stream" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "windows_docking.bat";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast("已下载 windows_docking.bat（含对接参数，与 receptor/ligand.pdb 放同一文件夹运行）");
+}
+
 
 /* =========================================================================
  * UI 路由与事件绑定
@@ -2741,6 +2967,8 @@ function init() {
   $("agentUniCopy").addEventListener("click", () => {
     if (AGENT_STATE.lastUniFasta) copyText(AGENT_STATE.lastUniFasta);
   });
+  $("agentLigRun").addEventListener("click", agentRunLigands);
+  $("paramWinBat").addEventListener("click", generateWindowsBatDownload);
 }
 
 init();
