@@ -1,0 +1,2454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中文生信工具整合站 — Bioinfo Workbench</title>
+<!-- 第三方库（本地打包，完全离线可用）：Chart.js 图表 / 3Dmol.js 分子可视化。其余算法均为原生 JS 本地实现 -->
+<script src="libs/chart.umd.min.js"></script>
+<script src="libs/3Dmol-min.js"></script>
+<style>
+  :root {
+    --primary: #1976d2;
+    --primary-dark: #1565c0;
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --text: #212121;
+    --text-2: #5f6368;
+    --border: #e0e4ea;
+    --ok: #2e7d32;
+    --warn: #e65100;
+    --err: #c62828;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  header {
+    background: linear-gradient(135deg, #1565c0 0%, #1e88e5 60%, #42a5f5 100%);
+    color: #fff;
+    padding: 22px 28px 18px;
+  }
+  header h1 { font-size: 24px; font-weight: 600; letter-spacing: 1px; }
+  header .sub { margin-top: 4px; font-size: 14px; opacity: .92; }
+  header .privacy { margin-top: 8px; font-size: 12.5px; background: rgba(255,255,255,.15);
+    display: inline-block; padding: 4px 12px; border-radius: 999px; }
+
+  .layout { display: flex; min-height: calc(100vh - 130px); }
+  nav#sidenav {
+    width: 218px; flex-shrink: 0; background: #fff; border-right: 1px solid var(--border);
+    padding: 16px 10px;
+  }
+  .nav-btn {
+    display: block; width: 100%; text-align: left; border: none; background: transparent;
+    padding: 12px 14px; margin: 2px 0; font-size: 15px; border-radius: 8px; cursor: pointer;
+    color: var(--text); transition: background .15s, color .15s;
+  }
+  .nav-btn:hover { background: #eef4fb; }
+  .nav-btn.active { background: #e3f0fd; color: var(--primary-dark); font-weight: 600; }
+
+  main { flex: 1; padding: 20px 24px 48px; min-width: 0; }
+  section.page > h2 { font-size: 20px; margin-bottom: 4px; }
+  section.page > .page-desc { color: var(--text-2); font-size: 13.5px; margin-bottom: 16px; }
+  .hidden { display: none !important; }
+
+  .card {
+    background: var(--card); border-radius: var(--radius);
+    box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+    padding: 20px; margin-bottom: 18px;
+  }
+  .card h3 { font-size: 16px; margin-bottom: 12px; color: var(--primary-dark); }
+  .card h4 { font-size: 14.5px; margin: 14px 0 8px; }
+
+  .btn {
+    display: inline-block; border: none; cursor: pointer; border-radius: 8px;
+    padding: 9px 18px; font-size: 14px; background: var(--primary); color: #fff;
+    transition: background .15s; font-family: inherit;
+  }
+  .btn:hover { background: var(--primary-dark); }
+  .btn:disabled { background: #b0bec5; cursor: not-allowed; }
+  .btn-ghost {
+    background: #fff; color: var(--primary); border: 1px solid var(--primary);
+  }
+  .btn-ghost:hover { background: #e8f1fc; }
+  .btn-sm { padding: 5px 12px; font-size: 13px; border-radius: 6px; }
+
+  textarea, input[type="text"], input[type="number"], select {
+    width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px;
+    font-size: 14px; font-family: inherit; background: #fff; color: var(--text);
+  }
+  textarea:focus, input:focus, select:focus { outline: 2px solid #b3d4fc; border-color: var(--primary); }
+  textarea.seq-input { font-family: Consolas, "Courier New", monospace; height: 110px; resize: vertical; }
+  label.form-label { display: block; font-size: 13px; color: var(--text-2); margin: 8px 0 4px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+  .hint { font-size: 12.5px; color: var(--text-2); }
+  .warn-box {
+    background: #fff4e0; border: 1px solid #ffcc80; color: var(--warn);
+    border-radius: 8px; padding: 8px 12px; font-size: 13px; margin-top: 8px;
+  }
+  .ok-box {
+    background: #e8f5e9; border: 1px solid #a5d6a7; color: var(--ok);
+    border-radius: 8px; padding: 8px 12px; font-size: 13px; margin-top: 8px;
+  }
+  .err-box {
+    background: #ffebee; border: 1px solid #ef9a9a; color: var(--err);
+    border-radius: 8px; padding: 8px 12px; font-size: 13px; margin-top: 8px;
+  }
+
+  /* 比对结果配色 */
+  pre.aln {
+    font-family: Consolas, "Courier New", monospace; font-size: 13px; line-height: 1.5;
+    background: #fafbfc; border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px; overflow-x: auto; white-space: pre;
+  }
+  .aln-pos { color: #9e9e9e; font-size: 12px; font-family: sans-serif; }
+  .aln-id { background: #a5d6a7; color: #1b5e20; }
+  .aln-sim { background: #fff59d; color: #795548; }
+  .aln-mm { background: #eceff1; color: #90a4ae; }
+  .aln-gap { color: #cfd8dc; }
+
+  /* 表格 */
+  table.data { border-collapse: collapse; width: 100%; font-size: 13.5px; margin-top: 8px; }
+  table.data th, table.data td { border: 1px solid var(--border); padding: 6px 10px; text-align: center; }
+  table.data th { background: #f0f4f8; font-weight: 600; }
+  table.data tr:hover td { background: #f7fafd; }
+  .cell-pos { background: rgba(211,47,47,.85) !important; color: #fff; }
+  .cell-neg { background: rgba(21,101,192,.85) !important; color: #fff; }
+
+  /* 输出代码块 */
+  .code-block { position: relative; margin: 10px 0; }
+  .code-block pre {
+    background: #263238; color: #eceff1; padding: 12px 14px; border-radius: 8px;
+    font-family: Consolas, "Courier New", monospace; font-size: 13px; overflow-x: auto;
+    white-space: pre-wrap; word-break: break-all;
+  }
+  .code-block .copy-btn { position: absolute; top: 8px; right: 8px; }
+
+  /* 对接页 */
+  #viewer3d {
+    width: 100%; height: 460px; position: relative; border: 1px solid var(--border);
+    border-radius: 8px; background: #fff; overflow: hidden;
+  }
+  .dropzone {
+    border: 2px dashed #b0bec5; border-radius: 8px; padding: 12px; text-align: center;
+    font-size: 13px; color: var(--text-2); transition: border-color .15s, background .15s;
+  }
+  .dropzone.dragover { border-color: var(--primary); background: #e8f1fc; }
+  .model-row { cursor: pointer; }
+  .model-row:hover td { background: #e8f1fc !important; }
+  .model-row.selected td { background: #dcedc8 !important; }
+
+  /* toast */
+  #toast {
+    position: fixed; left: 50%; bottom: 36px; transform: translateX(-50%);
+    background: rgba(33,33,33,.92); color: #fff; padding: 10px 22px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 999;
+  }
+  #toast.show { opacity: 1; }
+
+  footer { text-align: center; color: #9e9e9e; font-size: 12px; padding: 16px; }
+
+  ol.steps { padding-left: 22px; font-size: 13.5px; }
+  ol.steps li { margin: 6px 0; }
+  ol.steps code { background: #eef2f6; border-radius: 4px; padding: 1px 6px; font-family: Consolas, monospace; font-size: 12.5px; color: #c62828; }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    nav#sidenav { width: 100%; display: flex; overflow-x: auto; padding: 8px; }
+    .nav-btn { white-space: nowrap; width: auto; }
+    .grid-2, .grid-3, .grid-6 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧬 中文生信工具整合站</h1>
+  <div class="sub">序列比对 · 相关性分析 · 分子对接 · 序列小工具 · 系统发育树 · 引物设计 —— 面向计算生物学研究者的一站式本地分析平台</div>
+  <div class="privacy">🔒 所有计算均在您的浏览器本地完成，数据不会上传到任何服务器</div>
+</header>
+
+<div class="layout">
+  <nav id="sidenav">
+    <button class="nav-btn active" data-page="page-align">🧬 序列比对</button>
+    <button class="nav-btn" data-page="page-corr">📈 相关性分析</button>
+    <button class="nav-btn" data-page="page-dock">💊 分子对接工作台</button>
+    <button class="nav-btn" data-page="page-tools">🧪 序列小工具</button>
+    <button class="nav-btn" data-page="page-phylo">🌳 系统发育树</button>
+    <button class="nav-btn" data-page="page-primer">🎯 引物设计</button>
+  </nav>
+
+  <main>
+    <!-- ======================= 页面一：序列比对 ======================= -->
+    <section class="page" id="page-align">
+      <h2>🧬 序列比对</h2>
+      <div class="page-desc">基于动态规划的 Needleman-Wunsch 全局比对 与 Smith-Waterman 局部比对。支持 DNA / RNA / 蛋白质序列，粘贴或上传 FASTA / 纯文本，自动去除 FASTA 头行并识别序列类型。</div>
+
+      <div class="card">
+        <h3>输入序列</h3>
+        <div class="grid-2">
+          <div>
+            <label class="form-label">序列 1（粘贴 FASTA 或纯文本）</label>
+            <textarea class="seq-input" id="alnSeq1" placeholder="示例：&gt;seq1&#10;ATGCGTACCTGAGG..."></textarea>
+            <div class="row">
+              <label class="btn btn-ghost btn-sm">📂 上传文件<input type="file" id="alnFile1" accept=".txt,.fa,.fasta,.seq,.faa" style="display:none"></label>
+              <button class="btn btn-ghost btn-sm" id="alnExampleDNA">载入 DNA 示例</button>
+              <span class="hint" id="alnInfo1"></span>
+            </div>
+          </div>
+          <div>
+            <label class="form-label">序列 2（粘贴 FASTA 或纯文本）</label>
+            <textarea class="seq-input" id="alnSeq2" placeholder="示例：&gt;seq2&#10;ATGCGTACCTGAAG..."></textarea>
+            <div class="row">
+              <label class="btn btn-ghost btn-sm">📂 上传文件<input type="file" id="alnFile2" accept=".txt,.fa,.fasta,.seq,.faa" style="display:none"></label>
+              <button class="btn btn-ghost btn-sm" id="alnExampleProt">载入蛋白质示例</button>
+              <span class="hint" id="alnInfo2"></span>
+            </div>
+          </div>
+        </div>
+
+        <h4>比对参数</h4>
+        <div class="row">
+          <label><input type="radio" name="alnMode" value="global" checked> Needleman-Wunsch 全局比对</label>
+          <label><input type="radio" name="alnMode" value="local"> Smith-Waterman 局部比对</label>
+        </div>
+        <div class="grid-6" style="margin-top:10px">
+          <div><label class="form-label">匹配分（核酸）</label><input type="number" id="matchScore" value="2" step="1"></div>
+          <div><label class="form-label">错配分（核酸）</label><input type="number" id="mismatchScore" value="-1" step="1"></div>
+          <div><label class="form-label">Gap 罚分（线性）</label><input type="number" id="gapPenalty" value="-2" step="1"></div>
+        </div>
+        <div class="hint" style="margin-top:6px">蛋白质序列自动使用内置 BLOSUM62 替换矩阵；核酸序列使用上述匹配 / 错配打分。</div>
+        <div class="row">
+          <button class="btn" id="alnRun">▶ 开始比对</button>
+          <button class="btn btn-ghost" id="alnClear">清空</button>
+        </div>
+        <div id="alnWarn"></div>
+      </div>
+
+      <div class="card hidden" id="alnResultCard">
+        <h3>比对结果</h3>
+        <table class="data" id="alnStats"></table>
+        <pre class="aln" id="alnResult"></pre>
+        <div class="hint" style="margin-top:6px">🟩 绿色 = 一致　🟨 黄色 = 相似（替换矩阵得分 &gt; 0）　⬜ 灰色 = 错配　- = 空位</div>
+      </div>
+    </section>
+
+    <!-- ======================= 页面二：相关性分析 ======================= -->
+    <section class="page hidden" id="page-corr">
+      <h2>📈 相关性分析</h2>
+      <div class="page-desc">粘贴或上传 CSV / TSV 数据（首行为表头），自动识别数值列，计算 Pearson / Spearman / Kendall τ 相关系数矩阵与 p 值，绘制热力图与散点图。</div>
+
+      <div class="card">
+        <h3>输入数据</h3>
+        <textarea class="seq-input" id="corrInput" style="height:140px" placeholder="基因A表达,基因B表达,结合能&#10;5.2,4.1,20.3&#10;6.1,5.0,18.7&#10;..."></textarea>
+        <div class="row">
+          <label class="btn btn-ghost btn-sm">📂 上传 CSV/TSV<input type="file" id="corrFile" accept=".csv,.tsv,.txt" style="display:none"></label>
+          <button class="btn btn-ghost btn-sm" id="corrExample">载入示例数据</button>
+          <select id="corrMethod" style="width:auto">
+            <option value="pearson">Pearson（皮尔逊）</option>
+            <option value="spearman">Spearman（斯皮尔曼）</option>
+            <option value="kendall">Kendall τ（肯德尔）</option>
+          </select>
+          <button class="btn" id="corrRun">▶ 开始分析</button>
+        </div>
+        <div id="corrWarn"></div>
+      </div>
+
+      <div class="card hidden" id="corrResultCard">
+        <h3>相关系数热力图 <span class="hint">（🔴 红色 = 正相关　🔵 蓝色 = 负相关，点击格子查看散点图）</span></h3>
+        <div style="overflow-x:auto"><canvas id="corrHeatmap"></canvas></div>
+
+        <h4>相关系数矩阵（含显著性星号：*p&lt;0.05　**p&lt;0.01　***p&lt;0.001）</h4>
+        <div style="overflow-x:auto" id="corrMatrixDiv"></div>
+        <div class="row">
+          <button class="btn btn-ghost btn-sm" id="corrCopy">📋 一键复制矩阵</button>
+          <button class="btn btn-ghost btn-sm" id="corrExport">⬇ 导出 CSV</button>
+        </div>
+
+        <h4 id="corrScatterTitle">散点图</h4>
+        <canvas id="corrScatter" height="120"></canvas>
+      </div>
+    </section>
+
+    <!-- ======================= 页面三：分子对接工作台 ======================= -->
+    <section class="page hidden" id="page-dock">
+      <h2>💊 分子对接工作台</h2>
+      <div class="page-desc">对接前准备（3D 查看、受体/配体文件转换命令、Vina 参数生成）与对接后分析（构象亲和力排序、3D 叠加、相互作用残基列表）。真实对接计算由 AutoDock Vina 完成。</div>
+
+      <div class="card">
+        <h3>📖 使用步骤（从 PDB 获取到 Vina 运行）</h3>
+        <ol class="steps">
+          <li>从 <code>rcsb.org</code> 下载受体结构 <code>receptor.pdb</code>（可先在 PyMOL 中去除水分子与共晶配体）。</li>
+          <li>准备配体文件 <code>ligand.sdf</code> / <code>ligand.pdb</code>（确保氢原子完整、质子化状态正确）。</li>
+          <li>在下方"3D 查看"中载入受体与配体，检查结合口袋位置，读出口袋中心坐标（或用 PyMOL：<code>get_center</code>）。</li>
+          <li>用下方"对接参数生成器"生成 <code>receptor.pdbqt</code> / <code>ligand.pdbqt</code> 转换命令与 <code>config.txt</code>。</li>
+          <li>在 WSL / Windows 中执行转换命令与 <code>vina --config config.txt</code> 开始对接。</li>
+          <li>对接完成后，把输出的 <code>*_out.pdbqt</code> 拖入下方"对接结果查看"，按亲和力排序查看各构象与受体残基相互作用。</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>🔬 3D 查看（受体 + 配体）</h3>
+        <div class="grid-2">
+          <div>
+            <label class="form-label">受体（PDB）</label>
+            <div class="dropzone" id="recDrop">拖入 receptor.pdb 文件，或</div>
+            <div class="row">
+              <label class="btn btn-ghost btn-sm">📂 选择文件<input type="file" id="recFile" accept=".pdb,.txt" style="display:none"></label>
+            </div>
+            <textarea class="seq-input" id="recText" style="height:90px" placeholder="或在此粘贴受体 PDB 内容"></textarea>
+            <div class="row"><button class="btn btn-sm" id="recLoad">载入受体</button><span class="hint" id="recInfo"></span></div>
+          </div>
+          <div>
+            <label class="form-label">配体（PDB / PDBQT）</label>
+            <div class="dropzone" id="ligDrop">拖入 ligand.pdb / .pdbqt 文件，或</div>
+            <div class="row">
+              <label class="btn btn-ghost btn-sm">📂 选择文件<input type="file" id="ligFile" accept=".pdb,.pdbqt,.txt" style="display:none"></label>
+            </div>
+            <textarea class="seq-input" id="ligText" style="height:90px" placeholder="或在此粘贴配体 PDB/PDBQT 内容"></textarea>
+            <div class="row"><button class="btn btn-sm" id="ligLoad">载入配体</button><span class="hint" id="ligInfo"></span></div>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <div id="viewer3d"><div class="hint" style="padding:20px;text-align:center">载入受体或配体后将在此显示 3D 结构（受体 cartoon 蓝色，配体 stick 橙色高亮）</div></div>
+          <div class="row">
+            <button class="btn btn-ghost btn-sm" id="dockClear">清空 3D 视图</button>
+            <span class="hint">鼠标左键旋转 · 滚轮缩放 · 右键平移</span>
+          </div>
+          <div id="dockWarn"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>⚙️ 对接参数生成器（AutoDock Vina）</h3>
+        <div class="grid-6">
+          <div><label class="form-label">中心 X (Å)</label><input type="number" id="paramCenterX" value="0" step="0.001"></div>
+          <div><label class="form-label">中心 Y (Å)</label><input type="number" id="paramCenterY" value="0" step="0.001"></div>
+          <div><label class="form-label">中心 Z (Å)</label><input type="number" id="paramCenterZ" value="0" step="0.001"></div>
+          <div><label class="form-label">尺寸 X (Å)</label><input type="number" id="paramSizeX" value="22" step="1" min="4"></div>
+          <div><label class="form-label">尺寸 Y (Å)</label><input type="number" id="paramSizeY" value="22" step="1" min="4"></div>
+          <div><label class="form-label">尺寸 Z (Å)</label><input type="number" id="paramSizeZ" value="22" step="1" min="4"></div>
+        </div>
+        <div class="grid-6" style="margin-top:10px">
+          <div><label class="form-label">exhaustiveness</label><input type="number" id="paramExhaust" value="8" min="1"></div>
+          <div><label class="form-label">num_modes</label><input type="number" id="paramModes" value="9" min="1"></div>
+          <div><label class="form-label">energy_range</label><input type="number" id="paramEnergy" value="3" min="1"></div>
+          <div><label class="form-label">seed</label><input type="number" id="paramSeed" value="42"></div>
+          <div><label class="form-label">cpu</label><input type="number" id="paramCpu" value="4" min="1"></div>
+        </div>
+        <div class="row"><button class="btn" id="paramGen">⚙ 生成配置与命令</button></div>
+        <div class="hidden" id="paramOut">
+          <h4>① vina 配置文件 config.txt</h4>
+          <div class="code-block"><button class="btn btn-sm copy-btn" data-copy-target="outConfig">📋 一键复制</button><pre id="outConfig"></pre></div>
+          <h4>② 受体 / 配体转换命令（Windows + WSL 双版本）</h4>
+          <div class="code-block"><button class="btn btn-sm copy-btn" data-copy-target="outConvert">📋 一键复制</button><pre id="outConvert"></pre></div>
+          <h4>③ Vina 运行命令</h4>
+          <div class="code-block"><button class="btn btn-sm copy-btn" data-copy-target="outRun">📋 一键复制</button><pre id="outRun"></pre></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>📊 对接结果查看（Vina 输出 *_out.pdbqt）</h3>
+        <div class="row">
+          <label class="btn btn-ghost btn-sm">📂 选择 Vina 输出文件<input type="file" id="vinaFile" accept=".pdbqt,.txt" style="display:none"></label>
+          <span class="hint">文件含多个 MODEL，自动解析 REMARK VINA RESULT 亲和力</span>
+        </div>
+        <div class="hidden" id="vinaResultBlock">
+          <h4>构象亲和力列表（按能量从低到高排序，点击行在 3D 视图中叠加显示）</h4>
+          <div style="overflow-x:auto"><table class="data" id="vinaTable"></table></div>
+          <h4>相互作用残基（配体最近原子距离 &lt; 4.0 Å 的受体残基）</h4>
+          <div id="contactList" class="hint">请先点击上方某一构象。</div>
+        </div>
+        <div id="vinaWarn"></div>
+      </div>
+    </section>
+
+    <!-- ======================= 页面四：序列小工具 ======================= -->
+    <section class="page hidden" id="page-tools">
+      <h2>🧪 序列小工具</h2>
+      <div class="page-desc">序列统计、GC 含量、碱基/氨基酸组成、分子量与 Tm、理论等电点、反向互补、6 框翻译、疏水性分析。</div>
+
+      <div class="card">
+        <h3>输入序列</h3>
+        <textarea class="seq-input" id="toolSeq" placeholder="粘贴 DNA / RNA / 蛋白质序列（支持 FASTA）"></textarea>
+        <div class="row">
+          <label class="btn btn-ghost btn-sm">📂 上传文件<input type="file" id="toolFile" accept=".txt,.fa,.fasta,.seq,.faa" style="display:none"></label>
+          <button class="btn btn-ghost btn-sm" id="toolExample">载入示例</button>
+          <button class="btn" id="toolRun">▶ 统计分析</button>
+          <button class="btn btn-ghost" id="toolRevComp">反向互补（核酸）</button>
+          <button class="btn btn-ghost" id="toolTranslate">6 框翻译（核酸）</button>
+          <button class="btn btn-ghost" id="toolClear">清空</button>
+          <span class="hint" id="toolType"></span>
+        </div>
+      </div>
+
+      <div class="card hidden" id="toolResultCard">
+        <h3>分析结果</h3>
+        <pre class="aln" id="toolResult" style="white-space:pre-wrap"></pre>
+        <div class="row"><button class="btn btn-ghost btn-sm" id="toolCopy">📋 一键复制结果</button></div>
+        <h4>组成分布</h4>
+        <canvas id="toolChart"></canvas>
+      </div>
+
+      <div class="card hidden" id="toolRC6Card">
+        <h3>反向互补 / 六框翻译结果</h3>
+        <div id="toolRC6Out"></div>
+        <div class="row"><button class="btn btn-ghost btn-sm" id="toolRC6Copy">📋 一键复制本区结果</button></div>
+      </div>
+    </section>
+
+    <!-- ======================= 页面五：系统发育树 ======================= -->
+    <section class="page hidden" id="page-phylo">
+      <h2>🌳 系统发育树</h2>
+      <div class="page-desc">基于多序列 FASTA 自动计算 p-距离矩阵，或直接输入距离矩阵 / Newick 树，用 Neighbor-Joining（邻接法）或 UPGMA（类平均法）构建进化树，SVG 可视化，支持导出 Newick 与距离矩阵。</div>
+
+      <div class="card">
+        <h3>输入数据</h3>
+        <div class="row">
+          <label><input type="radio" name="phyloInputType" value="fasta" checked> 多序列 FASTA（自动计算 p-距离）</label>
+          <label><input type="radio" name="phyloInputType" value="matrix"> 距离矩阵（下三角或全矩阵）</label>
+          <label><input type="radio" name="phyloInputType" value="newick"> Newick 树（直接解析展示）</label>
+        </div>
+        <div style="margin-top:10px">
+          <textarea class="seq-input" id="phyloInput" style="height:150px" placeholder="多序列 FASTA：&gt;名称&#10;ATGCGT...（至少 3 条）&#10;或粘贴距离矩阵（首列名称）/ Newick 字符串"></textarea>
+        </div>
+        <div class="row">
+          <label class="btn btn-ghost btn-sm">📂 上传文件<input type="file" id="phyloFile" accept=".txt,.fa,.fasta,.nwk,.tre" style="display:none"></label>
+          <button class="btn btn-ghost btn-sm" id="phyloExampleFasta">载入 FASTA 示例</button>
+          <button class="btn btn-ghost btn-sm" id="phyloExampleMatrix">载入矩阵示例</button>
+          <select id="phyloMethod" style="width:auto">
+            <option value="nj">Neighbor-Joining（邻接法，推荐）</option>
+            <option value="upgma">UPGMA（类平均法，假定分子钟）</option>
+          </select>
+          <button class="btn" id="phyloRun">▶ 构建进化树</button>
+          <button class="btn btn-ghost" id="phyloClear">清空</button>
+        </div>
+        <div class="hint" style="margin-top:6px">FASTA 模式建议使用比对后的等长序列；p-距离 = 差异位点数 ÷ 有效位点数（自动忽略 gap -、模糊碱基 N、缺失 ?）。</div>
+        <div id="phyloWarn"></div>
+      </div>
+
+      <div class="card hidden" id="phyloResultCard">
+        <h3>进化树</h3>
+        <div style="overflow-x:auto" id="phyloTreeDiv"></div>
+        <h4>Newick 字符串（枝长保留 4 位小数）</h4>
+        <div class="code-block"><button class="btn btn-sm copy-btn" data-copy-target="phyloNewick">📋 一键复制</button><pre id="phyloNewick"></pre></div>
+        <div class="hidden" id="phyloMatrixBlock">
+          <h4>距离矩阵</h4>
+          <div style="overflow-x:auto" id="phyloMatrixDiv"></div>
+          <div class="row"><button class="btn btn-ghost btn-sm" id="phyloExport">⬇ 导出矩阵 CSV</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= 页面六：引物设计 ======================= -->
+    <section class="page hidden" id="page-primer">
+      <h2>🎯 引物设计</h2>
+      <div class="page-desc">输入 DNA 模板，按引物长度、Tm、GC 含量、3' GC clamp、二聚体 / 发夹 / 连续同碱基等规则滑动窗口扫描并评分，输出 Top 5 引物对。简化版规则仅供快速筛查，重要实验请用 Primer3 等专业软件复核。</div>
+
+      <div class="card">
+        <h3>模板序列与设计参数</h3>
+        <textarea class="seq-input" id="primerTemplate" style="height:130px" placeholder="粘贴 DNA 模板序列（支持 FASTA，仅使用 A/C/G/T，建议长度 ≥ 产物最大长度）"></textarea>
+        <div class="row">
+          <label class="btn btn-ghost btn-sm">📂 上传文件<input type="file" id="primerFile" accept=".txt,.fa,.fasta,.seq" style="display:none"></label>
+          <button class="btn btn-ghost btn-sm" id="primerExample">载入示例模板（800 bp）</button>
+          <button class="btn btn-ghost" id="primerClear">清空</button>
+          <span class="hint" id="primerInfo"></span>
+        </div>
+        <h4>设计参数</h4>
+        <div class="grid-6">
+          <div><label class="form-label">产物最小 (bp)</label><input type="number" id="pProdMin" value="100" min="20"></div>
+          <div><label class="form-label">产物最大 (bp)</label><input type="number" id="pProdMax" value="500" min="30"></div>
+          <div><label class="form-label">引物长度 min</label><input type="number" id="pLenMin" value="18" min="15" max="30"></div>
+          <div><label class="form-label">引物长度 max</label><input type="number" id="pLenMax" value="25" min="15" max="30"></div>
+          <div><label class="form-label">Tm 下限 (℃)</label><input type="number" id="pTmMin" value="58" min="40" max="80"></div>
+          <div><label class="form-label">Tm 上限 (℃)</label><input type="number" id="pTmMax" value="62" min="40" max="85"></div>
+        </div>
+        <div class="grid-6" style="margin-top:10px">
+          <div><label class="form-label">GC% 下限</label><input type="number" id="pGcMin" value="40" min="5" max="95"></div>
+          <div><label class="form-label">GC% 上限</label><input type="number" id="pGcMax" value="60" min="5" max="95"></div>
+        </div>
+        <div class="hint" style="margin-top:6px">Tm 采用 Wallace 2/4 法则快速估算（2×(A+T) + 4×(G+C)，适用于 ≤30 nt 筛查）；两条引物 Tm 差 ≤2℃ 优先。</div>
+        <div class="row"><button class="btn" id="primerRun">▶ 设计引物</button></div>
+        <div id="primerWarn"></div>
+      </div>
+
+      <div class="card hidden" id="primerResultCard">
+        <h3>引物对结果（按综合评分降序）</h3>
+        <div id="primerResult"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer>中文生信工具整合站 · 纯前端本地计算 · 数据不上传服务器 · 仅供科研辅助使用</footer>
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* =========================================================================
+ * 通用工具
+ * ========================================================================= */
+function $(id) { return document.getElementById(id); }
+
+function showToast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove("show"), 1800);
+}
+
+function copyText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(
+      () => showToast("已复制到剪贴板"),
+      () => fallbackCopy(text)
+    );
+  } else {
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); showToast("已复制到剪贴板"); }
+  catch (e) { showToast("复制失败，请手动选择复制"); }
+  document.body.removeChild(ta);
+}
+
+function readFileToText(file, cb) {
+  const reader = new FileReader();
+  reader.onload = (e) => cb(String(e.target.result || ""));
+  reader.onerror = () => showToast("文件读取失败");
+  reader.readAsText(file, "UTF-8");
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/** 解析序列输入：去除 FASTA 头行、注释行与空白字符 */
+function parseSeqInput(raw) {
+  const lines = String(raw || "").split(/\r?\n/);
+  let seq = "";
+  for (const line of lines) {
+    const t = line.trim();
+    if (!t || t.startsWith(">") || t.startsWith(";")) continue;
+    seq += t;
+  }
+  return seq.replace(/[^A-Za-z\-*.]/g, "").toUpperCase();
+}
+
+/** 识别序列类型：dna / rna / protein / unknown */
+function detectSeqType(seq) {
+  if (!seq) return "unknown";
+  const nucSet = new Set(["A", "C", "G", "T", "U", "N"]);
+  let hasT = false, hasU = false;
+  for (const ch of seq) {
+    if (!nucSet.has(ch)) return "protein";
+    if (ch === "T") hasT = true;
+    if (ch === "U") hasU = true;
+  }
+  if (hasT && hasU) return "dna";
+  if (hasU) return "rna";
+  return "dna";
+}
+
+function fmtNum(v, digits) {
+  if (!isFinite(v)) return "—";
+  return v.toFixed(digits === undefined ? 3 : digits);
+}
+
+/* =========================================================================
+ * 模块一：序列比对引擎
+ * ========================================================================= */
+/* 内置完整 BLOSUM62 替换矩阵（20 标准氨基酸） */
+const BLOSUM62 = {
+  A:{A:4,R:-1,N:-2,D:-2,C:0,Q:-1,E:-1,G:0,H:-2,I:-1,L:-1,K:-1,M:-1,F:-2,P:-1,S:1,T:0,W:-3,Y:-2,V:0},
+  R:{A:-1,R:5,N:0,D:-2,C:-3,Q:1,E:0,G:-2,H:0,I:-3,L:-2,K:2,M:-1,F:-3,P:-2,S:-1,T:-1,W:-3,Y:-2,V:-3},
+  N:{A:-2,R:0,N:6,D:1,C:-3,Q:0,E:0,G:0,H:1,I:-3,L:-3,K:0,M:-2,F:-3,P:-2,S:1,T:0,W:-4,Y:-2,V:-3},
+  D:{A:-2,R:-2,N:1,D:6,C:-3,Q:0,E:2,G:-1,H:-1,I:-3,L:-4,K:-1,M:-3,F:-3,P:-1,S:0,T:-1,W:-4,Y:-3,V:-3},
+  C:{A:0,R:-3,N:-3,D:-3,C:9,Q:-3,E:-4,G:-3,H:-3,I:-1,L:-1,K:-3,M:-1,F:-2,P:-3,S:-1,T:-1,W:-2,Y:-2,V:-1},
+  Q:{A:-1,R:1,N:0,D:0,C:-3,Q:5,E:2,G:-2,H:0,I:-3,L:-2,K:1,M:0,F:-3,P:-1,S:0,T:-1,W:-2,Y:-1,V:-2},
+  E:{A:-1,R:0,N:0,D:2,C:-4,Q:2,E:5,G:-2,H:0,I:-3,L:-3,K:1,M:-2,F:-3,P:-1,S:0,T:-1,W:-3,Y:-2,V:-2},
+  G:{A:0,R:-2,N:0,D:-1,C:-3,Q:-2,E:-2,G:6,H:-2,I:-4,L:-4,K:-2,M:-3,F:-3,P:-2,S:0,T:-2,W:-2,Y:-3,V:-3},
+  H:{A:-2,R:0,N:1,D:-1,C:-3,Q:0,E:0,G:-2,H:8,I:-3,L:-3,K:-1,M:-2,F:-1,P:-2,S:-1,T:-2,W:-2,Y:2,V:-3},
+  I:{A:-1,R:-3,N:-3,D:-3,C:-1,Q:-3,E:-3,G:-4,H:-3,I:4,L:2,K:-3,M:1,F:0,P:-3,S:-2,T:-1,W:-3,Y:-1,V:3},
+  L:{A:-1,R:-2,N:-3,D:-4,C:-1,Q:-2,E:-3,G:-4,H:-3,I:2,L:4,K:-2,M:2,F:0,P:-3,S:-2,T:-1,W:-2,Y:-1,V:1},
+  K:{A:-1,R:2,N:0,D:-1,C:-3,Q:1,E:1,G:-2,H:-1,I:-3,L:-2,K:5,M:-1,F:-3,P:-1,S:0,T:-1,W:-3,Y:-2,V:-2},
+  M:{A:-1,R:-1,N:-2,D:-3,C:-1,Q:0,E:-2,G:-3,H:-2,I:1,L:2,K:-1,M:5,F:0,P:-2,S:-1,T:-1,W:-1,Y:-1,V:1},
+  F:{A:-2,R:-3,N:-3,D:-3,C:-2,Q:-3,E:-3,G:-3,H:-1,I:0,L:0,K:-3,M:0,F:6,P:-4,S:-2,T:-2,W:1,Y:3,V:-1},
+  P:{A:-1,R:-2,N:-2,D:-1,C:-3,Q:-1,E:-1,G:-2,H:-2,I:-3,L:-3,K:-1,M:-2,F:-4,P:7,S:-1,T:-1,W:-4,Y:-3,V:-2},
+  S:{A:1,R:-1,N:1,D:0,C:-1,Q:0,E:0,G:0,H:-1,I:-2,L:-2,K:0,M:-1,F:-2,P:-1,S:4,T:1,W:-3,Y:-2,V:-2},
+  T:{A:0,R:-1,N:0,D:-1,C:-1,Q:-1,E:-1,G:-2,H:-2,I:-1,L:-1,K:-1,M:-1,F:-2,P:-1,S:1,T:5,W:-2,Y:-2,V:0},
+  W:{A:-3,R:-3,N:-4,D:-4,C:-2,Q:-2,E:-3,G:-2,H:-2,I:-3,L:-2,K:-3,M:-1,F:1,P:-4,S:-3,T:-2,W:11,Y:2,V:-3},
+  Y:{A:-2,R:-2,N:-2,D:-3,C:-2,Q:-1,E:-2,G:-3,H:2,I:-1,L:-1,K:-2,M:-1,F:3,P:-3,S:-2,T:-2,W:2,Y:7,V:-1},
+  V:{A:0,R:-3,N:-3,D:-3,C:-1,Q:-2,E:-2,G:-3,H:-3,I:3,L:1,K:-2,M:1,F:-1,P:-2,S:-2,T:0,W:-3,Y:-1,V:4}
+};
+
+/** 蛋白质打分：BLOSUM62 查表，未知残基按 -1 处理 */
+function protScore(a, b) {
+  const row = BLOSUM62[a];
+  if (row && row[b] !== undefined) return row[b];
+  return -1;
+}
+
+/** 动态规划比对：mode = 'global'（Needleman-Wunsch）| 'local'（Smith-Waterman） */
+function pairAlign(s1, s2, mode, scoreFn, gap) {
+  const n = s1.length, m = s2.length;
+  const W = m + 1;
+  const H = new Float64Array((n + 1) * W);
+  const D = new Uint8Array((n + 1) * W); // 0 停止, 1 对角, 2 上, 3 左
+
+  if (mode === "global") {
+    for (let j = 1; j <= m; j++) { H[j] = j * gap; D[j] = 3; }
+    for (let i = 1; i <= n; i++) { H[i * W] = i * gap; D[i * W] = 2; }
+  }
+  let maxI = 0, maxJ = 0, maxScore = 0;
+  for (let i = 1; i <= n; i++) {
+    for (let j = 1; j <= m; j++) {
+      const idx = i * W + j;
+      const d = H[idx - W - 1] + scoreFn(s1[i - 1], s2[j - 1]);
+      const u = H[idx - W] + gap;
+      const l = H[idx - 1] + gap;
+      let best = d, dir = 1;
+      if (u > best) { best = u; dir = 2; }
+      if (l > best) { best = l; dir = 3; }
+      if (mode === "local" && best < 0) { best = 0; dir = 0; }
+      H[idx] = best;
+      D[idx] = dir;
+      if (mode === "local" && best > maxScore) { maxScore = best; maxI = i; maxJ = j; }
+    }
+  }
+  let i, j;
+  if (mode === "global") { i = n; j = m; } else { i = maxI; j = maxJ; }
+  const finalScore = mode === "global" ? H[n * W + m] : maxScore;
+
+  let a1 = "", a2 = "";
+  while (i > 0 || j > 0) {
+    const dir = D[i * W + j];
+    if (mode === "local" && dir === 0) break;
+    if (dir === 1 && i > 0 && j > 0) { a1 += s1[i - 1]; a2 += s2[j - 1]; i--; j--; }
+    else if (dir === 2 || j === 0) { a1 += s1[i - 1]; a2 += "-"; i--; }
+    else if (dir === 3 || i === 0) { a1 += "-"; a2 += s2[j - 1]; j--; }
+    else break;
+  }
+  a1 = a1.split("").reverse().join("");
+  a2 = a2.split("").reverse().join("");
+
+  let identical = 0, similar = 0, alignedLen = 0, gaps = 0;
+  for (let k = 0; k < a1.length; k++) {
+    const c1 = a1[k], c2 = a2[k];
+    if (c1 === "-" || c2 === "-") { gaps++; continue; }
+    alignedLen++;
+    if (c1 === c2) identical++;
+    else if (scoreFn(c1, c2) > 0) similar++;
+  }
+  return { a1, a2, score: finalScore, identical, similar, alignedLen, gaps };
+}
+
+/** 渲染比对结果（每行 60 列，带位置标注与配对列着色） */
+function renderAlignment(res, scoreFn) {
+  const CHUNK = 60;
+  let html = "";
+  let p1 = 0, p2 = 0; // 已消费的非空位残基数
+  for (let start = 0; start < res.a1.length; start += CHUNK) {
+    const seg1 = res.a1.slice(start, start + CHUNK);
+    const seg2 = res.a2.slice(start, start + CHUNK);
+    const s1Start = p1 + 1, s2Start = p2 + 1;
+    let line1 = "", line2 = "", mid = "";
+    for (let k = 0; k < seg1.length; k++) {
+      const c1 = seg1[k], c2 = seg2[k];
+      let cls, mch;
+      if (c1 === "-" || c2 === "-") { cls = "aln-gap"; mch = " "; }
+      else if (c1 === c2) { cls = "aln-id"; mch = "|"; }
+      else if (scoreFn(c1, c2) > 0) { cls = "aln-sim"; mch = ":"; }
+      else { cls = "aln-mm"; mch = " "; }
+      line1 += '<span class="' + cls + '">' + c1 + "</span>";
+      line2 += '<span class="' + cls + '">' + c2 + "</span>";
+      mid += mch;
+      if (c1 !== "-") p1++;
+      if (c2 !== "-") p2++;
+    }
+    html += '<div class="aln-pos">序列1 位置 ' + s1Start + "-" + p1 + "　　序列2 位置 " + s2Start + "-" + p2 + "</div>";
+    html += line1 + "\n" + mid + "\n" + line2 + "\n\n";
+  }
+  return html;
+}
+
+const ALN_EXAMPLE_DNA_1 = "ATGCGTACCTGAGGCTTAACGGTATCGATCGGATCCATGGCTAGCTAAGGCTTAACGGATCCGTACGATCGGATCCTAG";
+const ALN_EXAMPLE_DNA_2 = "ATGCGTACCTGAGGCTTAACGGTATCGATCGGATCCATGGCTAGCTAGGGCTTAACGGATCCGTACGATCGGATCCTAGCTA";
+const ALN_EXAMPLE_PROT_1 = "MVLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHF";
+const ALN_EXAMPLE_PROT_2 = "MVLSPADKTNVKAAWGKVGAHAGDYGAEALERMFLGFPTTKTYFPHFDL";
+
+let alnLastScoreFn = null;
+
+function alnUpdateInfo() {
+  const s1 = parseSeqInput($("alnSeq1").value);
+  const s2 = parseSeqInput($("alnSeq2").value);
+  $("alnInfo1").textContent = s1 ? "已识别：" + ({ dna: "DNA", rna: "RNA", protein: "蛋白质" })[detectSeqType(s1)] + "，长度 " + s1.length : "";
+  $("alnInfo2").textContent = s2 ? "已识别：" + ({ dna: "DNA", rna: "RNA", protein: "蛋白质" })[detectSeqType(s2)] + "，长度 " + s2.length : "";
+}
+
+function alnRun() {
+  $("alnWarn").innerHTML = "";
+  let s1 = parseSeqInput($("alnSeq1").value);
+  let s2 = parseSeqInput($("alnSeq2").value);
+  if (!s1 || !s2) { $("alnWarn").innerHTML = '<div class="err-box">错误：请输入两条非空序列（支持 FASTA 或纯文本）。</div>'; return; }
+
+  // 长度限制与性能警告
+  const MAX_LEN = 3000;
+  let warned = false;
+  if (s1.length > 2000 || s2.length > 2000) warned = true;
+  if (s1.length > MAX_LEN) s1 = s1.slice(0, MAX_LEN);
+  if (s2.length > MAX_LEN) s2 = s2.slice(0, MAX_LEN);
+  if (warned) {
+    $("alnWarn").innerHTML = '<div class="warn-box">⚠ 性能提示：序列长度超过 2000，动态规划计算量较大（O(n×m)），已自动截断到 ' + MAX_LEN + ' 以内，超出部分不参与比对。</div>';
+  }
+
+  const t1 = detectSeqType(s1), t2 = detectSeqType(s2);
+  const modeEl = document.querySelector('input[name="alnMode"]:checked');
+  const mode = modeEl ? modeEl.value : "global";
+
+  let scoreFn;
+  if (t1 === "protein" || t2 === "protein") {
+    if ((t1 === "protein") !== (t2 === "protein")) {
+      $("alnWarn").innerHTML = '<div class="warn-box">⚠ 两条序列类型不同（核酸 vs 蛋白质），请检查输入。已按蛋白质 BLOSUM62 打分处理。</div>';
+    }
+    scoreFn = protScore;
+  } else {
+    const match = parseFloat($("matchScore").value);
+    const mismatch = parseFloat($("mismatchScore").value);
+    if (isNaN(match) || isNaN(mismatch)) { $("alnWarn").innerHTML = '<div class="err-box">错误：匹配/错配打分必须为数字。</div>'; return; }
+    scoreFn = function (a, b) { return a === b ? match : mismatch; };
+  }
+  let gap = parseFloat($("gapPenalty").value);
+  if (isNaN(gap)) gap = -2;
+  if (gap > 0) { gap = -gap; $("alnWarn").innerHTML += '<div class="warn-box">⚠ Gap 罚分应为负值，已自动取相反数。</div>'; }
+
+  alnLastScoreFn = scoreFn;
+  const res = pairAlign(s1, s2, mode, scoreFn, gap);
+  const identity = res.alignedLen > 0 ? (res.identical / res.alignedLen * 100) : 0;
+  const similarity = res.alignedLen > 0 ? ((res.identical + res.similar) / res.alignedLen * 100) : 0;
+
+  const typeName = { dna: "DNA", rna: "RNA", protein: "蛋白质" };
+  const modeName = mode === "global" ? "Needleman-Wunsch 全局比对" : "Smith-Waterman 局部比对";
+  $("alnStats").innerHTML =
+    "<tr><th>比对模式</th><td>" + modeName + "</td><th>打分方案</th><td>" +
+    (scoreFn === protScore ? "BLOSUM62 替换矩阵" : "匹配 " + matchSafeText(matchScoreValue()) + " / 错配 " + matchSafeText(mismatchScoreValue()) + "，线性 gap " + gap) +
+    "</td></tr>" +
+    "<tr><th>序列 1 类型 / 长度</th><td>" + typeName[t1] + " / " + s1.length + "</td><th>序列 2 类型 / 长度</th><td>" + typeName[t2] + " / " + s2.length + "</td></tr>" +
+    "<tr><th>比对得分</th><td>" + res.score + "</td><th>比对长度（非空位列）</th><td>" + res.alignedLen + "</td></tr>" +
+    "<tr><th>一致列 / 一致度</th><td>" + res.identical + " / " + identity.toFixed(2) + "%</td><th>相似列（含一致）/ 相似度</th><td>" + (res.identical + res.similar) + " / " + similarity.toFixed(2) + "%</td></tr>" +
+    "<tr><th>空位列数</th><td>" + res.gaps + "</td><th></th><td></td></tr>";
+  $("alnResult").innerHTML = renderAlignment(res, scoreFn);
+  $("alnResultCard").classList.remove("hidden");
+}
+
+function matchScoreValue() { return parseFloat($("matchScore").value) || 0; }
+function mismatchScoreValue() { return parseFloat($("mismatchScore").value) || 0; }
+function matchSafeText(v) { return isFinite(v) ? v : "—"; }
+
+/* =========================================================================
+ * 模块二：相关性分析引擎
+ * ========================================================================= */
+/* --- 数学基础：误差函数、Gamma、不完全 Beta、t 分布 --- */
+function erf(x) {
+  const sign = x < 0 ? -1 : 1;
+  x = Math.abs(x);
+  const t = 1 / (1 + 0.3275911 * x);
+  const y = 1 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+  return sign * y;
+}
+function gammaln(x) {
+  const g = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5];
+  let y = x;
+  const tmp = x + 5.5 - (x + 0.5) * Math.log(x + 5.5);
+  let ser = 1.000000000190015;
+  for (let j = 0; j < 6; j++) { y += 1; ser += g[j] / y; }
+  return -(tmp) + Math.log(2.5066282746310005 * ser / x);
+}
+function betacf(a, b, x) {
+  const MAXIT = 200, EPS = 3e-12, FPMIN = 1e-300;
+  const qab = a + b, qap = a + 1, qam = a - 1;
+  let c = 1, d = 1 - qab * x / qap;
+  if (Math.abs(d) < FPMIN) d = FPMIN;
+  d = 1 / d;
+  let h = d;
+  for (let m = 1; m <= MAXIT; m++) {
+    const m2 = 2 * m;
+    let aa = m * (b - m) * x / ((qam + m2) * (a + m2));
+    d = 1 + aa * d; if (Math.abs(d) < FPMIN) d = FPMIN;
+    c = 1 + aa / c; if (Math.abs(c) < FPMIN) c = FPMIN;
+    d = 1 / d; h *= d * c;
+    aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2));
+    d = 1 + aa * d; if (Math.abs(d) < FPMIN) d = FPMIN;
+    c = 1 + aa / c; if (Math.abs(c) < FPMIN) c = FPMIN;
+    d = 1 / d;
+    const del = d * c;
+    h *= del;
+    if (Math.abs(del - 1) < EPS) break;
+  }
+  return h;
+}
+/** 正则化不完全 Beta 函数 I_x(a,b) */
+function ibeta(a, b, x) {
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  const bt = Math.exp(gammaln(a + b) - gammaln(a) - gammaln(b) + a * Math.log(x) + b * Math.log(1 - x));
+  if (x < (a + 1) / (a + b + 2)) return bt * betacf(a, b, x) / a;
+  return 1 - bt * betacf(b, a, 1 - x) / b;
+}
+/** t 分布双尾 p 值 */
+function tTwoTailP(t, df) {
+  if (!isFinite(t) || df <= 0) return NaN;
+  return ibeta(df / 2, 0.5, df / (df + t * t));
+}
+/** 标准正态双尾 p 值 */
+function normalTwoTailP(z) {
+  if (!isFinite(z)) return NaN;
+  return 1 - erf(Math.abs(z) / Math.SQRT2);
+}
+
+/* --- 相关系数计算 --- */
+function pearsonR(x, y) {
+  const n = x.length;
+  if (n < 3) return NaN;
+  let sx = 0, sy = 0, sxy = 0, sxx = 0, syy = 0;
+  for (let i = 0; i < n; i++) {
+    sx += x[i]; sy += y[i]; sxy += x[i] * y[i]; sxx += x[i] * x[i]; syy += y[i] * y[i];
+  }
+  const num = n * sxy - sx * sy;
+  const den = Math.sqrt((n * sxx - sx * sx) * (n * syy - sy * sy));
+  return den === 0 ? NaN : num / den;
+}
+/** 平均秩（并列取平均） */
+function rankData(arr) {
+  const idx = arr.map((v, i) => i).sort((a, b) => arr[a] - arr[b]);
+  const ranks = new Array(arr.length);
+  let i = 0;
+  while (i < idx.length) {
+    let j = i;
+    while (j + 1 < idx.length && arr[idx[j + 1]] === arr[idx[i]]) j++;
+    const avg = (i + j) / 2 + 1;
+    for (let k = i; k <= j; k++) ranks[idx[k]] = avg;
+    i = j + 1;
+  }
+  return ranks;
+}
+function spearmanR(x, y) { return pearsonR(rankData(x), rankData(y)); }
+
+function kendallTau(x, y) {
+  const n = x.length;
+  if (n < 3) return NaN;
+  let c = 0, d = 0, tx = 0, ty = 0;
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const dx = Math.sign(x[i] - x[j]);
+      const dy = Math.sign(y[i] - y[j]);
+      const s = dx * dy;
+      if (s > 0) c++;
+      else if (s < 0) d++;
+      if (dx === 0) tx++;
+      if (dy === 0) ty++;
+    }
+  }
+  const n0 = n * (n - 1) / 2;
+  const den = Math.sqrt((n0 - tx) * (n0 - ty));
+  if (den === 0) return NaN;
+  return (c - d) / den;
+}
+
+function sigStars(p) {
+  if (!isFinite(p)) return "";
+  if (p < 0.001) return "***";
+  if (p < 0.01) return "**";
+  if (p < 0.05) return "*";
+  return "";
+}
+function coeffPValue(method, r, n) {
+  if (method === "kendall") {
+    const z = 3 * r * Math.sqrt(n * (n - 1)) / Math.sqrt(2 * (2 * n + 5));
+    return normalTwoTailP(Math.abs(z));
+  }
+  if (!isFinite(r) || Math.abs(r) >= 1 || n <= 2) return NaN;
+  const t = r * Math.sqrt((n - 2) / (1 - r * r));
+  return tTwoTailP(t, n - 2);
+}
+
+/* --- 表格解析 --- */
+function parseTable(text) {
+  const lines = String(text || "").split(/\r?\n/).filter(l => l.trim() !== "");
+  if (lines.length < 2) return null;
+  let delim = null;
+  for (const l of lines) {
+    if (l.includes("\t")) { delim = "\t"; break; }
+    if (l.includes(",")) { delim = ","; break; }
+    if (l.includes(";")) { delim = ";"; break; }
+  }
+  if (!delim) delim = /\s+/;
+  const rows = lines.map(l => l.split(delim).map(c => c.trim()));
+  const header = rows[0];
+  const body = rows.slice(1);
+  const nCol = header.length;
+  if (nCol < 2 || body.length < 3) return null;
+
+  // 第一遍：按列判断哪些列是数值列（数值占比 >= 80% 且至少 3 个数值）
+  const numericFlags = [];
+  for (let c = 0; c < nCol; c++) {
+    let numeric = 0, total = 0;
+    for (const r of body) {
+      if (c >= r.length) continue;
+      total++;
+      if (isFinite(parseFloat(r[c]))) numeric++;
+    }
+    numericFlags[c] = total > 0 && numeric / total >= 0.8 && numeric >= 3;
+  }
+  const selectedCols = [];
+  for (let c = 0; c < nCol; c++) {
+    if (numericFlags[c]) selectedCols.push(c);
+  }
+  if (selectedCols.length < 2) return null;
+
+  // 第二遍：按"行"重建各列 values —— 某行在任一入选列上缺失或非数值时丢弃整行，
+  // 保证入选列之间的 values 逐行对齐（避免列间错位导致相关性计算错误）
+  const colData = selectedCols.map(c => ({ name: header[c] || ("变量" + (c + 1)), values: [] }));
+  let validRows = 0;
+  for (const r of body) {
+    const vals = [];
+    let ok = true;
+    for (const c of selectedCols) {
+      const v = c < r.length ? parseFloat(r[c]) : NaN;
+      if (!isFinite(v)) { ok = false; break; }
+      vals.push(v);
+    }
+    if (!ok) continue;
+    validRows++;
+    for (let k = 0; k < colData.length; k++) colData[k].values.push(vals[k]);
+  }
+  if (validRows < 3) return null;
+  return colData;
+}
+
+/* --- 相关性模块状态与渲染 --- */
+let corrColumns = null;
+let corrResult = null;   // { names, r, p, method }
+let heatInfo = null;
+let scatterChart = null;
+
+function corrExampleData() {
+  let s = 42;
+  const rnd = function () { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
+  const lines = ["基因A表达,基因B表达,基因C表达,结合能,logP,分子量"];
+  for (let i = 0; i < 30; i++) {
+    const a = 2 + rnd() * 10;
+    const b = a * 0.8 + rnd() * 3;
+    const c = 8 - a * 0.5 + rnd() * 4;
+    const e = 20 - 0.6 * b + rnd() * 2;
+    const lp = 1 + 0.05 * a + rnd() * 1.5;
+    const mw = 150 + rnd() * 200;
+    lines.push([a, b, c, e, lp, mw].map(v => v.toFixed(3)).join(","));
+  }
+  return lines.join("\n");
+}
+
+function corrRun() {
+  $("corrWarn").innerHTML = "";
+  const cols = parseTable($("corrInput").value);
+  if (!cols) { $("corrWarn").innerHTML = '<div class="err-box">错误：无法解析数据。请确认首行为表头，且至少包含 2 个数值列、3 行数据（支持 CSV / TSV / 空格分隔）。</div>'; return; }
+  corrColumns = cols;
+  const method = $("corrMethod").value;
+  const n = cols.length;
+  const r = [], p = [];
+  for (let i = 0; i < n; i++) { r.push(new Array(n).fill(NaN)); p.push(new Array(n).fill(NaN)); }
+  for (let i = 0; i < n; i++) {
+    r[i][i] = 1; p[i][i] = 0;
+    for (let j = i + 1; j < n; j++) {
+      let v;
+      if (method === "pearson") v = pearsonR(cols[i].values, cols[j].values);
+      else if (method === "spearman") v = spearmanR(cols[i].values, cols[j].values);
+      else v = kendallTau(cols[i].values, cols[j].values);
+      r[i][j] = v; r[j][i] = v;
+      p[i][j] = coeffPValue(method, v, cols[i].values.length);
+      p[j][i] = p[i][j];
+    }
+  }
+  corrResult = { names: cols.map(c => c.name), r, p, method };
+  const methodName = { pearson: "Pearson", spearman: "Spearman", kendall: "Kendall τ" }[method];
+  drawHeatmap();
+  renderCorrMatrix();
+  $("corrResultCard").classList.remove("hidden");
+  $("corrScatterTitle").textContent = "散点图（点击热力图格子或矩阵单元格查看两列关系）";
+}
+
+function corrCellColor(v) {
+  if (!isFinite(v)) return "#eceff1";
+  const alpha = Math.min(0.9, Math.abs(v) * 0.9) + 0.08;
+  return v >= 0 ? "rgba(211,47,47," + alpha + ")" : "rgba(21,101,192," + alpha + ")";
+}
+
+function drawHeatmap() {
+  if (!corrResult) return;
+  const names = corrResult.names, r = corrResult.r;
+  const n = names.length;
+  const cell = Math.max(28, Math.min(56, Math.floor(560 / n)));
+  const leftW = 120, topH = 44;
+  const width = leftW + n * cell + 20;
+  const height = topH + n * cell + 20;
+  const canvas = $("corrHeatmap");
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+  canvas.style.width = width + "px";
+  canvas.style.height = height + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, width, height);
+  ctx.font = "12px 'Microsoft YaHei', sans-serif";
+  // 列名（顶部，竖排首字+旋转）
+  for (let j = 0; j < n; j++) {
+    ctx.save();
+    ctx.translate(leftW + j * cell + cell / 2, topH - 6);
+    ctx.rotate(-Math.PI / 4);
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#333";
+    const label = names[j].length > 8 ? names[j].slice(0, 8) + "…" : names[j];
+    ctx.fillText(label, 0, 0);
+    ctx.restore();
+  }
+  // 行名与格子
+  for (let i = 0; i < n; i++) {
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#333";
+    const rowLabel = names[i].length > 10 ? names[i].slice(0, 10) + "…" : names[i];
+    ctx.fillText(rowLabel, leftW - 8, topH + i * cell + cell / 2 + 4);
+    for (let j = 0; j < n; j++) {
+      const v = r[i][j];
+      ctx.fillStyle = corrCellColor(v);
+      ctx.fillRect(leftW + j * cell + 1, topH + i * cell + 1, cell - 2, cell - 2);
+      ctx.fillStyle = isFinite(v) && Math.abs(v) > 0.55 ? "#fff" : "#333";
+      ctx.textAlign = "center";
+      ctx.fillText(isFinite(v) ? v.toFixed(2) : "—", leftW + j * cell + cell / 2, topH + i * cell + cell / 2 + 4);
+    }
+  }
+  heatInfo = { n, cell, leftW, topH };
+}
+
+function bindHeatmapClick() {
+  $("corrHeatmap").addEventListener("click", function (e) {
+    if (!heatInfo || !corrResult) return;
+    const rect = this.getBoundingClientRect();
+    const scale = this.width / rect.width;
+    const x = (e.clientX - rect.left) * scale / (window.devicePixelRatio || 1);
+    const y = (e.clientY - rect.top) * scale / (window.devicePixelRatio || 1);
+    const col = Math.floor((x - heatInfo.leftW) / heatInfo.cell);
+    const row = Math.floor((y - heatInfo.topH) / heatInfo.cell);
+    if (row >= 0 && row < heatInfo.n && col >= 0 && col < heatInfo.n && row !== col) {
+      showScatter(row, col);
+    }
+  });
+}
+
+function renderCorrMatrix() {
+  if (!corrResult) return;
+  const names = corrResult.names, r = corrResult.r, p = corrResult.p;
+  let html = '<table class="data"><tr><th>变量</th>';
+  for (const nm of names) html += "<th>" + escapeHtml(nm) + "</th>";
+  html += "</tr>";
+  for (let i = 0; i < names.length; i++) {
+    html += "<tr><th>" + escapeHtml(names[i]) + "</th>";
+    for (let j = 0; j < names.length; j++) {
+      const v = r[i][j];
+      const cls = (i !== j && isFinite(v)) ? (v >= 0 ? "cell-pos" : "cell-neg") : "";
+      const stars = i === j ? "" : ' <span style="font-size:11px">' + sigStars(p[i][j]) + "</span>";
+      html += '<td class="' + cls + '" data-row="' + i + '" data-col="' + j + '" style="cursor:pointer">' + (isFinite(v) ? v.toFixed(3) : "—") + stars + "</td>";
+    }
+    html += "</tr>";
+  }
+  html += "</table>";
+  $("corrMatrixDiv").innerHTML = html;
+  $("corrMatrixDiv").querySelectorAll("td[data-row]").forEach(td => {
+    td.addEventListener("click", function () {
+      const i = parseInt(this.dataset.row, 10), j = parseInt(this.dataset.col, 10);
+      if (i !== j) showScatter(i, j);
+    });
+  });
+}
+
+function showScatter(i, j) {
+  if (!corrColumns || !corrResult) return;
+  const x = corrColumns[i].values, y = corrColumns[j].values;
+  const n = x.length;
+  // 最小二乘回归
+  let mx = 0, my = 0;
+  for (let k = 0; k < n; k++) { mx += x[k]; my += y[k]; }
+  mx /= n; my /= n;
+  let num = 0, den = 0;
+  for (let k = 0; k < n; k++) { num += (x[k] - mx) * (y[k] - my); den += (x[k] - mx) * (x[k] - mx); }
+  const slope = den === 0 ? 0 : num / den;
+  const intercept = my - slope * mx;
+  const r = corrResult.r[i][j];
+  const pv = corrResult.p[i][j];
+  const r2 = isFinite(r) ? r * r : NaN;
+  const nameI = corrColumns[i].name, nameJ = corrColumns[j].name;
+
+  $("corrScatterTitle").textContent = "散点图：" + nameI + " vs " + nameJ +
+    "（R² = " + fmtNum(r2, 4) + "，p = " + (isFinite(pv) ? pv.toExponential(2) : "—") + " " + sigStars(pv) + "）";
+
+  if (scatterChart) scatterChart.destroy();
+  const points = x.map((v, k) => ({ x: v, y: y[k] }));
+  const xs = x.slice().sort((a, b) => a - b);
+  scatterChart = new Chart($("corrScatter").getContext("2d"), {
+    type: "scatter",
+    data: {
+      datasets: [
+        { label: "样本点", data: points, pointRadius: 4, pointBackgroundColor: "#1976d2" },
+        {
+          type: "line", label: "线性回归", pointRadius: 0, borderDash: [6, 4], borderWidth: 2,
+          borderColor: "#e53935", fill: false,
+          data: [{ x: xs[0], y: intercept + slope * xs[0] }, { x: xs[xs.length - 1], y: intercept + slope * xs[xs.length - 1] }]
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: { title: { display: true, text: nameI } },
+        y: { title: { display: true, text: nameJ } }
+      },
+      plugins: { legend: { position: "top" } }
+    }
+  });
+}
+
+function corrExportCSV() {
+  if (!corrResult) return;
+  const names = corrResult.names, r = corrResult.r, p = corrResult.p;
+  const lines = ["变量," + names.join(",")];
+  for (let i = 0; i < names.length; i++) {
+    lines.push(names[i] + "," + names.map((_, j) => (isFinite(r[i][j]) ? r[i][j].toFixed(4) : "")).join(","));
+  }
+  lines.push("");
+  lines.push("p值," + names.join(","));
+  for (let i = 0; i < names.length; i++) {
+    lines.push(names[i] + "," + names.map((_, j) => (isFinite(p[i][j]) ? p[i][j].toExponential(4) : "")).join(","));
+  }
+  const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "相关系数矩阵.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast("已导出 相关系数矩阵.csv");
+}
+function corrCopyMatrix() {
+  if (!corrResult) return;
+  const names = corrResult.names, r = corrResult.r, p = corrResult.p;
+  const lines = ["变量\t" + names.join("\t")];
+  for (let i = 0; i < names.length; i++) {
+    lines.push(names[i] + "\t" + names.map((_, j) => (isFinite(r[i][j]) ? r[i][j].toFixed(4) : "") + (i === j ? "" : " " + sigStars(p[i][j]))).join("\t"));
+  }
+  copyText(lines.join("\n"));
+}
+
+/* =========================================================================
+ * 模块三：分子对接工作台
+ * ========================================================================= */
+const dockState = {
+  receptorText: null,
+  ligandText: null,
+  ligandFormat: "pdb",
+  receptorAtoms: [],
+  viewer: null,
+  vinaModels: []
+};
+
+function dockEnsureViewer() {
+  if (dockState.viewer || typeof $3Dmol === "undefined") return dockState.viewer;
+  const el = $("viewer3d");
+  el.innerHTML = "";
+  dockState.viewer = $3Dmol.createViewer(el, { backgroundColor: "white" });
+  return dockState.viewer;
+}
+
+function refresh3D(selectedModelText) {
+  const v = dockEnsureViewer();
+  if (!v) {
+    $("dockWarn").innerHTML = '<div class="err-box">错误：3Dmol.js 库加载失败，请检查网络连接（CDN 资源不可达时无法显示 3D 视图，其余功能不受影响）。</div>';
+    return;
+  }
+  $("dockWarn").innerHTML = "";
+  v.clear();
+  if (dockState.receptorText) {
+    v.addModel(dockState.receptorText, "pdb");
+    v.setStyle({ model: 0 }, { cartoon: { color: "#8ecae6", thickness: 0.6 } });
+  }
+  const ligText = selectedModelText || dockState.ligandText;
+  if (ligText) {
+    v.addModel(ligText, dockState.ligandFormat);
+    v.setStyle({ model: 1 }, { stick: { colorscheme: "orangeCarbon", radius: 0.18 } });
+    v.addStyle({ model: 1 }, { sphere: { scale: 0.18, colorscheme: "orangeCarbon" } });
+  }
+  v.zoomTo();
+  v.render();
+}
+
+function parseAtomLines(lines) {
+  const atoms = [];
+  for (const line of lines) {
+    if (!(line.startsWith("ATOM") || line.startsWith("HETATM"))) continue;
+    const x = parseFloat(line.slice(30, 38));
+    const y = parseFloat(line.slice(38, 46));
+    const z = parseFloat(line.slice(46, 54));
+    if (!isFinite(x) || !isFinite(y) || !isFinite(z)) continue;
+    atoms.push({
+      x, y, z,
+      resName: line.slice(17, 20).trim(),
+      chain: line.slice(21, 22).trim() || "A",
+      resSeq: line.slice(22, 26).trim(),
+      element: (line.length >= 78 ? line.slice(76, 78).trim() : "") || (line.slice(12, 16).trim().replace(/[^A-Za-z]/g, "").slice(0, 1) || "C")
+    });
+  }
+  return atoms;
+}
+
+function loadReceptor(text) {
+  dockState.receptorText = text;
+  dockState.receptorAtoms = parseAtomLines(text.split(/\r?\n/));
+  $("recInfo").textContent = "已载入受体：" + dockState.receptorAtoms.length + " 个原子";
+  refresh3D(null);
+}
+
+function loadLigand(text, fname) {
+  dockState.ligandText = text;
+  dockState.ligandFormat = fname && /\.pdbqt$/i.test(fname) ? "pdbqt" : "pdb";
+  const nAtoms = parseAtomLines(text.split(/\r?\n/)).length;
+  $("ligInfo").textContent = "已载入配体：" + nAtoms + " 个原子（格式 " + dockState.ligandFormat + "）";
+  refresh3D(null);
+}
+
+/** 解析 Vina 输出：按 MODEL 分块，提取 REMARK VINA RESULT 亲和力 */
+function parseVinaOut(text) {
+  const lines = text.split(/\r?\n/);
+  const models = [];
+  let cur = null;
+  for (const line of lines) {
+    if (line.startsWith("MODEL")) {
+      cur = { index: models.length + 1, energy: null, atomLines: [] };
+    } else if (line.startsWith("ENDMDL")) {
+      if (cur) { models.push(cur); cur = null; }
+    } else if (cur) {
+      const m = line.match(/^REMARK VINA RESULT:\s*(-?\d+\.?\d*(?:[eE][-+]?\d+)?)/);
+      if (m) cur.energy = parseFloat(m[1]);
+      if (line.startsWith("ATOM") || line.startsWith("HETATM")) cur.atomLines.push(line);
+    }
+  }
+  // 兜底：单构象文件（无 MODEL 块）
+  if (!models.length) {
+    cur = { index: 1, energy: null, atomLines: [] };
+    for (const line of lines) {
+      const m = line.match(/^REMARK VINA RESULT:\s*(-?\d+\.?\d*(?:[eE][-+]?\d+)?)/);
+      if (m) cur.energy = parseFloat(m[1]);
+      if (line.startsWith("ATOM") || line.startsWith("HETATM")) cur.atomLines.push(line);
+    }
+    if (cur.atomLines.length) models.push(cur);
+  }
+  return models;
+}
+
+function renderVinaTable() {
+  const models = dockState.vinaModels.slice().sort((a, b) => (a.energy ?? Infinity) - (b.energy ?? Infinity));
+  let html = "<tr><th>排名</th><th>模型</th><th>亲和力 (kcal/mol)</th><th>操作</th></tr>";
+  models.forEach((m, i) => {
+    html += '<tr class="model-row" data-model-index="' + m.index + '"><td>' + (i + 1) + "</td><td>MODEL " + m.index + "</td><td>" +
+      (m.energy !== null ? m.energy.toFixed(2) : "未解析") + '</td><td><button class="btn btn-sm" data-view-model="' + m.index + '">查看</button></td></tr>';
+  });
+  $("vinaTable").innerHTML = html;
+  $("vinaResultBlock").classList.remove("hidden");
+  $("vinaTable").querySelectorAll("button[data-view-model]").forEach(btn => {
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      showVinaModel(parseInt(this.dataset.viewModel, 10));
+    });
+  });
+  $("vinaTable").querySelectorAll("tr.model-row").forEach(tr => {
+    tr.addEventListener("click", () => showVinaModel(parseInt(tr.dataset.modelIndex, 10)));
+  });
+}
+
+function dist3(a, b) {
+  const dx = a.x - b.x, dy = a.y - b.y, dz = a.z - b.z;
+  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+}
+
+function showVinaModel(modelIndex) {
+  const m = dockState.vinaModels.find(x => x.index === modelIndex);
+  if (!m) return;
+  // 高亮选中行
+  document.querySelectorAll("#vinaTable tr.model-row").forEach(tr =>
+    tr.classList.toggle("selected", parseInt(tr.dataset.modelIndex, 10) === modelIndex));
+  // 3D 叠加显示
+  refresh3D(m.atomLines.join("\n"));
+  // 相互作用残基
+  const ligAtoms = parseAtomLines(m.atomLines).filter(a => a.element !== "H");
+  if (!dockState.receptorAtoms.length) {
+    $("contactList").innerHTML = '<span class="hint">提示：未载入受体，无法计算相互作用残基。请先在上方载入受体 PDB。</span>';
+    return;
+  }
+  const cutoff = 4.0;
+  const resMap = new Map();
+  for (const ra of dockState.receptorAtoms) {
+    if (ra.element === "H") continue;
+    let minD = Infinity;
+    for (const la of ligAtoms) {
+      const d = dist3(ra, la);
+      if (d < minD) minD = d;
+    }
+    if (minD <= cutoff) {
+      const key = ra.chain + ":" + ra.resSeq + ra.resName;
+      if (!resMap.has(key) || minD < resMap.get(key)) resMap.set(key, minD);
+    }
+  }
+  const entries = Array.from(resMap.entries()).sort((a, b) => a[1] - b[1]);
+  if (!entries.length) {
+    $("contactList").innerHTML = '<span class="hint">未发现距离 &lt; ' + cutoff.toFixed(1) + ' Å 的受体残基（请确认受体与配体坐标系一致）。</span>';
+    return;
+  }
+  let html = "<table class='data'><tr><th>残基</th><th>最近原子距离 (Å)</th></tr>";
+  for (const [key, d] of entries) {
+    const tag = d < 3.5 ? '<span style="color:#2e7d32">● 可能形成氢键/强接触</span>' : "";
+    html += "<tr><td>" + escapeHtml(key) + "</td><td>" + d.toFixed(2) + " " + tag + "</td></tr>";
+  }
+  html += "</table>";
+  $("contactList").innerHTML = html;
+}
+
+/** 生成对接参数与命令 */
+function generateDockParams() {
+  const num = (id, def) => {
+    const v = parseFloat($(id).value);
+    return isFinite(v) ? v : def;
+  };
+  const cx = num("paramCenterX", 0), cy = num("paramCenterY", 0), cz = num("paramCenterZ", 0);
+  const sx = num("paramSizeX", 22), sy = num("paramSizeY", 22), sz = num("paramSizeZ", 22);
+  const ex = num("paramExhaust", 8), nm = num("paramModes", 9), er = num("paramEnergy", 3);
+  const seed = num("paramSeed", 42), cpu = num("paramCpu", 4);
+
+  const configTxt =
+    "receptor = receptor.pdbqt\n" +
+    "ligand = ligand.pdbqt\n" +
+    "out = vina_out.pdbqt\n" +
+    "\n# 对接口袋中心坐标（Å）\n" +
+    "center_x = " + cx + "\n" +
+    "center_y = " + cy + "\n" +
+    "center_z = " + cz + "\n" +
+    "\n# 对接盒子尺寸（Å）\n" +
+    "size_x = " + sx + "\n" +
+    "size_y = " + sy + "\n" +
+    "size_z = " + sz + "\n" +
+    "\nexhaustiveness = " + ex + "\n" +
+    "num_modes = " + nm + "\n" +
+    "energy_range = " + er + "\n" +
+    "seed = " + seed + "\n" +
+    "cpu = " + cpu + "\n";
+
+  const convertTxt =
+    "【WSL / Ubuntu】\n" +
+    "# 受体转换 —— 方式一：Meeko（新版推荐，需 pip install meeko）\n" +
+    "mk_prepare_receptor.py -r receptor.pdb -o receptor -p      # 输出 receptor.pdbqt\n" +
+    "# 受体转换 —— 方式二：AutoDockTools 旧版脚本\n" +
+    "prepare_receptor4.py -r receptor.pdb -o receptor.pdbqt -A hydrogens\n" +
+    "\n# 配体转换\n" +
+    "mk_prepare_ligand.py -i ligand.sdf -o ligand.pdbqt\n" +
+    "# 或旧版：\n" +
+    "prepare_ligand4.py -l ligand.pdb -o ligand.pdbqt -U nphs_lps\n" +
+    "\n【Windows（PowerShell / CMD，需已安装 Python 与对应包）】\n" +
+    "python mk_prepare_receptor.py -r receptor.pdb -o receptor -p\n" +
+    "python prepare_receptor4.py -r receptor.pdb -o receptor.pdbqt -A hydrogens\n" +
+    "python mk_prepare_ligand.py -i ligand.sdf -o ligand.pdbqt\n";
+
+  const runTxt =
+    "【WSL / Ubuntu】\n" +
+    "vina --config config.txt --log vina.log\n" +
+    "\n【Windows（若已安装 vina.exe）】\n" +
+    "vina.exe --config config.txt --log vina.log\n" +
+    "\n【Windows 通过 WSL 调用（示例目录请自行替换）】\n" +
+    'wsl -e bash -c "cd /mnt/f/docking_task && vina --config config.txt --log vina.log"\n';
+
+  $("outConfig").textContent = configTxt;
+  $("outConvert").textContent = convertTxt;
+  $("outRun").textContent = runTxt;
+  $("paramOut").classList.remove("hidden");
+  showToast("已生成对接参数配置与命令");
+}
+
+/* =========================================================================
+ * 模块四：序列小工具
+ * ========================================================================= */
+/* 标准密码子表（DNA） */
+const CODON_TABLE = {};
+(function buildCodonTable() {
+  const s = "TTT F TTC F TTA L TTG L CTT L CTC L CTA L CTG L " +
+    "ATT I ATC I ATA I ATG M GTT V GTC V GTA V GTG V " +
+    "TCT S TCC S TCA S TCG S CCT P CCC P CCA P CCG P " +
+    "ACT T ACC T ACA T ACG T GCT A GCC A GCA A GCG A " +
+    "TAT Y TAC Y TAA * TAG * CAT H CAC H CAA Q CAG Q " +
+    "AAT N AAC N AAA K AAG K GAT D GAC D GAA E GAG E " +
+    "TGT C TGC C TGA * TGG W CGT R CGC R CGA R CGG R " +
+    "AGT S AGC S AGA R AGG R GGT G GGC G GGA G GGG G";
+  const t = s.split(/\s+/);
+  for (let i = 0; i < t.length; i += 2) CODON_TABLE[t[i]] = t[i + 1];
+})();
+
+/* 氨基酸残基平均分子量（Da，肽链内残基） */
+const AA_MW = {
+  A: 71.08, R: 156.19, N: 114.10, D: 115.09, C: 103.14, Q: 128.13, E: 129.12,
+  G: 57.05, H: 137.14, I: 113.16, L: 113.16, K: 128.17, M: 131.19, F: 147.18,
+  P: 97.12, S: 87.08, T: 101.11, W: 186.21, Y: 163.18, V: 99.13
+};
+/* Kyte-Doolittle 疏水指数 */
+const KD_HYDRO = {
+  A: 1.8, R: -4.5, N: -3.5, D: -3.5, C: 2.5, Q: -3.5, E: -3.5, G: -0.4,
+  H: -3.2, I: 4.5, L: 3.8, K: -3.9, M: 1.9, F: 2.8, P: -1.6, S: -0.8,
+  T: -0.7, W: -0.9, Y: -1.3, V: 4.2
+};
+/* 简化 pKa 表 */
+const PKA = { nTerm: 9.69, cTerm: 2.34, C: 8.18, D: 3.65, E: 4.25, H: 6.00, K: 10.53, R: 12.48, Y: 10.07 };
+
+function reverseComplement(seq) {
+  const comp = { A: "T", T: "A", G: "C", C: "G", U: "A", N: "N" };
+  let out = "";
+  for (let i = seq.length - 1; i >= 0; i--) {
+    out += comp[seq[i]] !== undefined ? comp[seq[i]] : "N";
+  }
+  return out;
+}
+
+/** 单帧翻译：frameOffset = 0/1/2（5'→3' 前向），输入为 DNA 序列 */
+function translateFrame(dna, frameOffset) {
+  let aa = "";
+  for (let i = frameOffset; i + 2 < dna.length; i += 3) {
+    const codon = dna.slice(i, i + 3).replace(/U/g, "T");
+    const res = CODON_TABLE[codon];
+    aa += res !== undefined ? res : "X";
+  }
+  return aa;
+}
+
+function sixFrameTranslate(seq) {
+  const rc = reverseComplement(seq);
+  const frames = [];
+  for (let f = 0; f < 3; f++) {
+    frames.push({ name: "5'→3' 阅读框 " + (f + 1), dir: "正向", aa: translateFrame(seq, f) });
+  }
+  for (let f = 0; f < 3; f++) {
+    frames.push({ name: "3'→5' 阅读框 " + (f + 1), dir: "反向互补链", aa: translateFrame(rc, f) });
+  }
+  return frames;
+}
+
+function nucleotideMW(seq) {
+  // 单链 DNA：MW = Σ(dNMP) - 61.96（末端校正）；RNA 使用 NMP 分子量
+  const isRNA = seq.includes("U");
+  const mwDNA = { A: 313.21, T: 304.20, C: 289.18, G: 329.21 };
+  const mwRNA = { A: 329.21, U: 306.17, C: 305.18, G: 345.21 };
+  const table = isRNA ? mwRNA : mwDNA;
+  let total = 0;
+  for (const ch of seq) {
+    if (table[ch] !== undefined) total += table[ch];
+    else if (ch === "T" && isRNA) total += mwRNA.U;
+    else if (ch === "U" && !isRNA) total += mwDNA.T;
+    // N 等模糊碱基按 A 平均近似
+    else total += (mwDNA.A + mwDNA.T + mwDNA.C + mwDNA.G) / 4;
+  }
+  return total > 0 ? total - 61.96 : 0;
+}
+
+function calcTm(seq) {
+  // 经验公式：短链 (<14 nt) Wallace 法则；长链 GC 修正公式
+  let a = 0, t = 0, g = 0, c = 0;
+  for (const ch of seq) {
+    if (ch === "A") a++;
+    else if (ch === "T" || ch === "U") t++;
+    else if (ch === "G") g++;
+    else if (ch === "C") c++;
+  }
+  const n = a + t + g + c;
+  if (n === 0) return NaN;
+  if (n < 14) return (a + t) * 2 + (g + c) * 4;
+  return 64.9 + 41 * (g + c - 16.4) / n;
+}
+
+function netCharge(seq, pH) {
+  const posCharge = (pKa) => 1 / (1 + Math.pow(10, pH - pKa));
+  const negCharge = (pKa) => 1 / (1 + Math.pow(10, pKa - pH));
+  let charge = posCharge(PKA.nTerm) - negCharge(PKA.cTerm);
+  for (const ch of seq) {
+    if (ch === "K" || ch === "R") charge += posCharge(ch === "K" ? PKA.K : PKA.R);
+    else if (ch === "H") charge += posCharge(PKA.H);
+    else if (ch === "D" || ch === "E") charge -= negCharge(ch === "D" ? PKA.D : PKA.E);
+    else if (ch === "C") charge -= negCharge(PKA.C);
+    else if (ch === "Y") charge -= negCharge(PKA.Y);
+  }
+  return charge;
+}
+
+/** 理论等电点：二分法求 netCharge = 0 的 pH */
+function computePI(seq) {
+  let lo = 0, hi = 14;
+  if (netCharge(seq, lo) < 0 || netCharge(seq, hi) > 0) return NaN;
+  for (let k = 0; k < 80; k++) {
+    const mid = (lo + hi) / 2;
+    if (netCharge(seq, mid) > 0) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+function proteinMW(seq) {
+  let total = 0;
+  for (const ch of seq) {
+    if (AA_MW[ch] !== undefined) total += AA_MW[ch];
+  }
+  return total > 0 ? total + 18.02 : 0; // 加上末端水分子
+}
+
+let toolChartInstance = null;
+let toolResultText = "";
+let toolRC6Text = "";
+
+function charCounts(seq) {
+  const counts = {};
+  for (const ch of seq) counts[ch] = (counts[ch] || 0) + 1;
+  return counts;
+}
+
+function drawCompositionChart(counts, title) {
+  if (toolChartInstance) { toolChartInstance.destroy(); toolChartInstance = null; }
+  const keys = Object.keys(counts).sort();
+  const palette = ["#1e88e5", "#e53935", "#43a047", "#fb8c00", "#8e24aa", "#00897b", "#6d4c41", "#546e7a",
+    "#c0ca33", "#d81b60", "#039be5", "#7cb342", "#f4511e", "#3949ab", "#00acc1", "#c2185b",
+    "#5e35b1", "#ffb300", "#7e57c2", "#26a69a"];
+  toolChartInstance = new Chart($("toolChart").getContext("2d"), {
+    type: "bar",
+    data: {
+      labels: keys,
+      datasets: [{
+        label: "数量",
+        data: keys.map(k => counts[k]),
+        backgroundColor: keys.map((_, i) => palette[i % palette.length])
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true, title: { display: true, text: "数量" } } },
+      plugins: { title: { display: true, text: title } }
+    }
+  });
+}
+
+function toolRunStats() {
+  const seq = parseSeqInput($("toolSeq").value);
+  if (!seq) { showToast("请先输入序列"); return; }
+  const type = detectSeqType(seq);
+  $("toolType").textContent = "已识别：" + ({ dna: "DNA", rna: "RNA", protein: "蛋白质" })[type] + "（长度 " + seq.length + "）";
+  const counts = charCounts(seq);
+  const lines = [];
+  lines.push("序列类型：" + ({ dna: "DNA", rna: "RNA", protein: "蛋白质" })[type]);
+  lines.push("序列长度：" + seq.length);
+
+  if (type === "protein") {
+    const mw = proteinMW(seq);
+    const pi = computePI(seq);
+    let gravySum = 0, valid = 0, hydroCount = 0;
+    const hydroSet = new Set(["A", "V", "I", "L", "M", "F", "W", "C"]);
+    for (const ch of seq) {
+      if (KD_HYDRO[ch] !== undefined) { gravySum += KD_HYDRO[ch]; valid++; }
+      if (hydroSet.has(ch)) hydroCount++;
+    }
+    const gravy = valid > 0 ? gravySum / valid : NaN;
+    lines.push("分子量（平均残基质量 + 末端水）：" + fmtNum(mw, 2) + " Da");
+    lines.push("理论等电点 pI（简化 pKa 表估算）：" + (isFinite(pi) ? pi.toFixed(2) : "无法计算"));
+    lines.push("平均疏水性 GRAVY（Kyte-Doolittle）：" + fmtNum(gravy, 3));
+    lines.push("疏水残基（A/V/I/L/M/F/W/C）：" + hydroCount + " 个，占 " + (seq.length ? (hydroCount / seq.length * 100).toFixed(1) : 0) + "%");
+    lines.push("氨基酸组成：" + Object.keys(counts).sort().map(k => k + "=" + counts[k]).join("，"));
+  } else {
+    let gc = 0, at = 0, n_amb = 0;
+    for (const ch of seq) {
+      if (ch === "G" || ch === "C") gc++;
+      else if (ch === "A" || ch === "T" || ch === "U") at++;
+      else n_amb++;
+    }
+    const known = gc + at;
+    const gcPct = known > 0 ? gc / known * 100 : 0;
+    lines.push("GC 含量：" + gcPct.toFixed(2) + "%（G+C=" + gc + "，A+T/U=" + at + (n_amb ? "，模糊碱基 " + n_amb : "") + "）");
+    lines.push("单链分子量（近似）：" + fmtNum(nucleotideMW(seq), 1) + " Da");
+    const tm = calcTm(seq);
+    lines.push("解链温度 Tm（经验公式" + (seq.length < 14 ? "：Wallace 法则" : "：GC 修正公式") + "）：" + (isFinite(tm) ? tm.toFixed(1) + " ℃" : "无法计算"));
+    const comp = {};
+    for (const ch of seq) {
+      const k = ch === "U" ? "U" : ch;
+      comp[k] = (comp[k] || 0) + 1;
+    }
+    for (const k of Object.keys(comp)) lines.push("  " + k + " = " + comp[k] + " (" + (comp[k] / seq.length * 100).toFixed(1) + "%)");
+  }
+  toolResultText = lines.join("\n");
+  $("toolResult").textContent = toolResultText;
+  drawCompositionChart(counts, type === "protein" ? "氨基酸组成分布" : "碱基组成分布");
+  $("toolResultCard").classList.remove("hidden");
+}
+
+function toolReverseComplement() {
+  const seq = parseSeqInput($("toolSeq").value);
+  if (!seq) { showToast("请先输入序列"); return; }
+  const type = detectSeqType(seq);
+  if (type === "protein") { showToast("反向互补仅适用于核酸序列"); return; }
+  const rc = reverseComplement(seq);
+  const out = "原序列（" + seq.length + " nt）:\n" + seq + "\n\n反向互补序列:\n" + rc;
+  toolRC6Text = out;
+  showRC6Area(out, "反向互补序列（已复制可用按钮一键复制）");
+}
+
+function toolSixFrame() {
+  const seq = parseSeqInput($("toolSeq").value);
+  if (!seq) { showToast("请先输入序列"); return; }
+  const type = detectSeqType(seq);
+  if (type === "protein") { showToast("六框翻译仅适用于核酸序列"); return; }
+  const dna = seq.replace(/U/g, "T");
+  const frames = sixFrameTranslate(dna);
+  let out = "六框翻译（标准密码子表，* 为终止密码子）：\n";
+  for (const f of frames) {
+    out += "\n【" + f.name + "（" + f.dir + "）】\n" + (f.aa || "（序列过短，无完整密码子）") + "\n";
+  }
+  toolRC6Text = out;
+  showRC6Area(out, "六框翻译完成，* 为终止密码子");
+}
+
+function showRC6Area(text, toastMsg) {
+  $("toolRC6Out").innerHTML = '<pre class="aln" style="white-space:pre-wrap">' + escapeHtml(text) + "</pre>";
+  $("toolRC6Card").classList.remove("hidden");
+  showToast(toastMsg);
+}
+
+/* =========================================================================
+ * 模块五：系统发育树（p-距离 / UPGMA / Neighbor-Joining / Newick）
+ * ========================================================================= */
+/** 解析多序列 FASTA：返回 [{name, seq}]；序列仅保留字母与 - . ? */
+function parseFastaMulti(raw) {
+  const seqs = [];
+  let cur = null;
+  for (const line of String(raw || "").split(/\r?\n/)) {
+    const t = line.trim();
+    if (!t || t.startsWith(";")) continue;
+    if (t.startsWith(">")) {
+      if (cur) seqs.push(cur);
+      cur = { name: t.slice(1).trim() || ("序列" + (seqs.length + 1)), seq: "" };
+    } else {
+      if (!cur) cur = { name: "序列1", seq: "" };
+      cur.seq += t;
+    }
+  }
+  if (cur) seqs.push(cur);
+  for (const s of seqs) s.seq = s.seq.replace(/[^A-Za-z\-.?]/g, "").toUpperCase();
+  return seqs.filter(s => s.seq);
+}
+
+/** p-距离：忽略 gap(-)/模糊(N)/缺失(?) 后，差异位点数 ÷ 有效位点数 */
+function pDistance(s1, s2) {
+  let valid = 0, diff = 0;
+  const n = Math.min(s1.length, s2.length);
+  for (let i = 0; i < n; i++) {
+    const a = s1[i], b = s2[i];
+    if (a === "-" || b === "-" || a === "N" || b === "N" || a === "?" || b === "?") continue;
+    valid++;
+    if (a !== b) diff++;
+  }
+  return { dist: valid > 0 ? diff / valid : 0, validSites: valid };
+}
+
+/** 由多序列构建距离矩阵 {names, matrix} */
+function buildDistMatrix(seqs) {
+  const n = seqs.length;
+  const names = seqs.map(s => s.name);
+  const matrix = Array.from({ length: n }, () => new Array(n).fill(0));
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const pd = pDistance(seqs[i].seq, seqs[j].seq);
+      matrix[i][j] = pd.dist; matrix[j][i] = pd.dist;
+    }
+  }
+  return { names, matrix };
+}
+
+/** 解析距离矩阵文本：首列名称，下三角或全矩阵；允许首行只有条目数 */
+function parseDistMatrix(text) {
+  const lines = String(text || "").split(/\r?\n/).map(l => l.trim()).filter(l => l);
+  if (!lines.length) return null;
+  let rows = lines.map(l => l.split(/[\s,;\t]+/));
+  if (rows[0].length === 1 && /^\d+$/.test(rows[0][0])) rows = rows.slice(1);
+  const n = rows.length;
+  if (n < 3) return null;
+  const names = [];
+  const m = [];
+  for (let i = 0; i < n; i++) {
+    const r = rows[i];
+    if (r.length < 1) return null;
+    names.push(r[0]);
+    const vals = r.slice(1).filter(x => x !== "").map(parseFloat);
+    const row = new Array(n).fill(NaN);
+    if (vals.length === n) { for (let j = 0; j < n; j++) row[j] = vals[j]; }
+    else if (vals.length === i) { for (let j = 0; j < i; j++) row[j] = vals[j]; row[i] = 0; }
+    else return null;
+    m.push(row);
+  }
+  for (let i = 0; i < n; i++) {
+    m[i][i] = 0;
+    for (let j = 0; j < i; j++) {
+      const v = isFinite(m[i][j]) ? m[i][j] : m[j][i];
+      if (!isFinite(v)) return null;
+      m[i][j] = v; m[j][i] = v;
+    }
+  }
+  return { names, matrix: m };
+}
+
+/** Newick 解析：支持嵌套括号、节点名与枝长（:数值） */
+function parseNewick(str) {
+  let s = String(str || "").trim();
+  if (!s) return null;
+  if (s.endsWith(";")) s = s.slice(0, -1);
+  s = s.trim();
+  if (!s) return null;
+  let pos = 0;
+  function skipWs() { while (pos < s.length && /\s/.test(s[pos])) pos++; }
+  function parseNode() {
+    skipWs();
+    const node = { name: "", length: 0, children: [] };
+    if (s[pos] === "(") {
+      pos++;
+      for (;;) {
+        node.children.push(parseNode());
+        skipWs();
+        if (s[pos] === ",") { pos++; continue; }
+        if (s[pos] === ")") { pos++; break; }
+        throw new Error("Newick 格式错误（位置 " + pos + "）：缺少 , 或 )");
+      }
+    } else {
+      let name = "";
+      while (pos < s.length && !":,();".includes(s[pos]) && !/\s/.test(s[pos])) { name += s[pos]; pos++; }
+      node.name = name.trim();
+    }
+    skipWs();
+    if (s[pos] === ":") {
+      pos++; skipWs();
+      let num = "";
+      while (pos < s.length && /[0-9eE+\-.]/.test(s[pos])) { num += s[pos]; pos++; }
+      const v = parseFloat(num);
+      node.length = isFinite(v) ? v : 0;
+    }
+    return node;
+  }
+  const root = parseNode();
+  skipWs();
+  if (pos < s.length) throw new Error("Newick 格式错误（位置 " + pos + "）：存在多余字符");
+  if (!root.name && !root.children.length) return null;
+  return root;
+}
+
+/** 生成 Newick 字符串（默认 4 位小数；根节点按惯例不输出枝长） */
+function toNewick(node, precision) {
+  const p = precision === undefined ? 4 : precision;
+  function rec(n, isRoot) {
+    let s = "";
+    if (n.children && n.children.length) s = "(" + n.children.map(c => rec(c, false)).join(",") + ")";
+    if (n.name) s += n.name;
+    if (!isRoot) s += ":" + Number(n.length || 0).toFixed(p);
+    return s;
+  }
+  return rec(node, true) + ";";
+}
+
+/** 树的叶节点名列表 */
+function treeLeaves(node) {
+  const out = [];
+  (function walk(n) {
+    if (!n.children || !n.children.length) { if (n.name) out.push(n.name); return; }
+    for (const c of n.children) walk(c);
+  })(node);
+  return out;
+}
+
+/** UPGMA 类平均聚类：返回树，枝长 = 子节点高度差 */
+function upgma(names, matrix) {
+  const n = names.length;
+  if (n < 2) return null;
+  const nodes = names.map(nm => ({ name: nm, length: 0, children: [] }));
+  const heights = new Array(n).fill(0);
+  const sizes = new Array(n).fill(1);
+  const dist = matrix.map(r => r.slice());
+  const alive = new Array(n).fill(true);
+  let remaining = n;
+  while (remaining > 1) {
+    let bi = -1, bj = -1, bd = Infinity;
+    for (let i = 0; i < n; i++) {
+      if (!alive[i]) continue;
+      for (let j = i + 1; j < n; j++) {
+        if (!alive[j]) continue;
+        if (dist[i][j] < bd) { bd = dist[i][j]; bi = i; bj = j; }
+      }
+    }
+    const h = bd / 2;
+    const sb = sizes[bi], sj = sizes[bj];
+    const node = { name: "", length: 0, children: [nodes[bi], nodes[bj]] };
+    nodes[bi].length = Math.max(0, h - heights[bi]);
+    nodes[bj].length = Math.max(0, h - heights[bj]);
+    nodes[bi] = node;
+    heights[bi] = h;
+    sizes[bi] = sb + sj;
+    alive[bj] = false;
+    for (let k = 0; k < n; k++) {
+      if (!alive[k] || k === bi) continue;
+      dist[bi][k] = dist[k][bi] = (dist[bi][k] * sb + dist[bj][k] * sj) / (sb + sj);
+    }
+    remaining--;
+  }
+  for (let i = 0; i < n; i++) if (alive[i]) return nodes[i];
+  return null;
+}
+
+/** Neighbor-Joining：标准 Q-matrix 算法 */
+function neighborJoining(names, matrix) {
+  const n0 = names.length;
+  if (n0 < 3) return null;
+  let nodes = names.map(nm => ({ name: nm, length: 0, children: [] }));
+  let dist = matrix.map(r => r.slice());
+  let n = n0;
+  while (n > 2) {
+    const r = nodes.map((_, i) => dist[i].reduce((a, b) => a + b, 0));
+    let bi = 0, bj = 1, bq = Infinity;
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        const q = (n - 2) * dist[i][j] - r[i] - r[j];
+        if (q < bq) { bq = q; bi = i; bj = j; }
+      }
+    }
+    const limbI = 0.5 * dist[bi][bj] + (r[bi] - r[bj]) / (2 * (n - 2));
+    const limbJ = dist[bi][bj] - limbI;
+    const u = { name: "", length: 0, children: [nodes[bi], nodes[bj]] };
+    nodes[bi].length = Math.max(0, limbI);
+    nodes[bj].length = Math.max(0, limbJ);
+    const kept = [];
+    for (let k = 0; k < n; k++) if (k !== bi && k !== bj) kept.push(k);
+    const newDist = [[0]];
+    for (const k of kept) newDist[0].push((dist[bi][k] + dist[bj][k] - dist[bi][bj]) / 2);
+    for (let a = 0; a < kept.length; a++) {
+      const row = new Array(kept.length + 1).fill(0);
+      row[0] = newDist[0][a + 1]; // 新节点 u 与 kept[a] 的距离
+      for (let b = 0; b < kept.length; b++) row[b + 1] = dist[kept[a]][kept[b]];
+      newDist.push(row);
+    }
+    nodes = [u].concat(kept.map(k => nodes[k]));
+    dist = newDist;
+    n = n - 1;
+  }
+  const root = { name: "", length: 0, children: [nodes[0], nodes[1]] };
+  nodes[0].length = dist[0][1] / 2;
+  nodes[1].length = dist[0][1] / 2;
+  return root;
+}
+
+/** 矩形进化树布局：返回节点坐标（x = 累计枝长×scale）与连线 */
+function layoutRectTree(root, rowH, xScale) {
+  let leafIdx = 0;
+  const nodes = [], links = [];
+  function walk(node, parentX) {
+    const x = parentX + (node.length || 0) * xScale;
+    if (!node.children || !node.children.length) {
+      const y = leafIdx * rowH;
+      leafIdx++;
+      nodes.push({ x, y, label: node.name || "", isLeaf: true });
+      return { x, y };
+    }
+    const res = node.children.map(c => walk(c, x));
+    const y = (res[0].y + res[res.length - 1].y) / 2;
+    nodes.push({ x, y, label: node.name || "", isLeaf: false });
+    links.push({ x1: x, y1: res[0].y, x2: x, y2: res[res.length - 1].y });
+    for (const r of res) links.push({ x1: x, y1: y, x2: r.x, y2: r.y });
+    return { x, y };
+  }
+  walk(root, -(root.length || 0) * xScale);
+  return { nodes, links };
+}
+
+/** 渲染进化树 SVG 字符串（含比例尺） */
+function renderTreeSVG(root) {
+  const leaves = treeLeaves(root);
+  const rowH = 30, labelW = 150, marginL = 16, marginT = 22, plotW = 420;
+  let maxDepth = 0;
+  (function depth(node, acc) {
+    acc += node.length || 0;
+    if (!node.children.length) { maxDepth = Math.max(maxDepth, acc); return; }
+    for (const c of node.children) depth(c, acc);
+  })(root, 0);
+  const xScale = maxDepth > 1e-9 ? plotW / maxDepth : plotW;
+  const layout = layoutRectTree(root, rowH, xScale);
+  const height = marginT * 2 + (leaves.length - 1) * rowH + 34;
+  const width = marginL + plotW + 16 + labelW;
+  let svg = '<svg width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + " " + height + '" style="font-family:\'Microsoft YaHei\',sans-serif;font-size:13px;max-width:100%;display:block">';
+  svg += '<rect width="100%" height="100%" fill="#fafbfc" rx="8"/>';
+  for (const lk of layout.links) {
+    svg += '<line x1="' + (marginL + lk.x1).toFixed(1) + '" y1="' + (marginT + lk.y1).toFixed(1) +
+      '" x2="' + (marginL + lk.x2).toFixed(1) + '" y2="' + (marginT + lk.y2).toFixed(1) +
+      '" stroke="#455a64" stroke-width="1.6" stroke-linecap="round"/>';
+  }
+  for (const nd of layout.nodes) {
+    if (!nd.isLeaf) continue;
+    const label = nd.label.length > 24 ? nd.label.slice(0, 24) + "…" : nd.label;
+    svg += '<circle cx="' + (marginL + nd.x).toFixed(1) + '" cy="' + (marginT + nd.y).toFixed(1) + '" r="2.5" fill="#1976d2"/>';
+    svg += '<text x="' + (marginL + nd.x + 6).toFixed(1) + '" y="' + (marginT + nd.y + 4).toFixed(1) + '" fill="#212121">' + escapeHtml(label) + "</text>";
+  }
+  // 比例尺：取 maxDepth 的"美观"分数
+  if (maxDepth > 1e-9) {
+    const raw = maxDepth / 4;
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    let nice = mag;
+    for (const k of [5, 2, 1]) { if (raw >= k * mag) { nice = k * mag; break; } }
+    const barPx = nice * xScale;
+    const y0 = marginT + (leaves.length - 1) * rowH + 18;
+    svg += '<line x1="' + marginL + '" y1="' + y0 + '" x2="' + (marginL + barPx).toFixed(1) + '" y2="' + y0 + '" stroke="#212121" stroke-width="2"/>';
+    svg += '<text x="' + (marginL + barPx / 2).toFixed(1) + '" y="' + (y0 - 4) + '" text-anchor="middle" fill="#5f6368" font-size="11">' + nice + " 替换/位点</text>";
+  }
+  svg += "</svg>";
+  return svg;
+}
+
+/* --- 系统发育树 UI 状态与逻辑 --- */
+let phyloLastTree = null;
+let phyloLastMatrix = null;
+
+const PHYLO_EXAMPLE_FASTA =
+  ">人 Human\nATGCGTACCTGAGGCTTAACGGTATCGATCGGATCCATGGCTAGCTAAGGCTTAACGGATC\n" +
+  ">黑猩猩 Chimp\nATGCGTACCTGAGGCTTAACGGTATCGATCGGATCCATGGCTAGCTAAGGCTTAACGGATA\n" +
+  ">大猩猩 Gorilla\nATGCGTACCTGAGGCTTAACGGTATCGATCGGATCCATGGCTAGCTAAGGCTTAACGTCTA\n" +
+  ">猩猩 Orang\nATGCGTACCTGAGGCTTAACGGTATCGATCGGATCCATGGCTAGCTAAGGCTTAACGACTA\n" +
+  ">猕猴 Macaque\nATGCGCACCTGAGGCTTAACGGTATCGATCGGATCCATGGCTAGCTAAGGCTTAACGTGTA";
+
+const PHYLO_EXAMPLE_MATRIX =
+  "5\n" +
+  "Human\n" +
+  "Chimp    0.0200\n" +
+  "Gorilla  0.0300 0.0250\n" +
+  "Orang    0.0600 0.0550 0.0580\n" +
+  "Macaque  0.0900 0.0880 0.0860 0.0900";
+
+function phyloGetType() {
+  const el = document.querySelector('input[name="phyloInputType"]:checked');
+  return el ? el.value : "fasta";
+}
+
+function phyloRunFn() {
+  $("phyloWarn").innerHTML = "";
+  const type = phyloGetType();
+  const raw = $("phyloInput").value;
+  if (!raw.trim()) {
+    $("phyloWarn").innerHTML = '<div class="err-box">错误：请先输入数据（多序列 FASTA、距离矩阵或 Newick 字符串）。</div>';
+    return;
+  }
+  try {
+    let dm = null, tree = null;
+    if (type === "fasta") {
+      const seqs = parseFastaMulti(raw);
+      if (seqs.length < 3) {
+        $("phyloWarn").innerHTML = '<div class="err-box">错误：建树至少需要 3 条序列，当前解析到 ' + seqs.length + " 条。</div>";
+        return;
+      }
+      const lenSet = new Set(seqs.map(s => s.seq.length));
+      if (lenSet.size > 1) {
+        $("phyloWarn").innerHTML = '<div class="warn-box">⚠ 各序列长度不一致，将按成对较短的长度取交集计算 p-距离；建议先做多序列比对。</div>';
+      }
+      dm = buildDistMatrix(seqs);
+      tree = phyloBuildTree(dm);
+      if (!tree) return;
+      phyloLastMatrix = dm;
+    } else if (type === "matrix") {
+      dm = parseDistMatrix(raw);
+      if (!dm || dm.names.length < 3) {
+        $("phyloWarn").innerHTML = '<div class="err-box">错误：无法解析距离矩阵。格式要求：每行"名称 + 数值"（下三角或全矩阵），至少 3 个条目。</div>';
+        return;
+      }
+      tree = phyloBuildTree(dm);
+      if (!tree) return;
+      phyloLastMatrix = dm;
+    } else {
+      tree = parseNewick(raw);
+      if (!tree) {
+        $("phyloWarn").innerHTML = '<div class="err-box">错误：无法解析 Newick 字符串，示例：(A:0.1,B:0.1):0.1,C:0.2;</div>';
+        return;
+      }
+      phyloLastMatrix = null;
+    }
+    phyloShowTree(tree, type, !!dm);
+  } catch (e) {
+    $("phyloWarn").innerHTML = '<div class="err-box">解析错误：' + escapeHtml(e.message) + "</div>";
+  }
+}
+
+function phyloBuildTree(dm) {
+  const method = $("phyloMethod").value;
+  const tree = method === "upgma" ? upgma(dm.names, dm.matrix) : neighborJoining(dm.names, dm.matrix);
+  if (!tree) {
+    $("phyloWarn").innerHTML = '<div class="err-box">错误：建树失败（条目数不足）。</div>';
+    return null;
+  }
+  return tree;
+}
+
+function phyloShowTree(tree, type, showMatrix) {
+  phyloLastTree = tree;
+  const method = type === "newick" ? "newick" : $("phyloMethod").value;
+  const methodLabel = { nj: "Neighbor-Joining 邻接法", upgma: "UPGMA 类平均法", newick: "Newick 解析" }[method];
+  $("phyloTreeDiv").innerHTML = renderTreeSVG(tree);
+  $("phyloNewick").textContent = toNewick(tree);
+  renderPhyloMatrix();
+  $("phyloMatrixBlock").classList.toggle("hidden", !showMatrix);
+  $("phyloResultCard").classList.remove("hidden");
+  $("phyloWarn").innerHTML = '<div class="ok-box">完成：' + methodLabel + "，共 " + treeLeaves(tree).length + " 个叶节点。</div>";
+}
+
+function renderPhyloMatrix() {
+  if (!phyloLastMatrix) return;
+  const names = phyloLastMatrix.names, m = phyloLastMatrix.matrix;
+  let html = '<table class="data"><tr><th></th>';
+  for (const nm of names) html += "<th>" + escapeHtml(nm) + "</th>";
+  html += "</tr>";
+  for (let i = 0; i < names.length; i++) {
+    html += "<tr><th>" + escapeHtml(names[i]) + "</th>";
+    for (let j = 0; j < names.length; j++) {
+      html += "<td>" + (i === j ? "—" : m[i][j].toFixed(4)) + "</td>";
+    }
+    html += "</tr>";
+  }
+  $("phyloMatrixDiv").innerHTML = html + "</table>";
+}
+
+function phyloExportCSV() {
+  if (!phyloLastMatrix) return;
+  const names = phyloLastMatrix.names, m = phyloLastMatrix.matrix;
+  const lines = ["," + names.join(",")];
+  for (let i = 0; i < names.length; i++) {
+    lines.push(names[i] + "," + m[i].map(v => v.toFixed(4)).join(","));
+  }
+  const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "距离矩阵.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast("已导出 距离矩阵.csv");
+}
+
+/* =========================================================================
+ * 模块六：引物设计（滑动窗口扫描 + 规则评分）
+ * ========================================================================= */
+const PRIMER_COMP = { A: "T", T: "A", G: "C", C: "G" };
+
+function gcPercent(seq) {
+  let gc = 0, known = 0;
+  for (const ch of seq) {
+    if (ch === "G" || ch === "C") { gc++; known++; }
+    else if (ch === "A" || ch === "T") known++;
+  }
+  return known > 0 ? gc / known * 100 : NaN;
+}
+
+/** 引物 Tm 快速估算：Wallace 2/4 法则（2×(A+T) + 4×(G+C)，适用于 ≤30 nt 筛查） */
+function primerTm(seq) {
+  let at = 0, gc = 0;
+  for (const ch of seq) {
+    if (ch === "A" || ch === "T") at++;
+    else if (ch === "G" || ch === "C") gc++;
+  }
+  const n = at + gc;
+  return n > 0 ? at * 2 + gc * 4 : NaN;
+}
+
+/** 3' 端二聚体互补：a 的 3' 端 5nt 与 b 全长各偏移对齐的最大互补匹配数 */
+function threePrimeDimer(a, b) {
+  const ea = a.slice(-5).split("").reverse().join("");
+  const eb = b.split("").reverse().join("");
+  let best = 0;
+  for (let off = 0; off < eb.length; off++) {
+    let m = 0;
+    for (let i = 0; i < ea.length && i + off < eb.length; i++) {
+      if (PRIMER_COMP[ea[i]] && PRIMER_COMP[ea[i]] === eb[i + off]) m++;
+    }
+    if (m > best) best = m;
+  }
+  return best;
+}
+
+/** 发夹风险：3' 端 4nt 茎区的反向互补是否出现在上游（环 ≥3 nt） */
+function hairpinRisk(seq) {
+  if (seq.length < 11) return false;
+  const rc = reverseComplement(seq.slice(-4));
+  return seq.slice(0, seq.length - 7).includes(rc);
+}
+
+/** 单条候选引物评分（100 分起扣，扣至 70 分以下不进入配对池） */
+function scorePrimerCandidate(seq, prm) {
+  const L = seq.length;
+  const gc = gcPercent(seq);
+  const tm = primerTm(seq);
+  let score = 100;
+  const checks = [];
+  function check(ok, label, penalty) {
+    checks.push({ ok, label });
+    if (!ok) score -= penalty;
+  }
+  check(L >= prm.lenMin && L <= prm.lenMax, "引物长度 " + L + " nt", 40);
+  check(isFinite(tm) && tm >= prm.tmMin && tm <= prm.tmMax, "Tm = " + fmtNum(tm, 1) + " ℃", 40);
+  check(isFinite(gc) && gc >= prm.gcMin && gc <= prm.gcMax, "GC = " + fmtNum(gc, 1) + "%", 30);
+  const last = seq[L - 1];
+  check(last === "G" || last === "C", "3' 端 GC clamp（末端 " + (last || "-") + "）", 15);
+  check(!/(.)\1{3,}/.test(seq), "无 ≥4 连续同碱基", 20);
+  const dim = threePrimeDimer(seq, seq);
+  check(dim < 3, "3' 端自二聚体互补 " + dim + " 个", dim >= 4 ? 50 : 25);
+  check(!hairpinRisk(seq), "无发夹结构风险", 20);
+  let tailGC = 0;
+  for (const ch of seq.slice(-5)) if (ch === "G" || ch === "C") tailGC++;
+  check(tailGC <= 3, "3' 端 5nt 内 GC ≤ 3", 10);
+  return { score, checks, gc, tm, len: L };
+}
+
+/** 引物对设计主函数：滑动窗口扫描 → 单引物过滤 → 配对评分 → Top K */
+function designPrimers(template, prm, topK) {
+  const t = String(template).replace(/[^ACGT]/g, "");
+  if (t.length < prm.prodMin || prm.lenMin > prm.lenMax) return [];
+  const fwd = [], rev = [];
+  for (let L = prm.lenMin; L <= prm.lenMax; L++) {
+    for (let i = 0; i + L <= t.length; i++) {
+      const s = t.substr(i, L);
+      const sc = scorePrimerCandidate(s, prm);
+      if (sc.score >= 70) {
+        fwd.push({ seq: s, start: i, len: L, sc });
+        rev.push({ seq: reverseComplement(s), bindStart: i, bindEnd: i + L, len: L, sc });
+      }
+    }
+  }
+  fwd.sort((a, b) => b.sc.score - a.sc.score);
+  rev.sort((a, b) => b.sc.score - a.sc.score);
+  const F = fwd.slice(0, 40), R = rev.slice(0, 40);
+  const pairs = [];
+  for (const f of F) {
+    for (const r of R) {
+      const size = r.bindEnd - f.start;
+      if (size < prm.prodMin || size > prm.prodMax) continue;
+      const dimFR = threePrimeDimer(f.seq, r.seq);
+      if (dimFR >= 4) continue;
+      const tmDiff = Math.abs(f.sc.tm - r.sc.tm);
+      let total = f.sc.score + r.sc.score;
+      if (tmDiff > 2) total -= 20 * (tmDiff - 2);
+      if (dimFR === 3) total -= 30;
+      pairs.push({
+        f, r, size,
+        total: Math.round(total * 10) / 10,
+        tmDiff: Math.round(tmDiff * 10) / 10,
+        dimFR
+      });
+    }
+  }
+  pairs.sort((a, b) => b.total - a.total);
+  return pairs.slice(0, topK || 5);
+}
+
+/* --- 引物设计 UI 状态与逻辑 --- */
+const PRIMER_EXAMPLE_TEMPLATE = (function () {
+  let s = 42;
+  const rnd = function () { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
+  let out = "";
+  for (let i = 0; i < 800; i++) out += "ACGT"[Math.floor(rnd() * 4)];
+  return out;
+})();
+
+function updatePrimerInfo() {
+  const s = parseSeqInput($("primerTemplate").value).replace(/U/g, "T");
+  $("primerInfo").textContent = s ? "模板长度 " + s.length + " nt（仅使用 A/C/G/T，N 等其他字符将被剔除）" : "";
+}
+
+function primerRunFn() {
+  $("primerWarn").innerHTML = "";
+  $("primerResultCard").classList.add("hidden");
+  let t = parseSeqInput($("primerTemplate").value).replace(/U/g, "T").replace(/[^ACGT]/g, "");
+  if (t.length > 5000) {
+    t = t.slice(0, 5000);
+    $("primerWarn").innerHTML = '<div class="warn-box">⚠ 模板较长，仅使用前 5000 nt 参与扫描。</div>';
+  }
+  if (t.length < 60) {
+    $("primerWarn").innerHTML = '<div class="err-box">错误：有效模板（仅含 A/C/G/T）不足 60 nt，无法设计引物。</div>';
+    return;
+  }
+  const num = (id, def) => { const v = parseFloat($(id).value); return isFinite(v) ? v : def; };
+  const prm = {
+    prodMin: num("pProdMin", 100), prodMax: num("pProdMax", 500),
+    lenMin: Math.round(num("pLenMin", 18)), lenMax: Math.round(num("pLenMax", 25)),
+    tmMin: num("pTmMin", 58), tmMax: num("pTmMax", 62),
+    gcMin: num("pGcMin", 40), gcMax: num("pGcMax", 60)
+  };
+  if (prm.lenMin > prm.lenMax || prm.prodMin > prm.prodMax || prm.tmMin > prm.tmMax || prm.gcMin > prm.gcMax) {
+    $("primerWarn").innerHTML = '<div class="err-box">错误：参数范围设置有误（下限不能大于上限）。</div>';
+    return;
+  }
+  const pairs = designPrimers(t, prm, 5);
+  if (!pairs.length) {
+    $("primerWarn").innerHTML = '<div class="err-box">错误：未找到符合条件的引物对。请尝试放宽 Tm / GC 范围或产物长度范围。</div>';
+    return;
+  }
+  renderPrimerResults(pairs, t.length);
+  $("primerWarn").innerHTML = '<div class="ok-box">完成：从 ' + t.length + " nt 模板中设计出 " + pairs.length + " 对引物（按综合评分排序）。</div>";
+}
+
+function renderPrimerResults(pairs, templateLen) {
+  let html = "";
+  pairs.forEach((p, idx) => {
+    const fL = (p.f.start / templateLen * 100), fW = (p.f.len / templateLen * 100);
+    const rL = (p.r.bindStart / templateLen * 100), rW = (p.r.len / templateLen * 100);
+    const bandL = fL, bandW = (p.size / templateLen * 100);
+    const mark = (list) => list.map(c => (c.ok ? '<span style="color:#2e7d32">✔</span>' : '<span style="color:#c62828">✘</span>') + c.label).join("　");
+    html += '<div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">';
+    html += "<h4>#" + (idx + 1) + "　综合评分 " + p.total.toFixed(1) + "</h4>";
+    html += '<div style="position:relative;height:34px;background:#eceff1;border-radius:6px;margin:8px 0;overflow:hidden">';
+    html += '<div style="position:absolute;left:' + bandL.toFixed(2) + '%;width:' + bandW.toFixed(2) + '%;top:6px;height:22px;background:#c8e6c9;border:1px solid #81c784;border-radius:4px" title="产物区间"></div>';
+    html += '<div style="position:absolute;left:' + fL.toFixed(2) + '%;width:' + fW.toFixed(2) + '%;top:6px;height:22px;background:#bbdefb;border:1px solid #64b5f6;border-radius:4px;font-size:11px;text-align:center;color:#0d47a1" title="正向引物结合区">F</div>';
+    html += '<div style="position:absolute;left:' + rL.toFixed(2) + '%;width:' + rW.toFixed(2) + '%;top:6px;height:22px;background:#ffe0b2;border:1px solid #ffb74d;border-radius:4px;font-size:11px;text-align:center;color:#e65100" title="反向引物结合区">R</div>';
+    html += "</div>";
+    html += '<table class="data"><tr><th>项目</th><th>正向引物 F</th><th>反向引物 R</th></tr>';
+    html += "<tr><th>序列 (5'→3')</th><td style='font-family:Consolas,monospace'>" + escapeHtml(p.f.seq) +
+      ' <button class="btn btn-ghost btn-sm" data-primer-copy="' + p.f.seq + '">📋</button></td>' +
+      "<td style='font-family:Consolas,monospace'>" + escapeHtml(p.r.seq) +
+      ' <button class="btn btn-ghost btn-sm" data-primer-copy="' + p.r.seq + '">📋</button></td></tr>';
+    html += "<tr><th>长度 / Tm / GC%</th><td>" + p.f.len + " nt / " + fmtNum(p.f.sc.tm, 1) + " ℃ / " + fmtNum(p.f.sc.gc, 1) + "%</td><td>" +
+      p.r.len + " nt / " + fmtNum(p.r.sc.tm, 1) + " ℃ / " + fmtNum(p.r.sc.gc, 1) + "%</td></tr>";
+    html += "<tr><th>模板位置</th><td>" + (p.f.start + 1) + "–" + (p.f.start + p.f.len) + "</td><td>" + (p.r.bindStart + 1) + "–" + p.r.bindEnd + "（结合区）</td></tr>";
+    html += "<tr><th>产物 / Tm 差 / F-R 3'互补</th><td colspan='2'>" + p.size + " bp　Tm 差 " + p.tmDiff.toFixed(1) + " ℃　" + p.dimFR + " 个</td></tr>";
+    html += "</table>";
+    html += '<div class="hint" style="margin-top:6px"><b>F：</b>' + mark(p.f.sc.checks) + "<br><b>R：</b>" + mark(p.r.sc.checks) + "</div>";
+    html += "</div>";
+  });
+  html += '<div class="hint">评分规则：100 分基础分，按 Tm / GC / 长度 / GC clamp / 二聚体 / 发夹 / 连续同碱基 / 3\' GC 含量扣分；两引物 Tm 差 &gt;2℃ 或 3\' 互补 ≥3 再额外扣分。简化规则仅供筛查，重要实验请用 Primer3 复核。</div>';
+  $("primerResult").innerHTML = html;
+  $("primerResultCard").classList.remove("hidden");
+  $("primerResult").querySelectorAll("button[data-primer-copy]").forEach(btn => {
+    btn.addEventListener("click", () => copyText(btn.dataset.primerCopy));
+  });
+}
+
+/* =========================================================================
+ * UI 路由与事件绑定
+ * ========================================================================= */
+function showPage(pageId) {
+  document.querySelectorAll("section.page").forEach(s => s.classList.add("hidden"));
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+  const page = $(pageId);
+  if (page) page.classList.remove("hidden");
+  const btn = document.querySelector('.nav-btn[data-page="' + pageId + '"]');
+  if (btn) btn.classList.add("active");
+}
+
+function setupDropzone(zoneEl, cb) {
+  zoneEl.addEventListener("dragover", function (e) { e.preventDefault(); this.classList.add("dragover"); });
+  zoneEl.addEventListener("dragleave", function () { this.classList.remove("dragover"); });
+  zoneEl.addEventListener("drop", function (e) {
+    e.preventDefault();
+    this.classList.remove("dragover");
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) readFileToText(f, cb);
+  });
+}
+
+function init() {
+  if (window.Chart) {
+    Chart.defaults.font.family = "'Microsoft YaHei','PingFang SC',sans-serif";
+  }
+
+  /* 导航 */
+  document.querySelectorAll(".nav-btn").forEach(btn => {
+    btn.addEventListener("click", () => showPage(btn.dataset.page));
+  });
+
+  /* ---------- 序列比对 ---------- */
+  $("alnSeq1").addEventListener("input", alnUpdateInfo);
+  $("alnSeq2").addEventListener("input", alnUpdateInfo);
+  $("alnFile1").addEventListener("change", function () {
+    if (this.files[0]) readFileToText(this.files[0], t => { $("alnSeq1").value = t; alnUpdateInfo(); });
+  });
+  $("alnFile2").addEventListener("change", function () {
+    if (this.files[0]) readFileToText(this.files[0], t => { $("alnSeq2").value = t; alnUpdateInfo(); });
+  });
+  $("alnExampleDNA").addEventListener("click", () => {
+    $("alnSeq1").value = ">示例DNA序列1\n" + ALN_EXAMPLE_DNA_1;
+    $("alnSeq2").value = ">示例DNA序列2\n" + ALN_EXAMPLE_DNA_2;
+    alnUpdateInfo();
+    showToast("已载入 DNA 示例序列");
+  });
+  $("alnExampleProt").addEventListener("click", () => {
+    $("alnSeq1").value = ">示例蛋白序列1（血红蛋白α片段）\n" + ALN_EXAMPLE_PROT_1;
+    $("alnSeq2").value = ">示例蛋白序列2（血红蛋白α片段，含替换）\n" + ALN_EXAMPLE_PROT_2;
+    alnUpdateInfo();
+    showToast("已载入蛋白质示例序列");
+  });
+  $("alnRun").addEventListener("click", alnRun);
+  $("alnClear").addEventListener("click", () => {
+    $("alnSeq1").value = ""; $("alnSeq2").value = "";
+    $("alnWarn").innerHTML = ""; $("alnResultCard").classList.add("hidden");
+    $("alnInfo1").textContent = ""; $("alnInfo2").textContent = "";
+  });
+
+  /* ---------- 相关性分析 ---------- */
+  $("corrFile").addEventListener("change", function () {
+    if (this.files[0]) readFileToText(this.files[0], t => { $("corrInput").value = t; });
+  });
+  $("corrExample").addEventListener("click", () => {
+    $("corrInput").value = corrExampleData();
+    showToast("已载入示例数据（基因表达 + 分子性质，30 行）");
+  });
+  $("corrRun").addEventListener("click", corrRun);
+  bindHeatmapClick();
+  $("corrExport").addEventListener("click", corrExportCSV);
+  $("corrCopy").addEventListener("click", corrCopyMatrix);
+
+  /* ---------- 分子对接工作台 ---------- */
+  $("recFile").addEventListener("change", function () {
+    if (this.files[0]) readFileToText(this.files[0], t => { $("recText").value = t.slice(0, 200000); loadReceptor(t); });
+  });
+  $("recLoad").addEventListener("click", () => {
+    const t = $("recText").value.trim();
+    if (!t) { showToast("请先粘贴受体内容或选择文件"); return; }
+    loadReceptor(t);
+  });
+  $("ligFile").addEventListener("change", function () {
+    if (this.files[0]) readFileToText(this.files[0], t => { $("ligText").value = t.slice(0, 200000); loadLigand(t, this.files[0].name); });
+  });
+  $("ligLoad").addEventListener("click", () => {
+    const t = $("ligText").value.trim();
+    if (!t) { showToast("请先粘贴配体内容或选择文件"); return; }
+    loadLigand(t, null);
+  });
+  setupDropzone($("recDrop"), t => { $("recText").value = t.slice(0, 200000); loadReceptor(t); });
+  setupDropzone($("ligDrop"), t => { $("ligText").value = t.slice(0, 200000); loadLigand(t, null); });
+  $("dockClear").addEventListener("click", () => {
+    dockState.receptorText = null; dockState.ligandText = null; dockState.receptorAtoms = [];
+    $("recInfo").textContent = ""; $("ligInfo").textContent = "";
+    if (dockState.viewer) { dockState.viewer.clear(); dockState.viewer.render(); }
+  });
+  $("paramGen").addEventListener("click", generateDockParams);
+  document.querySelectorAll(".copy-btn[data-copy-target]").forEach(btn => {
+    btn.addEventListener("click", () => copyText($(btn.dataset.copyTarget).textContent));
+  });
+  $("vinaFile").addEventListener("change", function () {
+    if (!this.files[0]) return;
+    readFileToText(this.files[0], t => {
+      const models = parseVinaOut(t);
+      if (!models.length) {
+        $("vinaWarn").innerHTML = '<div class="err-box">错误：未能解析出任何构象。请确认上传的是 Vina 输出的 *_out.pdbqt（含 MODEL/ENDMDL 与 REMARK VINA RESULT 行）。</div>';
+        return;
+      }
+      const withEnergy = models.filter(m => m.energy !== null).length;
+      dockState.vinaModels = models;
+      $("vinaWarn").innerHTML = '<div class="ok-box">解析成功：共 ' + models.length + " 个构象，其中 " + withEnergy + " 个含 REMARK VINA RESULT 亲和力数据。</div>";
+      renderVinaTable();
+    });
+  });
+
+  /* ---------- 序列小工具 ---------- */
+  $("toolFile").addEventListener("change", function () {
+    if (this.files[0]) readFileToText(this.files[0], t => {
+      $("toolSeq").value = t;
+      const s = parseSeqInput(t);
+      $("toolType").textContent = s ? "已识别：" + ({ dna: "DNA", rna: "RNA", protein: "蛋白质" })[detectSeqType(s)] + "，长度 " + s.length : "";
+    });
+  });
+  $("toolSeq").addEventListener("input", () => {
+    const s = parseSeqInput($("toolSeq").value);
+    $("toolType").textContent = s ? "已识别：" + ({ dna: "DNA", rna: "RNA", protein: "蛋白质" })[detectSeqType(s)] + "，长度 " + s.length : "";
+  });
+  $("toolExample").addEventListener("click", () => {
+    $("toolSeq").value = ">示例序列（人源 DNA 片段）\n" +
+      "ATGGTGCATCTGACTCCTGAGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGGTGAACGTGGATGAAGTTGGTGGTGAGGCCCTGGGCAGGCTGCTGGTGGTCTACCCTTGGACCCAGAGGTTCTTTGAGTCCTTTGGGGATCTG";
+    $("toolType").textContent = "已识别：DNA，长度 " + parseSeqInput($("toolSeq").value).length;
+    showToast("已载入示例 DNA 序列");
+  });
+  $("toolRun").addEventListener("click", toolRunStats);
+  $("toolRevComp").addEventListener("click", toolReverseComplement);
+  $("toolTranslate").addEventListener("click", toolSixFrame);
+  $("toolClear").addEventListener("click", () => {
+    $("toolSeq").value = ""; $("toolType").textContent = "";
+    $("toolResultCard").classList.add("hidden"); $("toolRC6Card").classList.add("hidden");
+    if (toolChartInstance) { toolChartInstance.destroy(); toolChartInstance = null; }
+  });
+  $("toolCopy").addEventListener("click", () => copyText(toolResultText));
+  $("toolRC6Copy").addEventListener("click", () => copyText(toolRC6Text));
+
+  /* ---------- 系统发育树 ---------- */
+  $("phyloFile").addEventListener("change", function () {
+    if (this.files[0]) readFileToText(this.files[0], t => { $("phyloInput").value = t; });
+  });
+  document.querySelectorAll('input[name="phyloInputType"]').forEach(r => {
+    r.addEventListener("change", () => {
+      $("phyloMethod").disabled = phyloGetType() === "newick";
+    });
+  });
+  $("phyloExampleFasta").addEventListener("click", () => {
+    $("phyloInput").value = PHYLO_EXAMPLE_FASTA;
+    const rb = document.querySelector('input[name="phyloInputType"][value="fasta"]');
+    if (rb) rb.checked = true;
+    $("phyloMethod").disabled = false;
+    showToast("已载入 5 条示例序列");
+  });
+  $("phyloExampleMatrix").addEventListener("click", () => {
+    $("phyloInput").value = PHYLO_EXAMPLE_MATRIX;
+    const rb = document.querySelector('input[name="phyloInputType"][value="matrix"]');
+    if (rb) rb.checked = true;
+    $("phyloMethod").disabled = false;
+    showToast("已载入示例距离矩阵");
+  });
+  $("phyloRun").addEventListener("click", phyloRunFn);
+  $("phyloClear").addEventListener("click", () => {
+    $("phyloInput").value = "";
+    $("phyloWarn").innerHTML = "";
+    $("phyloResultCard").classList.add("hidden");
+  });
+  $("phyloExport").addEventListener("click", phyloExportCSV);
+
+  /* ---------- 引物设计 ---------- */
+  $("primerFile").addEventListener("change", function () {
+    if (this.files[0]) readFileToText(this.files[0], t => { $("primerTemplate").value = t; updatePrimerInfo(); });
+  });
+  $("primerTemplate").addEventListener("input", updatePrimerInfo);
+  $("primerExample").addEventListener("click", () => {
+    $("primerTemplate").value = ">示例模板（800 bp）\n" + PRIMER_EXAMPLE_TEMPLATE;
+    updatePrimerInfo();
+    showToast("已载入示例模板");
+  });
+  $("primerRun").addEventListener("click", primerRunFn);
+  $("primerClear").addEventListener("click", () => {
+    $("primerTemplate").value = "";
+    $("primerInfo").textContent = "";
+    $("primerWarn").innerHTML = "";
+    $("primerResultCard").classList.add("hidden");
+  });
+}
+
+init();
+</script>
+</body>
+</html>
