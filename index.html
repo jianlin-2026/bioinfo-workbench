@@ -189,6 +189,7 @@
     <button class="nav-btn" data-page="page-motif">🔤 Motif 分析</button>
     <button class="nav-btn" data-page="page-syn">🧩 共线性分析</button>
     <button class="nav-btn" data-page="page-omics">📊 组学绘图工具集</button>
+    <button class="nav-btn" data-page="page-cv">🔄 格式转换</button>
   </nav>
 
   <main>
@@ -347,7 +348,6 @@
           <div><label class="form-label">num_modes</label><input type="number" id="paramModes" value="9" min="1"></div>
           <div><label class="form-label">energy_range</label><input type="number" id="paramEnergy" value="3" min="1"></div>
           <div><label class="form-label">seed</label><input type="number" id="paramSeed" value="42"></div>
-          <div><label class="form-label">cpu</label><input type="number" id="paramCpu" value="4" min="1"></div>
         </div>
         <div class="row"><button class="btn" id="paramGen">⚙ 生成配置与命令</button></div>
         <div class="hidden" id="paramOut">
@@ -1002,6 +1002,98 @@ C\t-0.6\t-0.3\t1"></textarea>
         </div>
       </div>
     </section>
+    <!-- ======================= 页面十三：格式转换 ======================= -->
+    <section class="page hidden" id="page-cv">
+      <h2>🔄 格式转换</h2>
+      <div class="page-desc">生信常用文件格式一键互转：序列文件（FASTA / 表格 / 纯序列，支持行宽、大小写、DNA↔RNA、反向互补）、比对文件（FASTA / CLUSTAL / PHYLIP / NEXUS 输出）、表格（CSV / TSV / Markdown、行列转置）、批量序列操作（去重 / 重命名 / 过滤 / 提取）。全部本地完成。</div>
+
+      <div class="card">
+        <h3>① 序列格式互转（自动识别输入格式）</h3>
+        <textarea class="seq-input" id="cvInput" style="height:150px" placeholder="自动识别：FASTA（&gt;开头）/ 表格（ID + 序列 两列）/ 纯序列（每行一条）"></textarea>
+        <div class="row">
+          <label class="btn btn-ghost btn-sm">📂 上传文件<input type="file" id="cvFile" accept=".txt,.fa,.fasta,.seq,.tsv,.csv" style="display:none"></label>
+          <button class="btn btn-ghost btn-sm" id="cvExample">载入示例</button>
+          <span class="hint">输出格式</span>
+          <select id="cvOutFmt" style="width:auto"><option value="fasta60">FASTA（行宽 60）</option><option value="fasta1">FASTA（单行）</option><option value="tsv">表格 TSV</option><option value="csv">表格 CSV</option><option value="plain">纯序列（每行一条）</option></select>
+          <label><input type="checkbox" id="cvUpper"> 统一大写</label>
+          <label><input type="checkbox" id="cvRna"> DNA→RNA（T→U）</label>
+          <label><input type="checkbox" id="cvRevcomp"> 反向互补（仅核酸）</label>
+          <button class="btn" id="cvRun">▶ 转换</button>
+          <button class="btn btn-ghost" id="cvClear">清空</button>
+        </div>
+        <div id="cvWarn"></div>
+        <div class="hidden" id="cvOut">
+          <div class="hint" id="cvStats" style="margin:6px 0"></div>
+          <textarea class="seq-input" id="cvOutText" style="height:180px;font-family:Consolas,monospace" readonly></textarea>
+          <div class="row"><button class="btn btn-ghost btn-sm" id="cvCopy">📋 复制结果</button><button class="btn btn-ghost btn-sm" id="cvDownload">⬇ 下载文件</button></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>② 比对文件格式互转（FASTA / CLUSTAL / PHYLIP / NEXUS）</h3>
+        <label class="form-label">输入比对文件（自动识别；要求所有序列等长，含 "-" 空位）</label>
+        <textarea class="seq-input" id="clInput" style="height:150px" placeholder="FASTA（&gt;开头）/ CLUSTAL（块状，可含共识行）/ PHYLIP（首行 N N）"></textarea>
+        <div class="row">
+          <label class="btn btn-ghost btn-sm">📂 上传文件<input type="file" id="clFile" accept=".txt,.fa,.fasta,.aln,.clw,.phy,.nexus,.nex" style="display:none"></label>
+          <button class="btn btn-ghost btn-sm" id="clExample">载入示例</button>
+          <span class="hint">输出格式</span>
+          <select id="clOutFmt" style="width:auto"><option value="fasta">FASTA</option><option value="clustal">CLUSTAL</option><option value="phylip">PHYLIP（顺序型）</option><option value="nexus">NEXUS</option></select>
+          <button class="btn" id="clRun">▶ 转换</button>
+          <button class="btn btn-ghost" id="clClear">清空</button>
+        </div>
+        <div id="clWarn"></div>
+        <div class="hidden" id="clOut">
+          <div class="hint" id="clStats" style="margin:6px 0"></div>
+          <textarea class="seq-input" id="clOutText" style="height:180px;font-family:Consolas,monospace" readonly></textarea>
+          <div class="row"><button class="btn btn-ghost btn-sm" id="clCopy">📋 复制结果</button><button class="btn btn-ghost btn-sm" id="clDownload">⬇ 下载文件</button></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>③ 表格转换（CSV / TSV / Markdown / 转置）</h3>
+        <textarea class="seq-input" id="tbInput" style="height:130px" placeholder="粘贴 CSV / TSV / Markdown 表格，自动识别分隔符"></textarea>
+        <div class="row">
+          <label class="btn btn-ghost btn-sm">📂 上传文件<input type="file" id="tbFile" accept=".txt,.csv,.tsv,.md" style="display:none"></label>
+          <label><input type="checkbox" id="tbTranspose"> 行列转置</label>
+          <span class="hint">输出</span>
+          <select id="tbOutFmt" style="width:auto"><option value="tsv">TSV</option><option value="csv">CSV</option><option value="md">Markdown</option></select>
+          <button class="btn" id="tbRun">▶ 转换</button>
+          <button class="btn btn-ghost" id="tbClear">清空</button>
+        </div>
+        <div id="tbWarn"></div>
+        <div class="hidden" id="tbOut">
+          <div class="hint" id="tbStats" style="margin:6px 0"></div>
+          <textarea class="seq-input" id="tbOutText" style="height:170px;font-family:Consolas,monospace" readonly></textarea>
+          <div class="row"><button class="btn btn-ghost btn-sm" id="tbCopy">📋 复制结果</button><button class="btn btn-ghost btn-sm" id="tbDownload">⬇ 下载文件</button></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>④ 批量序列操作（去重 / 重命名 / 过滤 / 提取）</h3>
+        <label class="form-label">多 FASTA 输入</label>
+        <textarea class="seq-input" id="baInput" style="height:110px" placeholder="&gt;gene1 描述可保留"></textarea>
+        <div class="row">
+          <label><input type="checkbox" id="baDedupe" checked> 按 ID 去重（保留首个）</label>
+          <label><input type="checkbox" id="baDedupeSeq"> 按序列去重</label>
+          <span class="hint">ID 加前缀</span><input type="text" id="baPrefix" placeholder="如 sp_" style="width:110px">
+          <span class="hint">长度</span><input type="text" id="baLenRange" placeholder="如 100-500" style="width:110px">
+        </div>
+        <label class="form-label" style="margin-top:8px">按 ID 提取子集（每行一个，留空则不过滤）</label>
+        <textarea class="seq-input" id="baKeep" style="height:70px" placeholder="gene1&#10;gene3"></textarea>
+        <div class="row">
+          <label class="btn btn-ghost btn-sm">📂 上传 FASTA<input type="file" id="baFile" accept=".txt,.fa,.fasta" style="display:none"></label>
+          <button class="btn" id="baRun">▶ 执行操作</button>
+          <button class="btn btn-ghost" id="baClear">清空</button>
+        </div>
+        <div id="baWarn"></div>
+        <div class="hidden" id="baOut">
+          <div class="hint" id="baStats" style="margin:6px 0"></div>
+          <textarea class="seq-input" id="baOutText" style="height:170px;font-family:Consolas,monospace" readonly></textarea>
+          <div class="row"><button class="btn btn-ghost btn-sm" id="baCopy">📋 复制结果</button><button class="btn btn-ghost btn-sm" id="baDownload">⬇ 下载 FASTA</button></div>
+        </div>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -5516,6 +5608,294 @@ async function pcDownloadSdf(cid) {
 
 
 /* =========================================================================
+ * 模块十三：格式转换（序列/比对/表格/批量操作）
+ * ========================================================================= */
+/** 序列输入自动识别：FASTA / 表格(两列) / 纯序列 → [{name, seq}] */
+function cvParseAny(text) {
+  const lines = String(text || "").split(/\r?\n/).map(l => l.trim()).filter(l => l);
+  const seqs = [];
+  if (!lines.length) return seqs;
+  if (lines.some(l => l.startsWith(">"))) return parseFastaMulti(text).map(s => ({ name: s.name, seq: s.seq }));
+  const looksTable = lines.some(l => {
+    const c = l.split(/[\t,;]/).map(x => x.trim()).filter(x => x !== "");
+    return c.length >= 2 && /^[A-Za-z\-*_.?]{8,}$/.test(c[1]);
+  });
+  if (looksTable) {
+    for (const l of lines) {
+      const c = l.split(/[\t,;]/).map(x => x.trim()).filter(x => x !== "");
+      if (c.length >= 2) seqs.push({ name: c[0], seq: c[1].replace(/\s+/g, "") });
+    }
+    return seqs;
+  }
+  lines.forEach((l, i) => seqs.push({ name: "序列" + (i + 1), seq: l.replace(/\s+/g, "") }));
+  return seqs;
+}
+
+/** 序列变换：大写 / DNA↔RNA / 反向互补（仅核酸） */
+function cvTransform(seqs, opts) {
+  return seqs.map(s => {
+    let seq = s.seq;
+    if (opts.upper) seq = seq.toUpperCase();
+    if (opts.rna) seq = seq.replace(/T/g, "U").replace(/t/g, "u");
+    if (opts.revcomp) {
+      const isNuc = /^[ACGTUNacgtun\-]+$/.test(seq);
+      if (isNuc) seq = reverseComplement(seq.replace(/U/g, "T")).replace(/T/g, opts.rna ? "U" : "T");
+    }
+    return { name: s.name, seq };
+  });
+}
+
+function cvToFasta(seqs, wrap) {
+  return seqs.map(s => {
+    if (!wrap || wrap < 10) return ">" + s.name + "\n" + s.seq;
+    let out = "";
+    for (let i = 0; i < s.seq.length; i += wrap) out += s.seq.slice(i, i + wrap) + "\n";
+    return ">" + s.name + "\n" + out.trimEnd();
+  }).join("\n");
+}
+function cvToTable(seqs, delim) {
+  const esc = v => delim === "," && /[",]/.test(v) ? '"' + v + '"' : v;
+  return ["ID" + delim + "序列"].concat(seqs.map(s => esc(s.name) + delim + s.seq)).join("\n");
+}
+function cvToPlain(seqs) { return seqs.map(s => s.seq).join("\n"); }
+
+let cvLastOut = null;
+
+function cvRunTool() {
+  $("cvWarn").innerHTML = "";
+  $("cvOut").classList.add("hidden");
+  const seqs = cvParseAny($("cvInput").value);
+  if (!seqs.length) {
+    $("cvWarn").innerHTML = '<div class="err-box">错误：未识别到任何序列。支持 FASTA、两列表格（ID + 序列）、纯序列。</div>';
+    return;
+  }
+  const opts = { upper: $("cvUpper").checked, rna: $("cvRna").checked, revcomp: $("cvRevcomp").checked };
+  const transformed = cvTransform(seqs, opts);
+  const fmt = $("cvOutFmt").value;
+  let out = "";
+  let ext = ".txt";
+  if (fmt === "fasta60") { out = cvToFasta(transformed, 60); ext = ".fasta"; }
+  else if (fmt === "fasta1") { out = cvToFasta(transformed, 0); ext = ".fasta"; }
+  else if (fmt === "tsv") { out = cvToTable(transformed, "\t"); ext = ".tsv"; }
+  else if (fmt === "csv") { out = cvToTable(transformed, ","); ext = ".csv"; }
+  else { out = cvToPlain(transformed); ext = ".txt"; }
+  cvLastOut = { text: out, ext };
+  const totalLen = transformed.reduce((a, s) => a + s.seq.length, 0);
+  $("cvStats").textContent = "识别 " + transformed.length + " 条序列，总长度 " + totalLen + "；已转换完成";
+  $("cvOutText").value = out;
+  $("cvOut").classList.remove("hidden");
+}
+
+/* ---------- 比对格式互转 ---------- */
+/** 自动识别比对格式 → [{name, seq}] */
+function clParseAny(text) {
+  const lines = String(text || "").split(/\r?\n/).map(l => l.trimEnd());
+  const nonEmpty = lines.filter(l => l.trim() !== "");
+  if (!nonEmpty.length) return { seqs: [], format: "unknown" };
+  if (nonEmpty.some(l => l.startsWith(">"))) return { seqs: parseFastaMulti(text).map(s => ({ name: s.name, seq: s.seq })), format: "FASTA" };
+  if (/^\s*\d+\s+\d+\s*$/.test(nonEmpty[0])) {
+    const buf = new Map();
+    const order = [];
+    for (let i = 1; i < nonEmpty.length; i++) {
+      const l = nonEmpty[i];
+      if (/^\s+\S+$/.test(l)) {
+        if (order.length) buf.set(order[order.length - 1], buf.get(order[order.length - 1]) + l.trim().replace(/\s+/g, ""));
+        continue;
+      }
+      const m = l.match(/^(\S+)\s+(.+)$/);
+      if (!m) continue;
+      const name = m[1], seq = m[2].replace(/\s+/g, "");
+      if (buf.has(name)) buf.set(name, buf.get(name) + seq);
+      else { buf.set(name, seq); order.push(name); }
+    }
+    return { seqs: order.map(n => ({ name: n, seq: buf.get(n) })), format: "PHYLIP" };
+  }
+  if (/CLUSTAL/i.test(nonEmpty[0]) || nonEmpty.some(l => /^\s{2,}[\*:.\s]+$/.test(l))) {
+    const buf = new Map();
+    const order = [];
+    for (const l of nonEmpty.slice(1)) {
+      if (/^\s+[\*:.\s]*$/.test(l)) continue;
+      const m = l.match(/^(\S+)\s+([^\s]+)$/);
+      if (!m) continue;
+      const name = m[1], seq = m[2].replace(/\s+/g, "");
+      if (buf.has(name)) buf.set(name, buf.get(name) + seq);
+      else { buf.set(name, seq); order.push(name); }
+    }
+    return { seqs: order.map(n => ({ name: n, seq: buf.get(n) })), format: "CLUSTAL" };
+  }
+  return { seqs: [], format: "unknown" };
+}
+
+function clCheckAligned(seqs) {
+  const lens = new Set(seqs.map(s => s.seq.length));
+  return lens.size === 1 ? seqs[0].seq.length : -1;
+}
+
+function clToClustal(seqs, width) {
+  const nameW = Math.min(20, Math.max(...seqs.map(s => s.name.length)) + 2);
+  const alen = seqs[0].seq.length;
+  const lines = ["CLUSTAL W-like multiple sequence alignment (由生信工具站生成)", ""];
+  for (let start = 0; start < alen; start += width) {
+    for (const s of seqs) {
+      lines.push(s.name.padEnd(nameW).slice(0, nameW) + s.seq.slice(start, start + width));
+    }
+    lines.push("");
+  }
+  return lines.join("\n").replace(/\n+$/, "\n");
+}
+
+function clToPhylip(seqs) {
+  const nameW = 10;
+  const lines = [seqs.length + " " + seqs[0].seq.length];
+  for (const s of seqs) {
+    lines.push(s.name.slice(0, nameW).padEnd(nameW) + " " + s.seq);
+  }
+  return lines.join("\n");
+}
+
+function clToNexus(seqs) {
+  const isDNA = /^[ACGTUN\-]*$/.test(seqs.map(s => s.seq).join("").toUpperCase());
+  const nameW = Math.max(...seqs.map(s => s.name.length)) + 2;
+  const lines = ["#NEXUS", "", "BEGIN DATA;", "DIMENSIONS NTAX=" + seqs.length + " NCHAR=" + seqs[0].seq.length + ";",
+    "FORMAT DATATYPE=" + (isDNA ? "DNA" : "PROTEIN") + " GAP=- MISSING=?;", "MATRIX", ""];
+  for (const s of seqs) lines.push(s.name.padEnd(nameW) + s.seq);
+  lines.push(";", "END;");
+  return lines.join("\n");
+}
+
+let clLastOut = null;
+
+function clRunTool() {
+  $("clWarn").innerHTML = "";
+  $("clOut").classList.add("hidden");
+  const { seqs, format } = clParseAny($("clInput").value);
+  if (!seqs.length) {
+    $("clWarn").innerHTML = '<div class="err-box">错误：无法识别比对文件。支持 FASTA / CLUSTAL / PHYLIP。</div>';
+    return;
+  }
+  const alen = clCheckAligned(seqs);
+  if (alen < 0) {
+    $("clWarn").innerHTML = '<div class="err-box">错误：序列长度不一致（' + Array.from(new Set(seqs.map(s => s.seq.length))).join(", ") + "），比对文件要求等长。请检查输入。</div>";
+    return;
+  }
+  const fmt = $("clOutFmt").value;
+  let out = "";
+  if (fmt === "fasta") out = cvToFasta(seqs, 60);
+  else if (fmt === "clustal") out = clToClustal(seqs, 60);
+  else if (fmt === "phylip") out = clToPhylip(seqs);
+  else out = clToNexus(seqs);
+  clLastOut = { text: out, ext: "." + fmt };
+  $("clStats").textContent = "识别 " + format + " 格式，" + seqs.length + " 条序列 × " + alen + " 位点；已转换为 " + fmt.toUpperCase() + " 格式";
+  $("clOutText").value = out;
+  $("clOut").classList.remove("hidden");
+}
+
+/* ---------- 表格转换 ---------- */
+function tbParse(text) {
+  const lines = String(text || "").split(/\r?\n/).filter(l => l.trim() !== "");
+  const rows = [];
+  for (const l of lines) {
+    if (/^\s*\|[\s\-:|]*\|\s*$/.test(l) && l.replace(/[^\-]/g, "").length > 2) continue;
+    let cells;
+    if (l.includes("\t")) cells = l.split("\t");
+    else if (l.includes("|") && (l.trim().startsWith("|") || (l.match(/\|/g) || []).length >= 2)) cells = l.trim().replace(/^\||\|$/g, "").split("|");
+    else if (l.includes(",")) cells = l.split(",");
+    else cells = [l];
+    rows.push(cells.map(c => c.trim()));
+  }
+  return rows.filter(r => !r.every(c => /^[-: ]*$/.test(c)));
+}
+
+function tbEmit(rows, fmt) {
+  if (fmt === "md") {
+    if (!rows.length) return "";
+    const w = Math.max(...rows.map(r => r.length));
+    const pad = rows.map(r => { while (r.length < w) r.push(""); return r; });
+    const lines = ["| " + pad[0].join(" | ") + " |"];
+    lines.push("|" + pad[0].map(() => " --- ").join("|") + "|");
+    for (let i = 1; i < pad.length; i++) lines.push("| " + pad[i].join(" | ") + " |");
+    return lines.join("\n");
+  }
+  const delim = fmt === "csv" ? "," : "\t";
+  return rows.map(r => r.map(c => delim === "," && /[",]/.test(c) ? '"' + c + '"' : c).join(delim)).join("\n");
+}
+
+let tbLastOut = null;
+
+function tbRunTool() {
+  $("tbWarn").innerHTML = "";
+  $("tbOut").classList.add("hidden");
+  let rows = tbParse($("tbInput").value);
+  if (rows.length < 1) {
+    $("tbWarn").innerHTML = '<div class="err-box">错误：未识别到表格内容。</div>';
+    return;
+  }
+  if ($("tbTranspose").checked) {
+    const w = Math.max(...rows.map(r => r.length));
+    rows = rows.map(r => { while (r.length < w) r.push(""); return r; });
+    rows = rows[0].map((_, j) => rows.map(r => r[j]));
+  }
+  const fmt = $("tbOutFmt").value;
+  const out = tbEmit(rows, fmt);
+  tbLastOut = { text: out, ext: "." + fmt };
+  $("tbStats").textContent = "转换完成：" + rows.length + " 行 × " + rows[0].length + " 列 → " + fmt.toUpperCase();
+  $("tbOutText").value = out;
+  $("tbOut").classList.remove("hidden");
+}
+
+/* ---------- 批量序列操作 ---------- */
+let baLastOut = null;
+
+function baRunTool() {
+  $("baWarn").innerHTML = "";
+  $("baOut").classList.add("hidden");
+  let seqs = parseFastaMulti($("baInput").value);
+  if (!seqs.length) {
+    $("baWarn").innerHTML = '<div class="err-box">错误：请输入 FASTA 格式序列。</div>';
+    return;
+  }
+  const total0 = seqs.length;
+  const logs = [];
+  if ($("baDedupe").checked) {
+    const seen = new Set();
+    const before = seqs.length;
+    seqs = seqs.filter(s => { const k = s.name.split(/\s/)[0]; if (seen.has(k)) return false; seen.add(k); return true; });
+    if (before !== seqs.length) logs.push("ID 去重移除 " + (before - seqs.length) + " 条");
+  }
+  if ($("baDedupeSeq").checked) {
+    const seen = new Set();
+    const before = seqs.length;
+    seqs = seqs.filter(s => { if (seen.has(s.seq)) return false; seen.add(s.seq); return true; });
+    if (before !== seqs.length) logs.push("序列去重移除 " + (before - seqs.length) + " 条");
+  }
+  const prefix = $("baPrefix").value.trim();
+  if (prefix) {
+    seqs = seqs.map((s, i) => ({ name: prefix + (i + 1), seq: s.seq }));
+    logs.push("ID 已加前缀 " + prefix);
+  }
+  const lenRange = $("baLenRange").value.trim();
+  if (/^\d+\s*-\s*\d+$/.test(lenRange)) {
+    const parts = lenRange.split("-");
+    const lo = parseInt(parts[0], 10), hi = parseInt(parts[1], 10);
+    const before = seqs.length;
+    seqs = seqs.filter(s => s.seq.length >= lo && s.seq.length <= hi);
+    if (before !== seqs.length) logs.push("长度过滤移除 " + (before - seqs.length) + " 条（" + lo + "-" + hi + "）");
+  }
+  const keepText = $("baKeep").value.trim();
+  if (keepText) {
+    const keep = new Set(keepText.split(/[\s,;，；]+/).map(x => x.trim().toUpperCase()).filter(Boolean));
+    const before = seqs.length;
+    seqs = seqs.filter(s => keep.has(s.name.split(/\s/)[0].toUpperCase()));
+    if (before !== seqs.length) logs.push("按 ID 提取保留 " + seqs.length + "/" + before + " 条");
+  }
+  const out = cvToFasta(seqs, 60);
+  baLastOut = { text: out, ext: ".fasta" };
+  $("baStats").textContent = "完成：" + total0 + " → " + seqs.length + " 条序列" + (logs.length ? "（" + logs.join("；") + "）" : "");
+  $("baOutText").value = out;
+  $("baOut").classList.remove("hidden");
+}
+
+/* =========================================================================
  * UI 路由与事件绑定
  * ========================================================================= */
 function showPage(pageId) {
@@ -5578,10 +5958,10 @@ function init() {
 
   /* ---------- 相关性分析 ---------- */
   $("corrFile").addEventListener("change", function () {
-    if (this.files[0]) readFileToText(this.files[0], t => { $("corrMInput").value = t; });
+    if (this.files[0]) readFileToText(this.files[0], t => { $("corrInput").value = t; });
   });
   $("corrExample").addEventListener("click", () => {
-    $("corrMInput").value = corrExampleData();
+    $("corrInput").value = corrExampleData();
     showToast("已载入示例数据（基因表达 + 分子性质，30 行）");
   });
   $("corrRun").addEventListener("click", corrRun);
@@ -5856,7 +6236,37 @@ function init() {
     $("synPairs").value = ""; $("synCoordA").value = ""; $("synCoordB").value = "";
     $("synWarn").innerHTML = ""; $("synResultCard").classList.add("hidden");
   });
-  $("synExport").addEventListener("click", synExportCSV);
+
+  /* ---------- 格式转换 ---------- */
+  $("cvRun").addEventListener("click", cvRunTool);
+  $("cvExample").addEventListener("click", () => {
+    $("cvInput").value = ">gene1\nATGCGTACGTACGTACGTAA\n>gene2\nGTTAACCAGGTTACCAATG\n>gene3\nMMKVLIVFYGLE\ngene1\tATGCGTACGTACGTACGTAA";
+    showToast("已载入序列转换示例（FASTA + 表格混合）");
+  });
+  $("cvClear").addEventListener("click", () => { $("cvInput").value = ""; $("cvWarn").innerHTML = ""; $("cvOut").classList.add("hidden"); });
+  $("cvCopy").addEventListener("click", () => copyText($("cvOutText").value));
+  $("cvDownload").addEventListener("click", () => cvLastOut ? downloadTextFile("converted" + cvLastOut.ext, cvLastOut.text) : showToast("请先转换"));
+  $("clRun").addEventListener("click", clRunTool);
+  $("clExample").addEventListener("click", () => {
+    $("clInput").value = "CLUSTAL W multiple sequence alignment\n\ngene1      ATGCATGCATGC\ngene2      ATGCAT-CATGC\ngene3      AT-GATGAATGC\n           ****** ** *****";
+    showToast("已载入 CLUSTAL 示例");
+  });
+  $("clClear").addEventListener("click", () => { $("clInput").value = ""; $("clWarn").innerHTML = ""; $("clOut").classList.add("hidden"); });
+  $("clCopy").addEventListener("click", () => copyText($("clOutText").value));
+  $("clDownload").addEventListener("click", () => clLastOut ? downloadTextFile("converted" + clLastOut.ext, clLastOut.text) : showToast("请先转换"));
+  $("tbRun").addEventListener("click", tbRunTool);
+  $("tbClear").addEventListener("click", () => { $("tbInput").value = ""; $("tbWarn").innerHTML = ""; $("tbOut").classList.add("hidden"); });
+  $("tbCopy").addEventListener("click", () => copyText($("tbOutText").value));
+  $("tbDownload").addEventListener("click", () => tbLastOut ? downloadTextFile("converted" + tbLastOut.ext, tbLastOut.text) : showToast("请先转换"));
+  $("baRun").addEventListener("click", baRunTool);
+  $("baClear").addEventListener("click", () => { $("baInput").value = ""; $("baKeep").value = ""; $("baPrefix").value = ""; $("baLenRange").value = ""; $("baWarn").innerHTML = ""; $("baOut").classList.add("hidden"); });
+  $("baCopy").addEventListener("click", () => copyText($("baOutText").value));
+  $("baDownload").addEventListener("click", () => baLastOut ? downloadTextFile("converted" + baLastOut.ext, baLastOut.text) : showToast("请先执行操作"));
+  $("baFile").addEventListener("change", function () { if (this.files[0]) readFileToText(this.files[0], t => { $("baInput").value = t; }); });
+  $("cvFile").addEventListener("change", function () { if (this.files[0]) readFileToText(this.files[0], t => { $("cvInput").value = t; }); });
+  $("clFile").addEventListener("change", function () { if (this.files[0]) readFileToText(this.files[0], t => { $("clInput").value = t; }); });
+  $("tbFile").addEventListener("change", function () { if (this.files[0]) readFileToText(this.files[0], t => { $("tbInput").value = t; }); });
+
 
   /* ---------- 组学绘图工具集 ---------- */
   const omicsTabs = $("omicsTabs");
