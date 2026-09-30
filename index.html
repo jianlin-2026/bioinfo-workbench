@@ -593,8 +593,17 @@
       <div class="card hidden" id="famResultCard">
         <h3>家族成员数统计（按总数降序）</h3>
         <canvas id="famChart" height="90"></canvas>
+        <canvas id="famStackChart" height="90" class="hidden"></canvas>
+        <h4>帕累托累计占比（柱 = 成员数，线 = 累计占比 %）</h4>
+        <canvas id="famParetoChart" height="60"></canvas>
         <h4>家族大小分布直方图（每档家族数量）</h4>
         <canvas id="famHistChart" height="60"></canvas>
+        <div class="hidden" id="famMultiBlock">
+          <h4>家族 × 分组 数量热力图</h4>
+          <div style="overflow-x:auto"><canvas id="famHeatChart" height="80"></canvas></div>
+          <h4>各组家族大小箱线图（对"每家族成员数"的分布）</h4>
+          <div style="overflow-x:auto"><canvas id="famBoxChart" height="60"></canvas></div>
+        </div>
         <h4>明细表</h4>
         <div style="overflow-x:auto" id="famTableDiv"></div>
         <div class="row"><button class="btn btn-ghost btn-sm" id="famExport">⬇ 导出 CSV</button></div>
@@ -635,9 +644,13 @@ gene9"></textarea>
         <canvas id="enrichChart" height="90"></canvas>
         <h4>气泡图（X = 富集倍数，气泡大小 = 命中基因数，颜色越红 = FDR 越显著）</h4>
         <div style="overflow-x:auto"><canvas id="enrichBubble" height="80"></canvas></div>
+        <h4>术语 × 命中基因 热力图（前 15 术语）</h4>
+        <div style="overflow-x:auto"><canvas id="enrichHeat" height="80"></canvas></div>
         <div class="hidden" id="enrichGoClassBlock">
           <h4>GO 三大类分布（BP 生物过程 / MF 分子功能 / CC 细胞组分，显著条目数）</h4>
           <canvas id="enrichGoClass" height="55"></canvas>
+          <h4>GO 三大类占比（显著条目）</h4>
+          <canvas id="enrichGoDoughnut" height="70"></canvas>
         </div>
         <h4>明细表</h4>
         <div style="overflow-x:auto" id="enrichTableDiv"></div>
@@ -3116,10 +3129,36 @@ function runEnrichment(bgPairs, targets) {
 }
 
 /* --- 基因家族/富集 UI 状态 --- */
-let famChartInstance = null, famHistChartInstance = null, enrichChartInstance = null, enrichGoClassInstance = null;
+let famChartInstance = null, famHistChartInstance = null, famStackChartInstance = null, famParetoChartInstance = null;
+let enrichChartInstance = null, enrichGoClassInstance = null, enrichGoDoughnutInstance = null;
 let famLastTable = null, enrichLast = null;
 let famLastGrouped = false, famLastGroups = [];
 let termAspect = new Map(); // GO:ID → BP/MF/CC（在线补全后填充）
+
+/** 五数概括（min, Q1, 中位数, Q3, max，线性插值） */
+function boxStats(values) {
+  const v = values.slice().sort((a, b) => a - b);
+  const q = p => { const i = (v.length - 1) * p, lo = Math.floor(i), hi = Math.ceil(i); return v[lo] + (v[hi] - v[lo]) * (i - lo); };
+  return { min: v[0], q1: q(0.25), med: q(0.5), q3: q(0.75), max: v[v.length - 1] };
+}
+
+/** 帕累托累计占比序列（%） */
+function paretoPercents(families) {
+  const grand = families.reduce((a, f) => a + f.total, 0) || 1;
+  let cum = 0;
+  return families.map(f => { cum += f.total; return cum / grand * 100; });
+}
+
+/** 术语×基因 热力图矩阵（限行数与列数） */
+function enrichHeatMatrix(results, maxRows, maxCols) {
+  const rows = results.slice(0, maxRows);
+  const cols = [];
+  const seen = new Set();
+  for (const r of rows) for (const g of r.genes) if (!seen.has(g)) { seen.add(g); cols.push(g); }
+  const useCols = cols.slice(0, maxCols);
+  const cells = rows.map(r => useCols.map(c => r.genes.includes(c) ? 1 : 0));
+  return { rows: rows.map(r => r.term), cols: useCols, cells };
+}
 
 function famExampleData() {
   let s = 7;
@@ -3173,9 +3212,135 @@ function famRunStats() {
   famLastTable = stats;
   renderFamResults(stats);
   drawFamHist(stats);
+  drawFamPareto(stats);
+  const multi = grouped && stats.groups.length > 1;
+  $("famMultiBlock").classList.toggle("hidden", !multi);
+  if (multi) { drawFamStack(stats); drawFamHeat(stats); drawFamBox(stats); }
   $("famWarn").innerHTML = '<div class="ok-box">完成：共 ' + stats.families.length + " 个家族、" + new Set(rows.map(r => r.gene)).size + " 个基因" +
     (dup ? "（自动去重 " + dup + " 条重复记录）" : "") + "。</div>";
   $("famResultCard").classList.remove("hidden");
+}
+
+/** 帕累托图：柱 = 成员数，折线 = 累计占比 */
+function drawFamPareto(stats) {
+  if (famParetoChartInstance) famParetoChartInstance.destroy();
+  const top = stats.families.slice(0, 20);
+  const cumPct = paretoPercents(top);
+  famParetoChartInstance = new Chart($("famParetoChart").getContext("2d"), {
+    data: {
+      labels: top.map(f => f.family),
+      datasets: [
+        { type: "bar", label: "成员数", data: top.map(f => f.total), backgroundColor: "#1e88e5", yAxisID: "y" },
+        { type: "line", label: "累计占比 %", data: cumPct, borderColor: "#e53935", backgroundColor: "#e53935", yAxisID: "y2", tension: 0.2, pointRadius: 2 }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: "成员数" } },
+        y2: { position: "right", min: 0, max: 100, title: { display: true, text: "累计占比 %" }, grid: { drawOnChartArea: false } }
+      },
+      plugins: { legend: { position: "top" } }
+    }
+  });
+}
+
+/** 多组堆叠柱状图 */
+function drawFamStack(stats) {
+  if (famStackChartInstance) famStackChartInstance.destroy();
+  const top = stats.families.slice(0, 20);
+  const palette = ["#1e88e5", "#e53935", "#43a047", "#fb8c00", "#8e24aa", "#00897b", "#6d4c41", "#546e7a"];
+  famStackChartInstance = new Chart($("famStackChart").getContext("2d"), {
+    type: "bar",
+    data: {
+      labels: top.map(f => f.family),
+      datasets: stats.groups.map((g, i) => ({
+        label: g, data: top.map(f => f.byGroup[g]),
+        backgroundColor: palette[i % palette.length], stack: "s"
+      }))
+    },
+    options: { responsive: true, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, title: { display: true, text: "成员数" } } }, plugins: { legend: { position: "top" } } }
+  });
+}
+
+/** 家族×分组 数量热力图（自绘 canvas） */
+function drawFamHeat(stats) {
+  const canvas = $("famHeatChart");
+  const dpr = window.devicePixelRatio || 1;
+  const top = stats.families.slice(0, 20);
+  const cellW = 46, rowH = 24, marginL = 90, marginT = 40;
+  const width = marginL + stats.groups.length * cellW + 30;
+  const height = marginT + top.length * rowH + 16;
+  canvas.width = width * dpr; canvas.height = height * dpr;
+  canvas.style.width = width + "px"; canvas.style.height = height + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = "#fafbfc"; ctx.fillRect(0, 0, width, height);
+  ctx.font = "12px 'Microsoft YaHei',sans-serif";
+  const maxV = Math.max(...top.map(f => Math.max(...stats.groups.map(g => f.byGroup[g]))), 1);
+  stats.groups.forEach((g, j) => {
+    ctx.save();
+    ctx.translate(marginL + j * cellW + cellW / 2, marginT - 8);
+    ctx.rotate(-Math.PI / 4); ctx.textAlign = "left"; ctx.fillStyle = "#333";
+    ctx.fillText(g, 0, 0); ctx.restore();
+  });
+  top.forEach((f, i) => {
+    ctx.fillStyle = "#212121"; ctx.textAlign = "right";
+    const label = f.family.length > 10 ? f.family.slice(0, 10) + "…" : f.family;
+    ctx.fillText(label, marginL - 6, marginT + i * rowH + rowH / 2 + 4);
+    stats.groups.forEach((g, j) => {
+      const v = f.byGroup[g];
+      const alpha = 0.12 + 0.8 * (v / maxV);
+      ctx.fillStyle = "rgba(21,101,192," + alpha.toFixed(2) + ")";
+      ctx.fillRect(marginL + j * cellW + 1, marginT + i * rowH + 1, cellW - 2, rowH - 2);
+      ctx.fillStyle = v / maxV > 0.55 ? "#fff" : "#333"; ctx.textAlign = "center";
+      ctx.fillText(v, marginL + j * cellW + cellW / 2, marginT + i * rowH + rowH / 2 + 4);
+      ctx.textAlign = "right";
+    });
+  });
+}
+
+/** 各组家族大小箱线图（自绘 canvas） */
+function drawFamBox(stats) {
+  const canvas = $("famBoxChart");
+  const dpr = window.devicePixelRatio || 1;
+  const groups = stats.groups;
+  const perGroup = groups.map(g => stats.families.map(f => f.byGroup[g]));
+  const statsList = perGroup.map(vals => boxStats(vals));
+  const boxW = 60, gap = 40, marginL = 50, marginT = 20, plotH = 200;
+  const width = marginL + groups.length * (boxW + gap) + 30;
+  const height = marginT + plotH + 40;
+  canvas.width = width * dpr; canvas.height = height * dpr;
+  canvas.style.width = width + "px"; canvas.style.height = height + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = "#fafbfc"; ctx.fillRect(0, 0, width, height);
+  ctx.font = "12px 'Microsoft YaHei',sans-serif";
+  const maxV = Math.max(...statsList.map(s => s.max), 1);
+  const y = v => marginT + plotH - v / maxV * plotH;
+  ctx.strokeStyle = "#e0e4ea";
+  for (let t = 0; t <= maxV; t += Math.ceil(maxV / 5)) {
+    ctx.beginPath(); ctx.moveTo(marginL, y(t)); ctx.lineTo(width - 20, y(t)); ctx.stroke();
+    ctx.fillStyle = "#9e9e9e"; ctx.fillText(t, marginL - 22, y(t) + 4);
+  }
+  statsList.forEach((s, i) => {
+    const x = marginL + i * (boxW + gap) + boxW / 2;
+    ctx.strokeStyle = "#455a64"; ctx.fillStyle = "#bbdefb"; ctx.lineWidth = 1.5;
+    // 须
+    ctx.beginPath(); ctx.moveTo(x, y(s.min)); ctx.lineTo(x, y(s.q1));
+    ctx.moveTo(x, y(s.q3)); ctx.lineTo(x, y(s.max)); ctx.stroke();
+    // 箱
+    const top = y(s.q3), bh = y(s.q1) - y(s.q3);
+    ctx.fillRect(x - boxW / 2, top, boxW, bh);
+    ctx.strokeRect(x - boxW / 2, top, boxW, bh);
+    // 中位线
+    ctx.beginPath(); ctx.moveTo(x - boxW / 2, y(s.med)); ctx.lineTo(x + boxW / 2, y(s.med));
+    ctx.strokeStyle = "#e53935"; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = "#455a64";
+    ctx.fillStyle = "#212121"; ctx.textAlign = "center";
+    ctx.fillText(groups[i], x, marginT + plotH + 18);
+    ctx.fillText("中位 " + s.med.toFixed(1), x, marginT + plotH + 32);
+  });
 }
 
 /** 家族大小分箱（1 / 2 / 3-5 / 6-10 / 11+）→ 直方图数据 */
@@ -3291,6 +3456,7 @@ function enrichRun() {
   enrichLast = res;
   renderEnrichResults(res);
   drawEnrichBubble(res);
+  drawEnrichHeat(res);
   updateEnrichGoClass();
   $("enrichWarn").innerHTML = '<div class="ok-box">完成：背景 ' + res.M + " 基因 / " + (res.results.length ? "命中术语 " + res.results.length + " 个" : "") +
     "；目标基因 " + res.n + " 个进入检验" + (res.ignored ? "（" + res.ignored + " 个不在背景中，已忽略）" : "") + "。</div>";
@@ -3351,8 +3517,41 @@ function goClassStats(results, aspects) {
   return { stats, known };
 }
 
+/** 术语×命中基因 热力图（前 15 术语 × 前 30 基因，自绘 canvas） */
+function drawEnrichHeat(res) {
+  const canvas = $("enrichHeat");
+  const dpr = window.devicePixelRatio || 1;
+  const m = enrichHeatMatrix(res.results, 15, 30);
+  const cellW = 16, rowH = 22, marginL = 130, marginT = 40;
+  const width = marginL + m.cols.length * cellW + 16;
+  const height = marginT + m.rows.length * rowH + 16;
+  canvas.width = width * dpr; canvas.height = height * dpr;
+  canvas.style.width = width + "px"; canvas.style.height = height + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = "#fafbfc"; ctx.fillRect(0, 0, width, height);
+  ctx.font = "11px 'Microsoft YaHei',sans-serif";
+  m.cols.forEach((g, j) => {
+    ctx.save();
+    ctx.translate(marginL + j * cellW + cellW / 2, marginT - 6);
+    ctx.rotate(-Math.PI / 4); ctx.textAlign = "left"; ctx.fillStyle = "#333";
+    ctx.fillText(g, 0, 0); ctx.restore();
+  });
+  m.rows.forEach((t, i) => {
+    ctx.fillStyle = "#212121"; ctx.textAlign = "right";
+    const label = t.length > 14 ? t.slice(0, 14) + "…" : t;
+    ctx.fillText(label, marginL - 6, marginT + i * rowH + rowH / 2 + 4);
+    ctx.textAlign = "left";
+    m.cells[i].forEach((v, j) => {
+      ctx.fillStyle = v ? "rgba(211,47,47,0.85)" : "#eceff1";
+      ctx.fillRect(marginL + j * cellW + 1, marginT + i * rowH + 1, cellW - 2, rowH - 2);
+    });
+  });
+}
+
 function updateEnrichGoClass() {
   if (enrichGoClassInstance) { enrichGoClassInstance.destroy(); enrichGoClassInstance = null; }
+  if (enrichGoDoughnutInstance) { enrichGoDoughnutInstance.destroy(); enrichGoDoughnutInstance = null; }
   if (!enrichLast) return;
   const { stats, known } = goClassStats(enrichLast.results, termAspect);
   if (!known) {
@@ -3367,6 +3566,14 @@ function updateEnrichGoClass() {
       datasets: [{ label: "显著条目数（FDR<0.05）", data: [stats.BP, stats.MF, stats.CC], backgroundColor: ["#1e88e5", "#43a047", "#fb8c00"] }]
     },
     options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+  });
+  enrichGoDoughnutInstance = new Chart($("enrichGoDoughnut").getContext("2d"), {
+    type: "doughnut",
+    data: {
+      labels: ["BP 生物过程", "MF 分子功能", "CC 细胞组分"],
+      datasets: [{ data: [stats.BP, stats.MF, stats.CC], backgroundColor: ["#1e88e5", "#43a047", "#fb8c00"] }]
+    },
+    options: { responsive: true, plugins: { legend: { position: "right" } } }
   });
 }
 
@@ -4227,6 +4434,9 @@ function init() {
     $("famInput").value = ""; $("famWarn").innerHTML = "";
     $("famResultCard").classList.add("hidden");
     if (famChartInstance) { famChartInstance.destroy(); famChartInstance = null; }
+    if (famHistChartInstance) { famHistChartInstance.destroy(); famHistChartInstance = null; }
+    if (famStackChartInstance) { famStackChartInstance.destroy(); famStackChartInstance = null; }
+    if (famParetoChartInstance) { famParetoChartInstance.destroy(); famParetoChartInstance = null; }
   });
   $("famExport").addEventListener("click", famExportCSV);
   $("enrichFile").addEventListener("change", function () {
