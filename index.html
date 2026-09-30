@@ -348,6 +348,7 @@
           <div><label class="form-label">num_modes</label><input type="number" id="paramModes" value="9" min="1"></div>
           <div><label class="form-label">energy_range</label><input type="number" id="paramEnergy" value="3" min="1"></div>
           <div><label class="form-label">seed</label><input type="number" id="paramSeed" value="42"></div>
+          <div><label class="form-label">cpu</label><input type="number" id="paramCpu" value="4" min="1"></div>
         </div>
         <div class="row"><button class="btn" id="paramGen">⚙ 生成配置与命令</button></div>
         <div class="hidden" id="paramOut">
@@ -1947,7 +1948,8 @@ function showVinaModel(modelIndex) {
 /** 生成对接参数与命令 */
 function generateDockParams() {
   const num = (id, def) => {
-    const v = parseFloat($(id).value);
+    const el = $(id);
+    const v = el ? parseFloat(el.value) : NaN;
     return isFinite(v) ? v : def;
   };
   const cx = num("paramCenterX", 0), cy = num("paramCenterY", 0), cz = num("paramCenterZ", 0);
@@ -2807,7 +2809,7 @@ function primerRunFn() {
     $("primerWarn").innerHTML = '<div class="err-box">错误：有效模板（仅含 A/C/G/T）不足 60 nt，无法设计引物。</div>';
     return;
   }
-  const num = (id, def) => { const v = parseFloat($(id).value); return isFinite(v) ? v : def; };
+  const num = (id, def) => { const el = $(id); const v = el ? parseFloat(el.value) : NaN; return isFinite(v) ? v : def; };
   const prm = {
     prodMin: num("pProdMin", 100), prodMax: num("pProdMax", 500),
     lenMin: Math.round(num("pLenMin", 18)), lenMax: Math.round(num("pLenMax", 25)),
@@ -3275,7 +3277,7 @@ function agentBuildWindowsBat(cfg) {
 
 /** 生成并下载 windows_docking.bat */
 function generateWindowsBatDownload() {
-  const num = (id, def) => { const v = parseFloat($(id).value); return isFinite(v) ? v : def; };
+  const num = (id, def) => { const el = $(id); const v = el ? parseFloat(el.value) : NaN; return isFinite(v) ? v : def; };
   const cfg = {
     centerX: num("paramCenterX", 0), centerY: num("paramCenterY", 0), centerZ: num("paramCenterZ", 0),
     sizeX: num("paramSizeX", 22), sizeY: num("paramSizeY", 22), sizeZ: num("paramSizeZ", 22),
