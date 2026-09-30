@@ -171,7 +171,7 @@
 
 <header>
   <h1>🧬 中文生信工具整合站</h1>
-  <div class="sub">序列比对 · 相关性分析 · 分子对接 · 序列小工具 · 系统发育树 · 引物设计 · 自动化 Agent —— 面向计算生物学研究者的一站式分析平台</div>
+  <div class="sub">序列比对 · 相关性分析 · 分子对接 · 序列小工具 · 系统发育树 · 引物设计 · 自动化 Agent · 基因家族与富集分析 —— 一站式生信分析平台</div>
   <div class="privacy">🔒 所有计算均在您的浏览器本地完成，数据不会上传到任何服务器</div>
 </header>
 
@@ -184,6 +184,7 @@
     <button class="nav-btn" data-page="page-phylo">🌳 系统发育树</button>
     <button class="nav-btn" data-page="page-primer">🎯 引物设计</button>
     <button class="nav-btn" data-page="page-agent">🤖 自动化 Agent</button>
+    <button class="nav-btn" data-page="page-fams">🧬 基因家族与富集</button>
   </nav>
 
   <main>
@@ -543,6 +544,91 @@
         <div class="hidden" id="agentLigResult" style="margin-top:12px">
           <h4>检索结果（点"分析"自动下载结构、识别配体与口袋并进入对接准备）</h4>
           <div style="overflow-x:auto"><table class="data" id="agentLigTable"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= 页面八：基因家族与富集分析 ======================= -->
+    <section class="page hidden" id="page-fams">
+      <h2>🧬 基因家族与富集分析</h2>
+      <div class="page-desc">基因家族成员统计与多组对比，GO / KEGG / 自定义注释的超几何富集分析（精确检验 + BH-FDR 校正）与可视化。全部计算在本地完成；注释数据由您提供（基因 → 术语 两列格式）。</div>
+
+      <div class="card">
+        <h3>① 基因家族统计与多组对比</h3>
+        <div class="row">
+          <label><input type="radio" name="famMode" value="single" checked> 单组统计（2 列：基因 + 家族）</label>
+          <label><input type="radio" name="famMode" value="group"> 多组对比（3 列：基因 + 家族 + 分组）</label>
+        </div>
+        <div style="margin-top:10px">
+          <textarea class="seq-input" id="famInput" style="height:140px" placeholder="制表符 / 逗号分隔，首行可为表头：
+单组：gene1&lt;TAB&gt;WRKY
+多组：gene1&lt;TAB&gt;WRKY&lt;TAB&gt;物种A"></textarea>
+        </div>
+        <div class="row">
+          <label class="btn btn-ghost btn-sm">📂 上传文件<input type="file" id="famFile" accept=".txt,.csv,.tsv" style="display:none"></label>
+          <button class="btn btn-ghost btn-sm" id="famExample">载入示例</button>
+          <select id="famTopN" style="width:auto"><option value="10">显示 Top 10</option><option value="20" selected>显示 Top 20</option><option value="40">显示 Top 40</option></select>
+          <button class="btn" id="famRun">▶ 统计</button>
+          <button class="btn btn-ghost" id="famClear">清空</button>
+        </div>
+        <div id="famWarn"></div>
+      </div>
+      <div class="card hidden" id="famResultCard">
+        <h3>家族成员数统计（按总数降序）</h3>
+        <canvas id="famChart" height="90"></canvas>
+        <h4>明细表</h4>
+        <div style="overflow-x:auto" id="famTableDiv"></div>
+        <div class="row"><button class="btn btn-ghost btn-sm" id="famExport">⬇ 导出 CSV</button></div>
+      </div>
+
+      <div class="card">
+        <h3>② 富集分析（超几何精确检验 + BH-FDR 校正）</h3>
+        <div class="grid-2">
+          <div>
+            <label class="form-label">背景注释集（基因 + 术语，每行一条；术语列可含多个，逗号/分号分隔）</label>
+            <textarea class="seq-input" id="enrichBg" style="height:150px" placeholder="gene1&lt;TAB&gt;GO:0003677
+gene2&lt;TAB&gt;GO:0003677,GO:0005524
+gene3&lt;TAB&gt;map00970,map01100"></textarea>
+          </div>
+          <div>
+            <label class="form-label">目标基因列表（每行一个，或逗号分隔）</label>
+            <textarea class="seq-input" id="enrichTarget" style="height:150px" placeholder="gene1
+gene5
+gene9"></textarea>
+          </div>
+        </div>
+        <div class="row">
+          <label class="btn btn-ghost btn-sm">📂 上传注释集<input type="file" id="enrichFile" accept=".txt,.csv,.tsv" style="display:none"></label>
+          <button class="btn btn-ghost btn-sm" id="enrichExample">载入示例</button>
+          <select id="enrichType" style="width:auto">
+            <option value="GO">GO 注释</option>
+            <option value="KEGG">KEGG 通路</option>
+            <option value="CUSTOM">自定义术语</option>
+          </select>
+          <button class="btn" id="enrichRun">▶ 运行富集分析</button>
+          <button class="btn btn-ghost" id="enrichClear">清空</button>
+        </div>
+        <div class="hint" style="margin-top:6px">统计口径：目标基因注释到某术语的比例 相对 背景中该术语比例 的富集，超几何单侧检验 P[X≥k]，BH 法校正 FDR（&lt;0.05 标 ★）。GO 术语名称可在线从 QuickGO 自动补全；KEGG / 自定义术语显示 ID，或粘贴 term + 名称 的映射文件后自动对照。</div>
+        <div id="enrichWarn"></div>
+      </div>
+      <div class="card hidden" id="enrichResultCard">
+        <h3>富集结果（按 p 值升序，展示前 50）</h3>
+        <canvas id="enrichChart" height="90"></canvas>
+        <h4>明细表</h4>
+        <div style="overflow-x:auto" id="enrichTableDiv"></div>
+        <div class="row">
+          <button class="btn btn-ghost btn-sm" id="enrichExport">⬇ 导出 CSV</button>
+          <button class="btn btn-ghost btn-sm" id="enrichFetchNames">🌐 在线补全术语名称（GO：QuickGO；KEGG：尝试 KEGG API）</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>③ KEGG 通路图跳转</h3>
+        <div class="row">
+          <input type="text" id="keggOrg" placeholder="物种缩写，如 hsa / osa / ath" style="max-width:170px">
+          <input type="text" id="keggMap" placeholder="通路号，如 04010" style="max-width:170px">
+          <button class="btn" id="keggGo">🗺 在新标签页打开通路图</button>
+          <span class="hint">打开 kegg.jp 对应通路图；基因高亮请用 KEGG Mapper（站点无法代替 KEGG 官方渲染）</span>
         </div>
       </div>
     </section>
@@ -2746,6 +2832,351 @@ function generateWindowsBatDownload() {
   showToast("已下载 windows_docking.bat（含对接参数，与 receptor/ligand.pdb 放同一文件夹运行）");
 }
 
+/* =========================================================================
+ * 模块八：基因家族统计与富集分析（超几何精确检验 + BH-FDR）
+ * ========================================================================= */
+/** log C(n, k)（基于既有 gammaln） */
+function logChoose(n, k) {
+  if (k < 0 || k > n) return -Infinity;
+  return gammaln(n + 1) - gammaln(k + 1) - gammaln(n - k + 1);
+}
+
+/** 超几何单侧检验 P[X >= k]，X ~ Hypergeom(总体 M, 术语基因数 K, 目标数 n) */
+function hyperP(M, K, n, k) {
+  if (K <= 0 || k <= 0) return 1;
+  const hi = Math.min(n, K);
+  if (k > hi) return 1;
+  const lo = Math.max(0, n - (M - K));
+  const logDenom = logChoose(M, n);
+  let acc = 0;
+  for (let i = k; i <= hi; i++) {
+    if (i < lo) continue;
+    acc += Math.exp(logChoose(K, i) + logChoose(M - K, n - i) - logDenom);
+  }
+  return Math.min(1, acc);
+}
+
+/** Benjamini-Hochberg FDR 校正：返回与输入同序的 q 值数组 */
+function bhFDR(ps) {
+  const n = ps.length;
+  const idx = ps.map((p, i) => i).sort((a, b) => ps[a] - ps[b]);
+  const q = new Array(n);
+  let prev = 1;
+  for (let r = n; r >= 1; r--) {
+    const i = idx[r - 1];
+    prev = Math.min(prev, ps[i] * n / r);
+    q[i] = prev;
+  }
+  return q;
+}
+
+/** 解析"基因 + 术语(+分组)"表：返回 [{gene, term, group}]，兼容表头/逗号/制表符 */
+function parseAnnotationPairs(text, wantGroup) {
+  const lines = String(text || "").split(/\r?\n/).map(l => l.trim()).filter(l => l);
+  if (!lines.length) return [];
+  let delim = null;
+  for (const l of lines) {
+    if (l.includes("\t")) { delim = "\t"; break; }
+    if (l.includes(",")) { delim = ","; break; }
+    if (l.includes(";")) { delim = ";"; break; }
+  }
+  if (!delim) delim = /\s+/;
+  const rows = [];
+  let first = true;
+  for (const l of lines) {
+    const cols = l.split(delim).map(c => c.trim()).filter(c => c !== "");
+    if (!cols.length) continue;
+    // 首行若为表头（第二列是术语/家族类词而非真实数据）则跳过
+    if (first && cols.length >= 2 && /^(term|terms|family|fam|group|群组|分组|家族|术语|通路|pathway)$/i.test(cols[1])) { first = false; continue; }
+    first = false;
+    if (cols.length < 2) continue;
+    rows.push({ gene: cols[0].toUpperCase(), term: cols[1], group: wantGroup ? (cols[2] || "组1") : undefined });
+  }
+  return rows;
+}
+
+/** 术语列拆分（逗号/分号/竖线/空白分隔多个术语） */
+function splitTerms(termField) {
+  return String(termField || "").split(/[,;|\s]+/).map(t => t.trim()).filter(t => t);
+}
+
+/** 基因家族统计：rows=[{gene,family,group?}] → 每家族总数与分组计数 */
+function famCountStats(rows, grouped) {
+  const famTotal = new Map();
+  const famGroup = new Map();
+  const groups = new Set();
+  const seen = new Set();
+  for (const r of rows) {
+    const key = r.gene + "|" + r.term;
+    if (seen.has(key)) continue; // 同基因同家族去重
+    seen.add(key);
+    famTotal.set(r.term, (famTotal.get(r.term) || 0) + 1);
+    if (grouped) {
+      groups.add(r.group);
+      if (!famGroup.has(r.term)) famGroup.set(r.term, {});
+      const g = famGroup.get(r.term);
+      g[r.group] = (g[r.group] || 0) + 1;
+    }
+  }
+  const list = Array.from(famTotal.entries()).map(([family, total]) => ({
+    family, total,
+    byGroup: grouped ? Object.fromEntries(Array.from(groups).map(g => [g, (famGroup.get(family) || {})[g] || 0])) : null
+  }));
+  list.sort((a, b) => b.total - a.total || a.family.localeCompare(b.family));
+  return { families: list, groups: Array.from(groups).sort() };
+}
+
+/** 富集分析主函数：bgPairs=[{gene,term}]（term 可含多个），targets=[基因名]
+ *  返回 { M, n, ignored, results: [{term, K, k, p, q, fold, genes}] }，按 p 升序 */
+function runEnrichment(bgPairs, targets) {
+  const termGenes = new Map();   // term -> Set(gene)
+  const geneTerms = new Map();
+  const bgGenes = new Set();
+  for (const r of bgPairs) {
+    const gene = String(r.gene).toUpperCase(); // 统一大写，避免大小写不一致导致交集为空
+    bgGenes.add(gene);
+    for (const t of splitTerms(r.term)) {
+      if (!termGenes.has(t)) termGenes.set(t, new Set());
+      termGenes.get(t).add(gene);
+      if (!geneTerms.has(gene)) geneTerms.set(gene, new Set());
+      geneTerms.get(gene).add(t);
+    }
+  }
+  const M = bgGenes.size;
+  const targetSet = new Set(targets.map(t => t.toUpperCase()));
+  const inBg = Array.from(targetSet).filter(g => bgGenes.has(g));
+  const ignored = targetSet.size - inBg.length;
+  const n = inBg.length;
+  if (!M || !n) return { M, n, ignored, results: [] };
+  const targetBgSet = new Set(inBg);
+
+  const prelim = [];
+  for (const [term, genes] of termGenes) {
+    const K = genes.size;
+    const hits = Array.from(genes).filter(g => targetBgSet.has(g));
+    const k = hits.length;
+    if (k === 0) continue; // 无命中不报告
+    const p = hyperP(M, K, n, k);
+    const fold = (k / n) / (K / M);
+    prelim.push({ term, K, k, p, fold, genes: hits.sort() });
+  }
+  const qs = bhFDR(prelim.map(r => r.p));
+  prelim.forEach((r, i) => r.q = qs[i]);
+  prelim.sort((a, b) => a.p - b.p || b.k - a.k);
+  return { M, n, ignored, results: prelim };
+}
+
+/* --- 基因家族/富集 UI 状态 --- */
+let famChartInstance = null, enrichChartInstance = null;
+let famLastTable = null, enrichLast = null;
+let famLastGrouped = false, famLastGroups = [];
+
+function famExampleData() {
+  let s = 7;
+  const rnd = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
+  const fams = ["WRKY", "NAC", "bHLH", "MYB", "AP2/ERF", "bZIP", "Dof", "HD-ZIP", "GRAS", "TCP", "LOB", "NF-YB"];
+  const groups = ["物种A", "物种B", "物种C"];
+  const weights = [8, 6, 5, 5, 4, 3, 3, 2, 2, 2, 1, 1];
+  const lines = ["基因ID\t家族\t分组"];
+  let g = 0;
+  for (let f = 0; f < fams.length; f++) {
+    for (let gi = 0; gi < groups.length; gi++) {
+      const c = Math.max(1, Math.round(weights[f] * (0.5 + rnd())));
+      for (let k = 0; k < c; k++) lines.push("Gene" + (++g) + "\t" + fams[f] + "\t" + groups[gi]);
+    }
+  }
+  return lines.join("\n");
+}
+
+function enrichExampleData() {
+  let s = 99;
+  const rnd = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
+  const lines = ["gene1\tGO:0003677", "gene2\tGO:0005524,GO:0006355", "gene3\tGO:0003677,GO:0003700",
+    "gene4\tGO:0006355,GO:0005634", "gene5\tGO:0003700,GO:0005634", "gene6\tGO:0003824,GO:0008152",
+    "gene7\tGO:0003824", "gene8\tGO:0008152,GO:0005634", "gene9\tGO:0005524", "gene10\tGO:0003677,GO:0005634",
+    "gene11\tGO:0006355", "gene12\tGO:0003700,GO:0006355", "gene13\tGO:0003824,GO:0005524",
+    "gene14\tGO:0005634", "gene15\tGO:0003677,GO:0003824"];
+  for (let i = 16; i <= 60; i++) {
+    // 随机背景刻意不含 GO:0003700，使示例目标基因在该术语上显著富集
+    const t = ["GO:0003677", "GO:0005524", "GO:0006355", "GO:0003824", "GO:0008152", "GO:0005634"][Math.floor(rnd() * 6)];
+    lines.push("gene" + i + "\t" + t);
+  }
+  // 目标：刻意富集在 GO:0003700（转录因子活性）
+  const targets = ["gene3", "gene5", "gene12", "gene15"].concat(
+    Array.from({ length: 4 }, (_, i) => "gene" + (20 + i * 2))).concat(["gene1", "gene8"]);
+  return { bg: lines.join("\n"), targets: targets.join("\n") };
+}
+
+function famRunStats() {
+  $("famWarn").innerHTML = "";
+  $("famResultCard").classList.add("hidden");
+  const modeEl = document.querySelector('input[name="famMode"]:checked');
+  const grouped = modeEl ? modeEl.value === "group" : false;
+  const rows = parseAnnotationPairs($("famInput").value, grouped);
+  if (rows.length < 3) {
+    $("famWarn").innerHTML = '<div class="err-box">错误：无法解析。请提供至少 3 行"基因 + 家族"（多组对比需 3 列：基因 + 家族 + 分组）。</div>';
+    return;
+  }
+  famLastGrouped = grouped;
+  const dup = rows.length - new Set(rows.map(r => r.gene + "|" + r.term)).size;
+  const stats = famCountStats(rows, grouped);
+  famLastTable = stats;
+  renderFamResults(stats);
+  $("famWarn").innerHTML = '<div class="ok-box">完成：共 ' + stats.families.length + " 个家族、" + new Set(rows.map(r => r.gene)).size + " 个基因" +
+    (dup ? "（自动去重 " + dup + " 条重复记录）" : "") + "。</div>";
+  $("famResultCard").classList.remove("hidden");
+}
+
+function renderFamResults(stats) {
+  const topN = parseInt($("famTopN").value, 10) || 20;
+  const top = stats.families.slice(0, topN);
+  // 图表
+  if (famChartInstance) famChartInstance.destroy();
+  const palette = ["#1e88e5", "#e53935", "#43a047", "#fb8c00", "#8e24aa"];
+  if (famLastGrouped && stats.groups.length > 1) {
+    famChartInstance = new Chart($("famChart").getContext("2d"), {
+      type: "bar",
+      data: {
+        labels: top.map(f => f.family),
+        datasets: stats.groups.map((g, i) => ({
+          label: g, data: top.map(f => f.byGroup[g]),
+          backgroundColor: palette[i % palette.length]
+        }))
+      },
+      options: { responsive: true, scales: { y: { beginAtZero: true, title: { display: true, text: "成员数" } } }, plugins: { legend: { position: "top" } } }
+    });
+  } else {
+    famChartInstance = new Chart($("famChart").getContext("2d"), {
+      type: "bar",
+      data: { labels: top.map(f => f.family), datasets: [{ label: "成员数", data: top.map(f => f.total), backgroundColor: "#1e88e5" }] },
+      options: { responsive: true, scales: { y: { beginAtZero: true, title: { display: true, text: "成员数" } } }, plugins: { legend: { display: false } } }
+    });
+  }
+  // 表格
+  let html = "<tr><th>#</th><th>家族</th><th>成员总数</th>";
+  if (famLastGrouped) for (const g of stats.groups) html += "<th>" + escapeHtml(g) + "</th>";
+  html += "</tr>";
+  stats.families.forEach((f, i) => {
+    html += "<tr><td>" + (i + 1) + "</td><th>" + escapeHtml(f.family) + "</th><td>" + f.total + "</td>";
+    if (famLastGrouped) for (const g of stats.groups) html += "<td>" + f.byGroup[g] + "</td>";
+    html += "</tr>";
+  });
+  $("famTableDiv").innerHTML = "<table class='data'>" + html + "</table>";
+}
+
+function famExportCSV() {
+  if (!famLastTable) return;
+  const lines = [];
+  const head = ["家族", "成员总数"];
+  if (famLastGrouped) for (const g of famLastTable.groups) head.push(g);
+  lines.push(head.join(","));
+  for (const f of famLastTable.families) {
+    const row = [f.family, f.total];
+    if (famLastGrouped) for (const g of famLastTable.groups) row.push(f.byGroup[g]);
+    lines.push(row.join(","));
+  }
+  downloadTextFile("基因家族统计.csv", "\uFEFF" + lines.join("\n"));
+}
+
+function downloadTextFile(name, text) {
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function enrichRun() {
+  $("enrichWarn").innerHTML = "";
+  $("enrichResultCard").classList.add("hidden");
+  const bgPairs = parseAnnotationPairs($("enrichBg").value, false);
+  const targets = $("enrichTarget").value.split(/[\s,;，；]+/).map(s => s.trim()).filter(s => s);
+  if (bgPairs.length < 3 || !targets.length) {
+    $("enrichWarn").innerHTML = '<div class="err-box">错误：请提供背景注释集（≥3 行"基因 + 术语"）与目标基因列表。</div>';
+    return;
+  }
+  const res = runEnrichment(bgPairs, targets);
+  if (!res.results.length) {
+    $("enrichWarn").innerHTML = '<div class="err-box">错误：目标基因与背景注释无交集（' + res.ignored + " 个目标基因不在背景中）。请检查基因 ID 是否一致。</div>";
+    return;
+  }
+  enrichLast = res;
+  renderEnrichResults(res);
+  $("enrichWarn").innerHTML = '<div class="ok-box">完成：背景 ' + res.M + " 基因 / " + (res.results.length ? "命中术语 " + res.results.length + " 个" : "") +
+    "；目标基因 " + res.n + " 个进入检验" + (res.ignored ? "（" + res.ignored + " 个不在背景中，已忽略）" : "") + "。</div>";
+  $("enrichResultCard").classList.remove("hidden");
+}
+
+function renderEnrichResults(res) {
+  const top = res.results.slice(0, 15);
+  if (enrichChartInstance) enrichChartInstance.destroy();
+  enrichChartInstance = new Chart($("enrichChart").getContext("2d"), {
+    type: "bar",
+    data: {
+      labels: top.map(r => r.term),
+      datasets: [{
+        label: "-log10(校正后 p)",
+        data: top.map(r => -Math.log10(Math.max(r.q, 1e-300))),
+        backgroundColor: top.map(r => r.q < 0.05 ? "#e53935" : "#90a4ae")
+      }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true, title: { display: true, text: "-log10(FDR)" } } }, plugins: { legend: { display: false } } }
+  });
+  let html = "<tr><th>术语</th><th>术语名</th><th>背景数</th><th>命中数</th><th>富集倍数</th><th>p 值</th><th>FDR</th><th>命中基因</th></tr>";
+  res.results.slice(0, 50).forEach(r => {
+    const star = r.q < 0.05 ? " ★" : "";
+    html += "<tr><th>" + escapeHtml(r.term) + star + "</th><td id='termname-" + escapeHtml(r.term) + "' class='hint'>—</td><td>" + r.K +
+      "</td><td>" + r.k + "</td><td>" + r.fold.toFixed(2) + "×</td><td>" + r.p.toExponential(3) + "</td><td>" + r.q.toExponential(3) +
+      "</td><td style='text-align:left'>" + escapeHtml(r.genes.join(", ")) + "</td></tr>";
+  });
+  $("enrichTableDiv").innerHTML = "<table class='data'>" + html + "</table>";
+}
+
+async function enrichFetchNames() {
+  if (!enrichLast) return;
+  const ids = enrichLast.results.slice(0, 50).map(r => r.term);
+  const goIds = ids.filter(t => /^GO:\d{7}$/i.test(t)).map(t => t.toUpperCase());
+  const keggIds = ids.filter(t => /^(map|ko|ec|rn)\d{5}$|^[\w]{2,4}\d{5}$/i.test(t));
+  let done = 0, fail = 0;
+  if (goIds.length) {
+    try {
+      const resp = await fetch("https://www.ebi.ac.uk/QuickGO/services/ontology/go/terms?ids=" + goIds.join(","));
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      const data = await resp.json();
+      for (const t of data.results || []) {
+        document.querySelectorAll("[id='termname-" + t.id + "']").forEach(td => td.textContent = (t.name || "") + (t.aspect ? "（" + { biological_process: "BP", molecular_function: "MF", cellular_component: "CC" }[t.aspect] || "" + "）" : ""));
+        done++;
+      }
+    } catch (e) { fail += goIds.length; }
+  }
+  if (keggIds.length) {
+    try {
+      const resp = await fetch("https://rest.kegg.jp/list/" + keggIds.join("+"));
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      const text = await resp.text();
+      for (const line of text.split(/\r?\n/)) {
+        const m = line.match(/^([^\s]+)\s+(.*)$/);
+        if (m) {
+          document.querySelectorAll("[id='termname-" + m[1] + "']").forEach(td => td.textContent = m[2]);
+          done++;
+        }
+      }
+    } catch (e) { fail += keggIds.length; }
+  }
+  showToast(done ? "已补全 " + done + " 个术语名称" + (fail ? "，" + fail + " 个失败" : "") : "在线补全失败（网络或 CORS 限制），可离线使用 ID");
+}
+
+function enrichExportCSV() {
+  if (!enrichLast) return;
+  const lines = ["术语,术语名,背景数,命中数,富集倍数,p值,FDR,命中基因"];
+  for (const r of enrichLast.results) {
+    lines.push([r.term, "", r.K, r.k, r.fold.toFixed(3), r.p.toExponential(4), r.q.toExponential(4), r.genes.join(" ")].join(","));
+  }
+  downloadTextFile("富集分析结果.csv", "\uFEFF" + lines.join("\n"));
+}
+
+
 
 /* =========================================================================
  * UI 路由与事件绑定
@@ -2969,6 +3400,46 @@ function init() {
   });
   $("agentLigRun").addEventListener("click", agentRunLigands);
   $("paramWinBat").addEventListener("click", generateWindowsBatDownload);
+
+  /* ---------- 基因家族与富集分析 ---------- */
+  $("famFile").addEventListener("change", function () {
+    if (this.files[0]) readFileToText(this.files[0], t => { $("famInput").value = t; });
+  });
+  $("famExample").addEventListener("click", () => {
+    $("famInput").value = famExampleData();
+    document.querySelector('input[name="famMode"][value="group"]').checked = true;
+    showToast("已载入示例：3 组 × 12 个基因家族");
+  });
+  $("famRun").addEventListener("click", famRunStats);
+  $("famClear").addEventListener("click", () => {
+    $("famInput").value = ""; $("famWarn").innerHTML = "";
+    $("famResultCard").classList.add("hidden");
+    if (famChartInstance) { famChartInstance.destroy(); famChartInstance = null; }
+  });
+  $("famExport").addEventListener("click", famExportCSV);
+  $("enrichFile").addEventListener("change", function () {
+    if (this.files[0]) readFileToText(this.files[0], t => { $("enrichBg").value = t; });
+  });
+  $("enrichExample").addEventListener("click", () => {
+    const ex = enrichExampleData();
+    $("enrichBg").value = ex.bg;
+    $("enrichTarget").value = ex.targets;
+    showToast("已载入示例：60 基因背景 + 10 个目标基因（刻意富集于 GO:0003700）");
+  });
+  $("enrichRun").addEventListener("click", enrichRun);
+  $("enrichClear").addEventListener("click", () => {
+    $("enrichBg").value = ""; $("enrichTarget").value = ""; $("enrichWarn").innerHTML = "";
+    $("enrichResultCard").classList.add("hidden");
+    if (enrichChartInstance) { enrichChartInstance.destroy(); enrichChartInstance = null; }
+  });
+  $("enrichExport").addEventListener("click", enrichExportCSV);
+  $("enrichFetchNames").addEventListener("click", enrichFetchNames);
+  $("keggGo").addEventListener("click", () => {
+    const org = $("keggOrg").value.trim().toLowerCase();
+    const digits = ($("keggMap").value.match(/\d{5}/) || [""])[0];
+    if (!org || !digits) { showToast("请输入物种缩写（如 hsa）与 5 位通路号（如 04010）"); return; }
+    window.open("https://www.kegg.jp/kegg-bin/show_pathway?" + org + digits, "_blank");
+  });
 }
 
 init();
