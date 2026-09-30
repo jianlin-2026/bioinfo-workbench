@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>生信百宝箱 — 一站式中文生信分析平台 | BioBox</title>
+<title>天工·生信 — 一站式中文生信分析平台 | Tiangong Bio</title>
 <!-- 第三方库（CDN）：Chart.js 图表 / 3Dmol.js 分子可视化。其余算法均为原生 JS 本地实现 -->
 <script src="libs/chart.umd.min.js"></script>
 <script src="libs/3Dmol-min.js"></script>
@@ -170,7 +170,7 @@
 <body>
 
 <header>
-  <h1>🧬 生信百宝箱</h1>
+  <h1>🔬 天工·生信</h1>
   <div class="sub">序列比对 · 相关性 · 分子对接 · 序列工具 · 进化树 · 引物 · Agent · 家族与富集 · miRNA · Motif · 共线性 · 组学绘图 —— 一站式生信分析平台</div>
   <div class="privacy">🔒 所有计算均在您的浏览器本地完成，数据不会上传到任何服务器</div>
 </header>
@@ -1098,7 +1098,7 @@ C\t-0.6\t-0.3\t1"></textarea>
   </main>
 </div>
 
-<footer>生信百宝箱 BioBox · 纯前端本地计算 · 数据不上传服务器 · 仅供科研辅助使用</footer>
+<footer>天工·生信 Tiangong Bio · 纯前端本地计算 · 数据不上传服务器 · 仅供科研辅助使用</footer>
 <div id="toast"></div>
 
 <script>
@@ -5736,7 +5736,7 @@ function clCheckAligned(seqs) {
 function clToClustal(seqs, width) {
   const nameW = Math.min(20, Math.max(...seqs.map(s => s.name.length)) + 2);
   const alen = seqs[0].seq.length;
-  const lines = ["CLUSTAL W-like multiple sequence alignment (由生信百宝箱生成)", ""];
+  const lines = ["CLUSTAL W-like multiple sequence alignment (由天工·生信生成)", ""];
   for (let start = 0; start < alen; start += width) {
     for (const s of seqs) {
       lines.push(s.name.padEnd(nameW).slice(0, nameW) + s.seq.slice(start, start + width));
