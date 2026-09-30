@@ -179,13 +179,13 @@
   <nav id="sidenav">
     <button class="nav-btn active" data-page="page-align">🧬 序列比对</button>
     <button class="nav-btn" data-page="page-corr">📈 相关性分析</button>
-    <button class="nav-btn" data-page="page-dock">💊 分子对接工作台</button>
+    <button class="nav-btn" data-page="page-dock">⚗️ 分子对接工作台</button>
     <button class="nav-btn" data-page="page-tools">🧪 序列小工具</button>
     <button class="nav-btn" data-page="page-phylo">🌳 系统发育树</button>
-    <button class="nav-btn" data-page="page-primer">🎯 引物设计</button>
+    <button class="nav-btn" data-page="page-primer">🧷 引物设计</button>
     <button class="nav-btn" data-page="page-agent">🤖 自动化 Agent</button>
-    <button class="nav-btn" data-page="page-fams">🧬 基因家族与富集</button>
-    <button class="nav-btn" data-page="page-mirna">🧫 miRNA 靶点</button>
+    <button class="nav-btn" data-page="page-fams">🧮 基因家族与富集</button>
+    <button class="nav-btn" data-page="page-mirna">🎯 miRNA 靶点</button>
     <button class="nav-btn" data-page="page-motif">🔤 Motif 分析</button>
     <button class="nav-btn" data-page="page-syn">🧩 共线性分析</button>
     <button class="nav-btn" data-page="page-omics">📊 组学绘图工具集</button>
@@ -285,7 +285,7 @@
 
     <!-- ======================= 页面三：分子对接工作台 ======================= -->
     <section class="page hidden" id="page-dock">
-      <h2>💊 分子对接工作台</h2>
+      <h2>⚗️ 分子对接工作台</h2>
       <div class="page-desc">对接前准备（3D 查看、受体/配体文件转换命令、Vina 参数生成）与对接后分析（构象亲和力排序、3D 叠加、相互作用残基列表）。真实对接计算由 AutoDock Vina 完成。</div>
 
       <div class="card">
@@ -463,7 +463,7 @@
 
     <!-- ======================= 页面六：引物设计 ======================= -->
     <section class="page hidden" id="page-primer">
-      <h2>🎯 引物设计</h2>
+      <h2>🧷 引物设计</h2>
       <div class="page-desc">输入 DNA 模板，按引物长度、Tm、GC 含量、3' GC clamp、二聚体 / 发夹 / 连续同碱基等规则滑动窗口扫描并评分，输出 Top 5 引物对。简化版规则仅供快速筛查，重要实验请用 Primer3 等专业软件复核。</div>
 
       <div class="card">
@@ -568,7 +568,7 @@
 
     <!-- ======================= 页面八：基因家族与富集分析 ======================= -->
     <section class="page hidden" id="page-fams">
-      <h2>🧬 基因家族与富集分析</h2>
+      <h2>🧮 基因家族与富集分析</h2>
       <div class="page-desc">基因家族成员统计与多组对比，GO / KEGG / 自定义注释的超几何富集分析（精确检验 + BH-FDR 校正）与可视化。全部计算在本地完成；注释数据由您提供（基因 → 术语 两列格式）。</div>
 
       <div class="card">
@@ -595,14 +595,14 @@
         <h3>家族成员数统计（按总数降序）</h3>
         <canvas id="famChart" height="90"></canvas>
         <canvas id="famStackChart" height="90" class="hidden"></canvas>
-        <h4>帕累托累计占比（柱 = 成员数，线 = 累计占比 %）</h4>
+        <h4>帕累托累计占比（柱 = 成员数，线 = 累计占比 %）<button class="btn btn-ghost btn-sm" id="famParetoPng">⬇ PNG</button></h4>
         <canvas id="famParetoChart" height="60"></canvas>
-        <h4>家族大小分布直方图（每档家族数量）</h4>
+        <h4>家族大小分布直方图（每档家族数量）<button class="btn btn-ghost btn-sm" id="famHistPng">⬇ PNG</button></h4>
         <canvas id="famHistChart" height="60"></canvas>
         <div class="hidden" id="famMultiBlock">
-          <h4>家族 × 分组 数量热力图</h4>
+          <h4>家族 × 分组 数量热力图<button class="btn btn-ghost btn-sm" id="famHeatPng">⬇ PNG</button></h4>
           <div style="overflow-x:auto"><canvas id="famHeatChart" height="80"></canvas></div>
-          <h4>各组家族大小箱线图（对"每家族成员数"的分布）</h4>
+          <h4>各组家族大小箱线图（对"每家族成员数"的分布）<button class="btn btn-ghost btn-sm" id="famBoxPng">⬇ PNG</button></h4>
           <div style="overflow-x:auto"><canvas id="famBoxChart" height="60"></canvas></div>
         </div>
         <h4>明细表</h4>
@@ -644,13 +644,13 @@ gene9"></textarea>
         <h3>富集结果（按 p 值升序，展示前 50）</h3>
         <canvas id="enrichChart" height="90"></canvas>
         <h4>气泡图（X = 富集倍数，气泡大小 = 命中基因数，颜色越红 = FDR 越显著）</h4>
-        <div style="overflow-x:auto"><canvas id="enrichBubble" height="80"></canvas></div>
+        <div style="overflow-x:auto"><canvas id="enrichBubble" height="80"></canvas></div><div class="row"><button class="btn btn-ghost btn-sm" id="enrichBubblePng">⬇ 气泡图 PNG</button><button class="btn btn-ghost btn-sm" id="enrichBubbleCsv">⬇ 气泡数据 CSV</button></div>
         <h4>术语 × 命中基因 热力图（前 15 术语）</h4>
-        <div style="overflow-x:auto"><canvas id="enrichHeat" height="80"></canvas></div>
+        <div style="overflow-x:auto"><canvas id="enrichHeat" height="80"></canvas></div><div class="row"><button class="btn btn-ghost btn-sm" id="enrichHeatPng">⬇ 热力图 PNG</button><button class="btn btn-ghost btn-sm" id="enrichHeatCsv">⬇ 热力图矩阵 CSV</button></div>
         <div class="hidden" id="enrichGoClassBlock">
           <h4>GO 三大类分布（BP 生物过程 / MF 分子功能 / CC 细胞组分，显著条目数）</h4>
-          <canvas id="enrichGoClass" height="55"></canvas>
-          <h4>GO 三大类占比（显著条目）</h4>
+          <canvas id="enrichGoClass" height="55"></canvas><button class="btn btn-ghost btn-sm" id="enrichGoClassPng">⬇ PNG</button>
+          <h4>GO 三大类占比（显著条目）<button class="btn btn-ghost btn-sm" id="enrichGoDoughnutPng">⬇ PNG</button></h4>
           <canvas id="enrichGoDoughnut" height="70"></canvas>
         </div>
         <h4>明细表</h4>
@@ -674,7 +674,7 @@ gene9"></textarea>
 
     <!-- ======================= 页面九：miRNA 靶点预测 ======================= -->
     <section class="page hidden" id="page-mirna">
-      <h2>🧫 miRNA 靶点预测</h2>
+      <h2>🎯 miRNA 靶点预测</h2>
       <div class="page-desc">基于规范种子位点的靶点预测（Bartel 分类：8mer / 7mer-m8 / 7mer-A1 / 6mer），支持多条 miRNA × 多条 3'UTR 批量扫描。简化版（仅种子规则，不含 3' 端互补与进化保守性），供快速筛查。</div>
 
       <div class="card">
@@ -786,7 +786,7 @@ at1g01020&lt;TAB&gt;chr1&lt;TAB&gt;2100"></textarea>
         <div id="synWarn"></div>
       </div>
       <div class="card hidden" id="synResultCard">
-        <h3>点阵图（X = 物种 A 基因序，Y = 物种 B 基因序；线段 = 共线性块）</h3>
+        <h3>点阵图（X = 物种 A 基因序，Y = 物种 B 基因序；线段 = 共线性块）<button class="btn btn-ghost btn-sm" id="synDotPng">⬇ PNG</button></h3>
         <div style="overflow-x:auto"><canvas id="synDot" height="120"></canvas></div>
         <h4>共线性块（按基因数降序）</h4>
         <div style="overflow-x:auto" id="synBlocksDiv"></div>
@@ -824,7 +824,7 @@ gene4"></textarea>
           <span class="hint">元素重复自动去重</span>
         </div>
         <div id="vennWarn"></div>
-        <div class="hidden" id="vennOut"><div id="vennSvgDiv" style="overflow-x:auto"></div><div id="vennRegionsDiv" style="margin-top:10px"></div></div>
+        <div class="hidden" id="vennOut"><div id="vennSvgDiv" style="overflow-x:auto"></div><div id="vennRegionsDiv" style="margin-top:10px"></div><div class="row"><button class="btn btn-ghost btn-sm" id="vennCsv">⬇ 区域 CSV</button></div></div>
       </div>
 
       <!-- 工具2：PCA -->
@@ -848,7 +848,7 @@ S2\t9.8\t7.9\t3.1\t处理"></textarea>
           <h4>方差解释率</h4>
           <canvas id="pcaVar" height="50"></canvas>
           <h4>载荷表（按 |PC1 载荷| 降序，前 10）</h4>
-          <div style="overflow-x:auto" id="pcaLoadDiv"></div>
+          <div style="overflow-x:auto" id="pcaLoadDiv"></div><div class="row"><button class="btn btn-ghost btn-sm" id="pcaScoreCsv">⬇ 得分 CSV</button><button class="btn btn-ghost btn-sm" id="pcaLoadCsv">⬇ 载荷 CSV</button><button class="btn btn-ghost btn-sm" id="pcaPlotPng">⬇ 得分图 PNG</button><button class="btn btn-ghost btn-sm" id="pcaVarPng">⬇ 方差图 PNG</button></div>
         </div>
       </div>
 
@@ -868,7 +868,7 @@ EGFR&lt;TAB&gt;-1.8&lt;TAB&gt;0.003"></textarea>
           <button class="btn btn-ghost" id="volcanoClear">清空</button>
         </div>
         <div id="volcanoWarn"></div>
-        <div class="hidden" id="volcanoOut"><canvas id="volcanoCanvas" height="90"></canvas><div id="volcanoStats" class="hint" style="margin-top:6px"></div></div>
+        <div class="hidden" id="volcanoOut"><canvas id="volcanoCanvas" height="90"></canvas><div id="volcanoStats" class="hint" style="margin-top:6px"></div><div class="row"><button class="btn btn-ghost btn-sm" id="volcanoCsv">⬇ 分类结果 CSV</button><button class="btn btn-ghost btn-sm" id="volcanoPng">⬇ PNG</button></div></div>
       </div>
 
       <!-- 工具4：聚类热图 -->
@@ -924,7 +924,7 @@ geneB\t1.8
           <h4>富集结果（点击行查看 Running ES 曲线）</h4>
           <div style="overflow-x:auto" id="gseaTableDiv"></div>
           <h4 id="gseaCurveTitle">Running ES 曲线</h4>
-          <canvas id="gseaCurve" height="70"></canvas>
+          <canvas id="gseaCurve" height="70"></canvas><div class="row"><button class="btn btn-ghost btn-sm" id="gseaPathCsv">⬇ Running ES CSV</button><button class="btn btn-ghost btn-sm" id="gseaCurvePng">⬇ 曲线 PNG</button></div>
         </div>
       </div>
 
@@ -996,9 +996,9 @@ C\t-0.6\t-0.3\t1"></textarea>
         <div id="corrMWarn"></div>
         <div class="hidden" id="corrOut">
           <h4>组学内相关性热图</h4>
-          <div style="overflow-x:auto"><canvas id="corrHeatCanvas" height="70"></canvas></div>
+          <div style="overflow-x:auto"><canvas id="corrHeatCanvas" height="70"></canvas></div><div class="row"><button class="btn btn-ghost btn-sm" id="corrHeatCsv">⬇ 矩阵 CSV</button><button class="btn btn-ghost btn-sm" id="corrHeatPng">⬇ 热图 PNG</button></div>
           <h4>相关性网络（圆形布局，红线正相关 / 蓝线负相关，线宽 ∝ |r|）</h4>
-          <div style="overflow-x:auto"><canvas id="corrNetCanvas" height="90"></canvas></div>
+          <div style="overflow-x:auto"><canvas id="corrNetCanvas" height="90"></canvas></div><div class="row"><button class="btn btn-ghost btn-sm" id="corrNetPng">⬇ 网络 PNG</button></div>
         </div>
       </div>
     </section>
@@ -4447,6 +4447,7 @@ function vennRunTool() {
     return;
   }
   const regions = vennComputeRegions(sets);
+  vennLast = { sets, regions };
   vennRender(sets, regions);
   $("vennWarn").innerHTML = '<div class="ok-box">完成：' + sets.length + " 组，元素总计 " + sets.reduce((a, s) => a + s.items.size, 0) + "（去重后 " + new Set(sets.flatMap(s => Array.from(s.items))).size + "）。</div>";
   $("vennOut").classList.remove("hidden");
@@ -4466,7 +4467,11 @@ function pcaParse(text, hasGroup) {
   const rows = lines.map(l => l.split(delim).map(c => c.trim()));
   let start = 0;
   const probe = rows[0].slice(hasGroup ? 1 : 0, rows[0].length - (hasGroup ? 1 : 0));
-  if (probe.some(c => c !== "" && isNaN(parseFloat(c)))) start = 1; // 表头
+  let varNames = null;
+  if (probe.some(c => c !== "" && isNaN(parseFloat(c)))) {
+    start = 1; // 表头
+    varNames = hasGroup ? rows[0].slice(1, rows[0].length - 1) : rows[0].slice(1);
+  }
   const names = [], vars = [], groups = [];
   for (let i = start; i < rows.length; i++) {
     const c = rows[i];
@@ -4480,7 +4485,118 @@ function pcaParse(text, hasGroup) {
     groups.push(hasGroup ? (c[c.length - 1] || "组1") : "全部");
   }
   if (vars.length < 3) return null;
-  return { names, vars, groups };
+  return { names, vars, groups, varNames };
+}
+
+/* --- 通用图表导出 --- */
+const CHART_REGISTRY = {};
+function regChart(key, inst) { CHART_REGISTRY[key] = inst; }
+function chartPNG(key, filename) {
+  const getters = {
+    pcaPlot: () => window.pcaPlotChart,
+    pcaVar: () => window.pcaVarChart,
+    famChart: () => famChartInstance,
+    famHistChart: () => famHistChartInstance,
+    famStackChart: () => famStackChartInstance,
+    famParetoChart: () => famParetoChartInstance,
+    enrichChart: () => enrichChartInstance,
+    enrichGoClass: () => enrichGoClassInstance,
+    enrichGoDoughnut: () => enrichGoDoughnutInstance
+  };
+  const c = getters[key] && getters[key]();
+  if (!c || !c.toBase64Image) { showToast("图表尚未生成"); return; }
+  const a = document.createElement("a");
+  a.href = c.toBase64Image();
+  a.download = filename;
+  a.click();
+  showToast("已下载 " + filename);
+}
+function exportCanvasPNG(canvasId, filename) {
+  const cv = $(canvasId);
+  if (!cv || !cv.width) { showToast("图表尚未生成"); return; }
+  const a = document.createElement("a");
+  a.href = cv.toDataURL("image/png");
+  a.download = filename;
+  a.click();
+  showToast("已下载 " + filename);
+}
+
+/* --- 各图表数据 CSV 构建器（纯函数，便于导出后在 Excel/R 中重绘） --- */function pcaExportScoreCsv() { if (!pcaLast) { showToast("请先运行 PCA"); return; } downloadTextFile("PCA得分.csv", buildPcaScoreCsv(pcaLast)); }
+function pcaExportLoadCsv() { if (!pcaLast) { showToast("请先运行 PCA"); return; } downloadTextFile("PCA载荷.csv", buildPcaLoadCsv(pcaLast)); }
+function volcanoExportCsv() { if (!volcanoLast) { showToast("请先绘制火山图"); return; } downloadTextFile("火山图分类.csv", buildVolcanoCsv(volcanoLast.rows, volcanoLast.cls)); }
+function gseaPathExportCsv() { const t = gseaLast && gseaLast.curvedTerm; const r = gseaLast && gseaLast.results.find(x => x.term === t); if (!r || !r.path) { showToast("请先运行 GSEA"); return; } downloadTextFile("GSEA_RunningES_" + t + ".csv", buildGseaPathCsv(r, gseaLast.ranked)); }
+function bubbleExportCsv() { if (!enrichLast) { showToast("请先运行富集分析"); return; } downloadTextFile("富集气泡图数据.csv", buildBubbleCsv(enrichLast.results)); }
+function enrichHeatExportCsv() { if (!enrichLast) { showToast("请先运行富集分析"); return; } downloadTextFile("富集术语基因热力图.csv", buildEnrichHeatCsv(enrichLast.results, 15, 30)); }
+function vennExportCsv() { if (!vennLast) { showToast("请先生成韦恩图"); return; } downloadTextFile("韦恩图区域.csv", buildVennCsv(vennLast.sets, vennLast.regions)); }
+function corrMatrixExportCsv() { if (!corrLastM) { showToast("请先绘制网络热图"); return; } downloadTextFile("相关矩阵.csv", buildCorrMatrixCsv(corrLastM.names, corrLastM.matrix)); }
+function diffExportCsv() { if (!diffLast) { showToast("请先绘制多组差异散点图"); return; } const fcT = parseFloat($("diffFc").value) || 1, pT = parseFloat($("diffP").value) || 0.05; downloadTextFile("多组差异分类.csv", buildDiffCsv(diffLast.rows, fcT, pT)); }
+
+let pcaLast = null, volcanoLast = null, vennLast = null, corrLastM = null, diffLast = null;
+
+function buildPcaScoreCsv(p) {
+  const pc = Math.min(4, p.explained.length);
+  const head = ["样本", "分组"].concat(Array.from({ length: pc }, (_, i) => "PC" + (i + 1) + "（" + p.explained[i].toFixed(1) + "%）"));
+  const lines = [head.join(",")];
+  p.names.forEach((nm, k) => {
+    lines.push([nm, p.groups[k]].concat(Array.from({ length: pc }, (_, i) => p.scores[k][i].toFixed(4))).join(","));
+  });
+  return lines.join("\n");
+}
+function buildPcaLoadCsv(p) {
+  const pc = Math.min(4, p.loadings.length);
+  const lines = [["变量"].concat(Array.from({ length: pc }, (_, i) => "PC" + (i + 1))).join(",")];
+  p.varNames.forEach((vn, j) => {
+    lines.push([vn].concat(Array.from({ length: pc }, (_, i) => p.loadings[i][j].toFixed(4))).join(","));
+  });
+  return lines.join("\n");
+}
+function buildVolcanoCsv(rows, cls) {
+  const cat = new Map();
+  cls.up.forEach(r => cat.set(r, "上调"));
+  cls.down.forEach(r => cat.set(r, "下调"));
+  cls.ns.forEach(r => cat.set(r, "不显著"));
+  const lines = ["基因,log2FC,pvalue,分类"];
+  rows.forEach(r => lines.push([r.gene, r.fc, r.p, cat.get(r) || "不显著"].join(",")));
+  return lines.join("\n");
+}
+function buildGseaPathCsv(r, ranked) {
+  const hitSet = new Set(r.hitGenes || []);
+  const lines = ["秩,基因,得分,RunningES,是否命中"];
+  ranked.forEach((row, i) => lines.push([i + 1, row.gene, row.score.toFixed(4), (r.path[i] || 0).toFixed(4), hitSet.has(row.gene) ? "是" : ""].join(",")));
+  return lines.join("\n");
+}
+function buildBubbleCsv(results) {
+  const lines = ["术语,背景数,命中数,富集倍数,p值,FDR"];
+  results.forEach(r => lines.push([r.term, r.K, r.k, r.fold.toFixed(3), r.p.toExponential(4), r.q.toExponential(4)].join(",")));
+  return lines.join("\n");
+}
+function buildEnrichHeatCsv(results, maxRows, maxCols) {
+  const m = enrichHeatMatrix(results, maxRows, maxCols);
+  const lines = ["术语," + m.cols.join(",")];
+  m.rows.forEach((t, i) => lines.push([t].concat(m.cells[i].map(v => v ? 1 : 0)).join(",")));
+  return lines.join("\n");
+}
+function buildVennCsv(sets, regions) {
+  const lines = ["区域,数量,元素"];
+  const bitsName = key => sets.map((s, i) => (key & (1 << i)) ? s.name : null).filter(Boolean).join("∩");
+  Array.from(regions.keys()).forEach(key => {
+    const items = regions.get(key);
+    lines.push([bitsName(key), items.length, items.join(" ")].join(","));
+  });
+  return lines.join("\n");
+}
+function buildCorrMatrixCsv(names, matrix) {
+  const lines = ["," + names.join(",")];
+  names.forEach((nm, i) => lines.push(nm + "," + matrix[i].map(v => v.toFixed(4)).join(",")));
+  return lines.join("\n");
+}
+function buildDiffCsv(rows, fcT, pT) {
+  const lines = ["基因,比较组,log2FC,pvalue,分类"];
+  rows.forEach(r => {
+    const sig = Math.abs(r.fc) >= fcT && r.p < pT;
+    lines.push([r.gene, r.group, r.fc, r.p, !sig ? "不显著" : (r.fc > 0 ? "上调" : "下调")].join(","));
+  });
+  return lines.join("\n");
 }
 
 /** Jacobi 特征分解（对称矩阵），特征值降序 */
@@ -4548,6 +4664,7 @@ function pcaRunTool() {
   const explained = eig.values.map(v => Math.max(v, 0) / total * 100);
   // 得分
   const scores = mat.map(row => eig.vectors.map(vec => row.reduce((a, v, j) => a + v * vec[j], 0)));
+  pcaLast = { names, groups, scores, explained, loadings: eig.vectors, varNames: data.varNames || vars[0].map((_, j) => "变量" + (j + 1)) };
   // 绘图：PC1 vs PC2 散点（按组着色）
   const groupNames = Array.from(new Set(groups));
   const palette = ["#1e88e5", "#e53935", "#43a047", "#fb8c00", "#8e24aa", "#00897b"];
@@ -4663,7 +4780,8 @@ function volcanoRunTool() {
   }
   const fcT = parseFloat($("volcanoFc").value) || 1, pT = parseFloat($("volcanoP").value) || 0.05;
   const labelN = Math.round(parseFloat($("volcanoLabel").value)) || 0;
-  drawVolcano(rows, fcT, pT, labelN);
+  const cls = drawVolcano(rows, fcT, pT, labelN);
+  volcanoLast = { rows, cls };
   $("volcanoWarn").innerHTML = '<div class="ok-box">完成：共 ' + rows.length + " 个基因。</div>";
   $("volcanoOut").classList.remove("hidden");
 }
@@ -4904,7 +5022,7 @@ function gseaRunTool() {
     const p = (same + 1) / (perms + 1);
     const nes = es / ((permSum / perms) || 1);
     const leading = ranked.filter((r, i) => hit.has(r.gene) && (es >= 0 ? i <= peak : i >= peak)).map(r => r.gene);
-    results.push({ term: s.term, size, es, nes, p, q: 0, path, peak, leading });
+    results.push({ term: s.term, size, es, nes, p, q: 0, path, peak, leading, hitGenes: Array.from(hit) });
   }
   const qs = bhFDR(results.map(r => (isFinite(r.p) ? r.p : 1)));
   results.forEach((r, i) => r.q = qs[i]);
@@ -4929,6 +5047,7 @@ function gseaRunTool() {
 }
 
 function gseaDrawCurve(term) {
+  gseaLast.curvedTerm = term;
   const r = gseaLast.results.find(x => x.term === term);
   if (!r || !r.path) return;
   const canvas = $("gseaCurve");
@@ -5105,6 +5224,7 @@ function diffRunTool() {
     return;
   }
   const fcT = parseFloat($("diffFc").value) || 1, pT = parseFloat($("diffP").value) || 0.05;
+  diffLast = { rows };
   drawDiffScatter(rows, fcT, pT);
   $("diffWarn").innerHTML = '<div class="ok-box">完成：' + rows.length + " 条记录、" + new Set(rows.map(r => r.group)).size + " 个比较组。</div>";
   $("diffOut").classList.remove("hidden");
@@ -5231,6 +5351,7 @@ function corrRunTool() {
     return;
   }
   const { names, matrix } = parsed;
+  corrLastM = { names, matrix };
   const thr = parseFloat($("corrThr").value) || 0.6;
   const n = names.length;
   // 热图（直接绘制在现有 canvas 上）
@@ -5858,6 +5979,31 @@ function init() {
     showToast("已载入网络热图示例（免疫-代谢-炎症 假想相关矩阵）");
   });
   $("corrMClear").addEventListener("click", () => { $("corrMInput").value = ""; $("corrMWarn").innerHTML = ""; $("corrOut").classList.add("hidden"); });
+
+  /* ---------- 图表导出 ---------- */
+  $("pcaScoreCsv").addEventListener("click", pcaExportScoreCsv);
+  $("pcaLoadCsv").addEventListener("click", pcaExportLoadCsv);
+  $("pcaPlotPng").addEventListener("click", () => chartPNG("pcaPlot", "PCA得分图.png"));
+  $("pcaVarPng").addEventListener("click", () => chartPNG("pcaVar", "PCA方差解释率.png"));
+  $("volcanoCsv").addEventListener("click", volcanoExportCsv);
+  $("volcanoPng").addEventListener("click", () => exportCanvasPNG("volcanoCanvas", "火山图.png"));
+  $("gseaPathCsv").addEventListener("click", gseaPathExportCsv);
+  $("gseaCurvePng").addEventListener("click", () => exportCanvasPNG("gseaCurve", "GSEA_RunningES曲线.png"));
+  $("famParetoPng").addEventListener("click", () => chartPNG("famParetoChart", "家族帕累托图.png"));
+  $("famHistPng").addEventListener("click", () => chartPNG("famHistChart", "家族大小直方图.png"));
+  $("famHeatPng").addEventListener("click", () => exportCanvasPNG("famHeatChart", "家族分组热力图.png"));
+  $("famBoxPng").addEventListener("click", () => exportCanvasPNG("famBoxChart", "家族箱线图.png"));
+  $("enrichBubblePng").addEventListener("click", () => exportCanvasPNG("enrichBubble", "富集气泡图.png"));
+  $("enrichBubbleCsv").addEventListener("click", bubbleExportCsv);
+  $("enrichHeatPng").addEventListener("click", () => exportCanvasPNG("enrichHeat", "富集术语基因热力图.png"));
+  $("enrichHeatCsv").addEventListener("click", enrichHeatExportCsv);
+  $("enrichGoClassPng").addEventListener("click", () => chartPNG("enrichGoClass", "GO三大类柱状图.png"));
+  $("enrichGoDoughnutPng").addEventListener("click", () => chartPNG("enrichGoDoughnut", "GO三大类环形图.png"));
+  $("corrHeatCsv").addEventListener("click", corrMatrixExportCsv);
+  $("corrHeatPng").addEventListener("click", () => exportCanvasPNG("corrHeatCanvas", "相关矩阵热图.png"));
+  $("corrNetPng").addEventListener("click", () => exportCanvasPNG("corrNetCanvas", "相关性网络图.png"));
+  $("vennCsv").addEventListener("click", vennExportCsv);
+  $("synDotPng").addEventListener("click", () => exportCanvasPNG("synDot", "共线性点阵图.png"));
 }
 
 init();
