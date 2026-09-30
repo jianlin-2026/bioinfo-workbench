@@ -171,7 +171,7 @@
 
 <header>
   <h1>🧬 中文生信工具整合站</h1>
-  <div class="sub">序列比对 · 相关性分析 · 分子对接 · 序列小工具 · 系统发育树 · 引物设计 · 自动化 Agent · 基因家族与富集分析 —— 一站式生信分析平台</div>
+  <div class="sub">序列比对 · 相关性 · 分子对接 · 序列工具 · 进化树 · 引物 · Agent · 基因家族与富集 · miRNA · Motif · 共线性 —— 一站式生信分析平台</div>
   <div class="privacy">🔒 所有计算均在您的浏览器本地完成，数据不会上传到任何服务器</div>
 </header>
 
@@ -185,6 +185,9 @@
     <button class="nav-btn" data-page="page-primer">🎯 引物设计</button>
     <button class="nav-btn" data-page="page-agent">🤖 自动化 Agent</button>
     <button class="nav-btn" data-page="page-fams">🧬 基因家族与富集</button>
+    <button class="nav-btn" data-page="page-mirna">🧫 miRNA 靶点</button>
+    <button class="nav-btn" data-page="page-motif">🔤 Motif 分析</button>
+    <button class="nav-btn" data-page="page-syn">🧩 共线性分析</button>
   </nav>
 
   <main>
@@ -546,6 +549,20 @@
           <div style="overflow-x:auto"><table class="data" id="agentLigTable"></table></div>
         </div>
       </div>
+
+      <div class="card">
+        <h3>④ PubChem 配体检索（化合物名 / CID）</h3>
+        <div class="row">
+          <input type="text" id="pcQuery" placeholder="化合物名（如 imatinib / aspirin）或 CID（如 2244）" style="max-width:380px">
+          <button class="btn" id="pcRun">▶ 检索</button>
+          <span class="hint">PubChem PUG REST（支持跨域）；获取性质与 3D 结构，一键送入对接工作台</span>
+        </div>
+        <div id="pcLog"></div>
+        <div class="hidden" id="pcResult" style="margin-top:12px">
+          <h4>检索结果（点"3D 查看"载入对接工作台）</h4>
+          <div style="overflow-x:auto"><table class="data" id="pcTable"></table></div>
+        </div>
+      </div>
     </section>
 
     <!-- ======================= 页面八：基因家族与富集分析 ======================= -->
@@ -576,6 +593,8 @@
       <div class="card hidden" id="famResultCard">
         <h3>家族成员数统计（按总数降序）</h3>
         <canvas id="famChart" height="90"></canvas>
+        <h4>家族大小分布直方图（每档家族数量）</h4>
+        <canvas id="famHistChart" height="60"></canvas>
         <h4>明细表</h4>
         <div style="overflow-x:auto" id="famTableDiv"></div>
         <div class="row"><button class="btn btn-ghost btn-sm" id="famExport">⬇ 导出 CSV</button></div>
@@ -614,6 +633,12 @@ gene9"></textarea>
       <div class="card hidden" id="enrichResultCard">
         <h3>富集结果（按 p 值升序，展示前 50）</h3>
         <canvas id="enrichChart" height="90"></canvas>
+        <h4>气泡图（X = 富集倍数，气泡大小 = 命中基因数，颜色越红 = FDR 越显著）</h4>
+        <div style="overflow-x:auto"><canvas id="enrichBubble" height="80"></canvas></div>
+        <div class="hidden" id="enrichGoClassBlock">
+          <h4>GO 三大类分布（BP 生物过程 / MF 分子功能 / CC 细胞组分，显著条目数）</h4>
+          <canvas id="enrichGoClass" height="55"></canvas>
+        </div>
         <h4>明细表</h4>
         <div style="overflow-x:auto" id="enrichTableDiv"></div>
         <div class="row">
@@ -630,6 +655,130 @@ gene9"></textarea>
           <button class="btn" id="keggGo">🗺 在新标签页打开通路图</button>
           <span class="hint">打开 kegg.jp 对应通路图；基因高亮请用 KEGG Mapper（站点无法代替 KEGG 官方渲染）</span>
         </div>
+      </div>
+    </section>
+
+    <!-- ======================= 页面九：miRNA 靶点预测 ======================= -->
+    <section class="page hidden" id="page-mirna">
+      <h2>🧫 miRNA 靶点预测</h2>
+      <div class="page-desc">基于规范种子位点的靶点预测（Bartel 分类：8mer / 7mer-m8 / 7mer-A1 / 6mer），支持多条 miRNA × 多条 3'UTR 批量扫描。简化版（仅种子规则，不含 3' 端互补与进化保守性），供快速筛查。</div>
+
+      <div class="card">
+        <h3>输入序列</h3>
+        <div class="grid-2">
+          <div>
+            <label class="form-label">miRNA 成熟序列（FASTA，可多条）</label>
+            <textarea class="seq-input" id="mirnaSeq" style="height:130px" placeholder="&gt;hsa-let-7a-5p
+UGAGGUAGUAGGUUGUAUAGUU"></textarea>
+          </div>
+          <div>
+            <label class="form-label">靶基因 3'UTR 序列（FASTA，可多条，建议 500-3000 nt）</label>
+            <textarea class="seq-input" id="mirnaUtr" style="height:130px" placeholder="&gt;TP53_3UTR
+GCGGATT..."></textarea>
+          </div>
+        </div>
+        <div class="row">
+          <label class="btn btn-ghost btn-sm">📂 上传 miRNA<input type="file" id="mirnaFile" accept=".txt,.fa,.fasta" style="display:none"></label>
+          <label class="btn btn-ghost btn-sm">📂 上传 UTR<input type="file" id="mirnaUtrFile" accept=".txt,.fa,.fasta" style="display:none"></label>
+          <button class="btn btn-ghost btn-sm" id="mirnaExample">载入示例</button>
+          <button class="btn" id="mirnaRun">▶ 扫描靶点</button>
+          <button class="btn btn-ghost" id="mirnaClear">清空</button>
+          <span class="hint" id="mirnaInfo"></span>
+        </div>
+        <div id="mirnaWarn"></div>
+      </div>
+      <div class="card hidden" id="mirnaResultCard">
+        <h3>位点明细（按 miRNA 分组，权重：8mer=1.0 / 7mer-m8=0.85 / 7mer-A1=0.75 / 6mer=0.5）</h3>
+        <div style="overflow-x:auto" id="mirnaSitesDiv"></div>
+        <h4>miRNA × 基因 汇总（按累计权重降序）</h4>
+        <div style="overflow-x:auto" id="mirnaSummaryDiv"></div>
+        <div class="row"><button class="btn btn-ghost btn-sm" id="mirnaExport">⬇ 导出位点 CSV</button></div>
+      </div>
+    </section>
+
+    <!-- ======================= 页面十：Motif 分析 ======================= -->
+    <section class="page hidden" id="page-motif">
+      <h2>🔤 Motif 分析（Gibbs 采样 + 序列 Logo）</h2>
+      <div class="page-desc">在一组序列中用 Gibbs 采样器发现富集 motif（OOPS 模型，支持 DNA 反向互补链），输出 PWM、一致性序列、信息量与 SVG 序列 Logo。发现结果为统计推断，请结合生物学背景解读。</div>
+
+      <div class="card">
+        <h3>输入与参数</h3>
+        <textarea class="seq-input" id="motifSeqs" style="height:140px" placeholder="&gt;seq1
+TACGGTACGTTACGTA...(多条等长或近似等长序列)"></textarea>
+        <div class="row">
+          <label class="btn btn-ghost btn-sm">📂 上传文件<input type="file" id="motifFile" accept=".txt,.fa,.fasta" style="display:none"></label>
+          <button class="btn btn-ghost btn-sm" id="motifExample">载入示例</button>
+          <span class="hint">Motif 宽度</span>
+          <input type="number" id="motifWidth" value="8" min="4" max="30" style="width:80px">
+          <span class="hint">重启次数</span>
+          <input type="number" id="motifRestarts" value="20" min="1" max="200" style="width:90px">
+          <span class="hint">每轮迭代</span>
+          <input type="number" id="motifIters" value="300" min="50" max="5000" style="width:100px">
+          <label><input type="checkbox" id="motifRevcomp" checked> 搜反向互补链（DNA）</label>
+        </div>
+        <div class="row">
+          <button class="btn" id="motifRun">▶ 发现 Motif</button>
+          <button class="btn btn-ghost" id="motifClear">清空</button>
+          <span class="hint" id="motifInfo"></span>
+        </div>
+        <div id="motifWarn"></div>
+      </div>
+      <div class="card hidden" id="motifResultCard">
+        <h3>发现结果</h3>
+        <div style="overflow-x:auto" id="motifLogoDiv"></div>
+        <div id="motifSummary"></div>
+        <h4>PWM（每列碱基概率）</h4>
+        <div style="overflow-x:auto" id="motifPwmDiv"></div>
+        <h4>各序列 Motif 位点</h4>
+        <div style="overflow-x:auto" id="motifSitesDiv"></div>
+        <div class="row"><button class="btn btn-ghost btn-sm" id="motifExport">⬇ 导出 PWM CSV</button></div>
+      </div>
+    </section>
+
+    <!-- ======================= 页面十一：共线性分析 ======================= -->
+    <section class="page hidden" id="page-syn">
+      <h2>🧩 共线性分析（点阵图 + 共线性块）</h2>
+      <div class="page-desc">输入两物种的同源基因对（如 BLAST 最佳比对）与各自的基因坐标（按染色体位置排序），自动计算点阵图并链式识别共线性块（mini-MCScan 算法，支持倒位）。</div>
+
+      <div class="card">
+        <h3>输入数据</h3>
+        <div class="grid-3">
+          <div>
+            <label class="form-label">同源基因对（基因A + 基因B [+得分]）</label>
+            <textarea class="seq-input" id="synPairs" style="height:120px" placeholder="os01g01010&lt;TAB&gt;at1g01010
+os01g01020&lt;TAB&gt;at1g01020"></textarea>
+          </div>
+          <div>
+            <label class="form-label">物种 A 坐标（基因 + 染色体 + 起点）</label>
+            <textarea class="seq-input" id="synCoordA" style="height:120px" placeholder="os01g01010&lt;TAB&gt;chr1&lt;TAB&gt;1000
+os01g01020&lt;TAB&gt;chr1&lt;TAB&gt;2500"></textarea>
+          </div>
+          <div>
+            <label class="form-label">物种 B 坐标（同上格式）</label>
+            <textarea class="seq-input" id="synCoordB" style="height:120px" placeholder="at1g01010&lt;TAB&gt;chr1&lt;TAB&gt;800
+at1g01020&lt;TAB&gt;chr1&lt;TAB&gt;2100"></textarea>
+          </div>
+        </div>
+        <div class="row">
+          <label class="btn btn-ghost btn-sm">📂 上传基因对<input type="file" id="synFile" accept=".txt,.csv,.tsv" style="display:none"></label>
+          <button class="btn btn-ghost btn-sm" id="synExample">载入示例</button>
+          <span class="hint">间隔上限</span>
+          <input type="number" id="synGap" value="5" min="1" max="50" style="width:80px">
+          <span class="hint">最小块基因数</span>
+          <input type="number" id="synMin" value="5" min="2" max="50" style="width:80px">
+          <button class="btn" id="synRun">▶ 分析</button>
+          <button class="btn btn-ghost" id="synClear">清空</button>
+        </div>
+        <div id="synWarn"></div>
+      </div>
+      <div class="card hidden" id="synResultCard">
+        <h3>点阵图（X = 物种 A 基因序，Y = 物种 B 基因序；线段 = 共线性块）</h3>
+        <div style="overflow-x:auto"><canvas id="synDot" height="120"></canvas></div>
+        <h4>共线性块（按基因数降序）</h4>
+        <div style="overflow-x:auto" id="synBlocksDiv"></div>
+        <h4>块内基因对（点击上方行查看）</h4>
+        <div style="overflow-x:auto" id="synPairsDiv" class="hint">点击上方某一块查看基因对。</div>
+        <div class="row"><button class="btn btn-ghost btn-sm" id="synExport">⬇ 导出共线性块 CSV</button></div>
       </div>
     </section>
   </main>
@@ -1378,9 +1527,9 @@ function loadReceptor(text) {
   refresh3D(null);
 }
 
-function loadLigand(text, fname) {
+function loadLigand(text, fname, fmt) {
   dockState.ligandText = text;
-  dockState.ligandFormat = fname && /\.pdbqt$/i.test(fname) ? "pdbqt" : "pdb";
+  dockState.ligandFormat = fmt || (fname && /\.pdbqt$/i.test(fname) ? "pdbqt" : "pdb");
   const nAtoms = parseAtomLines(text.split(/\r?\n/)).length;
   $("ligInfo").textContent = "已载入配体：" + nAtoms + " 个原子（格式 " + dockState.ligandFormat + "）";
   refresh3D(null);
@@ -2967,9 +3116,10 @@ function runEnrichment(bgPairs, targets) {
 }
 
 /* --- 基因家族/富集 UI 状态 --- */
-let famChartInstance = null, enrichChartInstance = null;
+let famChartInstance = null, famHistChartInstance = null, enrichChartInstance = null, enrichGoClassInstance = null;
 let famLastTable = null, enrichLast = null;
 let famLastGrouped = false, famLastGroups = [];
+let termAspect = new Map(); // GO:ID → BP/MF/CC（在线补全后填充）
 
 function famExampleData() {
   let s = 7;
@@ -3022,9 +3172,45 @@ function famRunStats() {
   const stats = famCountStats(rows, grouped);
   famLastTable = stats;
   renderFamResults(stats);
+  drawFamHist(stats);
   $("famWarn").innerHTML = '<div class="ok-box">完成：共 ' + stats.families.length + " 个家族、" + new Set(rows.map(r => r.gene)).size + " 个基因" +
     (dup ? "（自动去重 " + dup + " 条重复记录）" : "") + "。</div>";
   $("famResultCard").classList.remove("hidden");
+}
+
+/** 家族大小分箱（1 / 2 / 3-5 / 6-10 / 11+）→ 直方图数据 */
+function famSizeBins(families) {
+  const bins = [
+    { label: "1", min: 1, max: 1, count: 0 },
+    { label: "2", min: 2, max: 2, count: 0 },
+    { label: "3-5", min: 3, max: 5, count: 0 },
+    { label: "6-10", min: 6, max: 10, count: 0 },
+    { label: "11+", min: 11, max: Infinity, count: 0 }
+  ];
+  for (const f of families) {
+    for (const b of bins) {
+      if (f.total >= b.min && f.total <= b.max) { b.count++; break; }
+    }
+  }
+  return bins;
+}
+
+/** 家族大小分布直方图 */
+function drawFamHist(stats) {
+  if (famHistChartInstance) { famHistChartInstance.destroy(); famHistChartInstance = null; }
+  const bins = famSizeBins(stats.families);
+  famHistChartInstance = new Chart($("famHistChart").getContext("2d"), {
+    type: "bar",
+    data: {
+      labels: bins.map(b => b.label),
+      datasets: [{ label: "家族数量", data: bins.map(b => b.count), backgroundColor: "#00897b" }]
+    },
+    options: {
+      responsive: true,
+      scales: { x: { title: { display: true, text: "家族大小（成员数）" } }, y: { beginAtZero: true, title: { display: true, text: "家族数量" } } },
+      plugins: { legend: { display: false } }
+    }
+  });
 }
 
 function renderFamResults(stats) {
@@ -3090,6 +3276,7 @@ function downloadTextFile(name, text) {
 function enrichRun() {
   $("enrichWarn").innerHTML = "";
   $("enrichResultCard").classList.add("hidden");
+  termAspect = new Map(); // 新分析重置 GO 三大类归属
   const bgPairs = parseAnnotationPairs($("enrichBg").value, false);
   const targets = $("enrichTarget").value.split(/[\s,;，；]+/).map(s => s.trim()).filter(s => s);
   if (bgPairs.length < 3 || !targets.length) {
@@ -3103,9 +3290,84 @@ function enrichRun() {
   }
   enrichLast = res;
   renderEnrichResults(res);
+  drawEnrichBubble(res);
+  updateEnrichGoClass();
   $("enrichWarn").innerHTML = '<div class="ok-box">完成：背景 ' + res.M + " 基因 / " + (res.results.length ? "命中术语 " + res.results.length + " 个" : "") +
     "；目标基因 " + res.n + " 个进入检验" + (res.ignored ? "（" + res.ignored + " 个不在背景中，已忽略）" : "") + "。</div>";
   $("enrichResultCard").classList.remove("hidden");
+}
+
+/** 富集气泡图（自绘 canvas）：X = 富集倍数，行 = 术语，半径 = √命中数，颜色 = FDR 显著度 */
+function drawEnrichBubble(res) {
+  const canvas = $("enrichBubble");
+  const dpr = window.devicePixelRatio || 1;
+  const top = res.results.slice(0, 15);
+  const rowH = 26, marginL = 150, marginR = 60, marginT = 14, plotH = top.length * rowH;
+  const width = marginL + 420 + marginR, height = marginT * 2 + plotH + 40;
+  canvas.width = width * dpr; canvas.height = height * dpr;
+  canvas.style.width = width + "px"; canvas.style.height = height + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = "#fafbfc"; ctx.fillRect(0, 0, width, height);
+  ctx.font = "12px 'Microsoft YaHei',sans-serif";
+  if (!top.length) return;
+  const maxFold = Math.max(...top.map(r => r.fold)) * 1.1;
+  const fx = v => marginL + v / maxFold * 420;
+  // X 轴刻度
+  ctx.strokeStyle = "#cfd8dc";
+  const tickStep = maxFold > 8 ? 2 : 0.5;
+  for (let t = 0; t <= maxFold; t += tickStep) {
+    const x = fx(t);
+    ctx.beginPath(); ctx.moveTo(x, marginT); ctx.lineTo(x, marginT + plotH); ctx.stroke();
+    ctx.fillStyle = "#9e9e9e"; ctx.fillText(t.toFixed(tickStep < 1 ? 1 : 0), x - 8, height - 22);
+  }
+  ctx.fillStyle = "#5f6368";
+  ctx.fillText("富集倍数", marginL + 180, height - 6);
+  top.forEach((r, i) => {
+    const y = marginT + i * rowH + rowH / 2;
+    const label = (r.term.length > 16 ? r.term.slice(0, 16) + "…" : r.term) + (r.q < 0.05 ? "★" : "");
+    ctx.fillStyle = "#212121"; ctx.textAlign = "right";
+    ctx.fillText(label, marginL - 8, y + 4);
+    ctx.textAlign = "left";
+    const radius = 4 + Math.sqrt(r.k) * 3.2;
+    const t = Math.max(0, Math.min(1, -Math.log10(Math.max(r.q, 1e-300)) / 5)); // 0 蓝 → 1 红
+    const red = Math.round(21 + t * (239 - 21)), green = Math.round(101 + t * (83 - 101)), blue = Math.round(192 + t * (80 - 192));
+    ctx.fillStyle = "rgba(" + red + "," + green + "," + blue + ",0.75)";
+    ctx.beginPath(); ctx.arc(fx(r.fold), y, radius, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#455a64"; ctx.stroke();
+  });
+}
+
+/** GO 三大类聚合：BP / MF / CC 显著条目数（依赖在线补全的 aspect 数据） */
+function goClassStats(results, aspects) {
+  const stats = { BP: 0, MF: 0, CC: 0 };
+  let known = 0;
+  for (const r of results) {
+    const a = aspects.get(r.term.toUpperCase());
+    if (!a) continue;
+    known++;
+    if (r.q < 0.05) stats[a] = (stats[a] || 0) + 1;
+  }
+  return { stats, known };
+}
+
+function updateEnrichGoClass() {
+  if (enrichGoClassInstance) { enrichGoClassInstance.destroy(); enrichGoClassInstance = null; }
+  if (!enrichLast) return;
+  const { stats, known } = goClassStats(enrichLast.results, termAspect);
+  if (!known) {
+    $("enrichGoClassBlock").classList.add("hidden");
+    return;
+  }
+  $("enrichGoClassBlock").classList.remove("hidden");
+  enrichGoClassInstance = new Chart($("enrichGoClass").getContext("2d"), {
+    type: "bar",
+    data: {
+      labels: ["BP 生物过程", "MF 分子功能", "CC 细胞组分"],
+      datasets: [{ label: "显著条目数（FDR<0.05）", data: [stats.BP, stats.MF, stats.CC], backgroundColor: ["#1e88e5", "#43a047", "#fb8c00"] }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+  });
 }
 
 function renderEnrichResults(res) {
@@ -3145,7 +3407,12 @@ async function enrichFetchNames() {
       if (!resp.ok) throw new Error("HTTP " + resp.status);
       const data = await resp.json();
       for (const t of data.results || []) {
-        document.querySelectorAll("[id='termname-" + t.id + "']").forEach(td => td.textContent = (t.name || "") + (t.aspect ? "（" + { biological_process: "BP", molecular_function: "MF", cellular_component: "CC" }[t.aspect] || "" + "）" : ""));
+        const aspRaw = String(t.aspect || t.aspectName || "").toLowerCase();
+        const asp = aspRaw.includes("biolog") || aspRaw === "p" ? "BP" :
+          aspRaw.includes("molecular") || aspRaw === "f" ? "MF" :
+          aspRaw.includes("cellular") || aspRaw === "c" ? "CC" : null;
+        if (asp) termAspect.set(t.id.toUpperCase(), asp);
+        document.querySelectorAll("[id='termname-" + t.id + "']").forEach(td => td.textContent = (t.name || "") + (asp ? "（" + asp + "）" : ""));
         done++;
       }
     } catch (e) { fail += goIds.length; }
@@ -3164,6 +3431,7 @@ async function enrichFetchNames() {
       }
     } catch (e) { fail += keggIds.length; }
   }
+  updateEnrichGoClass();
   showToast(done ? "已补全 " + done + " 个术语名称" + (fail ? "，" + fail + " 个失败" : "") : "在线补全失败（网络或 CORS 限制），可离线使用 ID");
 }
 
@@ -3174,6 +3442,550 @@ function enrichExportCSV() {
     lines.push([r.term, "", r.K, r.k, r.fold.toFixed(3), r.p.toExponential(4), r.q.toExponential(4), r.genes.join(" ")].join(","));
   }
   downloadTextFile("富集分析结果.csv", "\uFEFF" + lines.join("\n"));
+}
+
+/* =========================================================================
+ * 模块九：miRNA 靶点预测（规范种子位点分类，Bartel 2009）
+ * ========================================================================= */
+const MIRNA_WEIGHTS = { "8mer": 1.0, "7mer-m8": 0.85, "7mer-A1": 0.75, "6mer": 0.5 };
+
+/** 解析多序列 FASTA（复用 parseFastaMulti），过滤序列类型 */
+function mirnaParseLists(rawMirna, rawUtr) {
+  const mi = parseFastaMulti(rawMirna).filter(s => detectSeqType(s.seq.replace(/T/g, "U")) !== "protein");
+  const utr = parseFastaMulti(rawUtr).filter(s => detectSeqType(s.seq.replace(/U/g, "T")) !== "protein");
+  return { mi, utr };
+}
+
+/** 扫描单条 miRNA × 单条 UTR 的规范种子位点 */
+function mirnaFindSites(miSeq, utrSeq) {
+  const m = miSeq.replace(/U/g, "T");
+  if (m.length < 8) return [];
+  const seed6 = reverseComplement(m.slice(1, 7)); // miRNA 2-7 位
+  const seed7 = reverseComplement(m.slice(1, 8)); // miRNA 2-8 位；seed6 = seed7.slice(1)
+  const s = utrSeq.replace(/U/g, "T");
+  const sites = [];
+  for (let i = 0; i + 6 <= s.length; i++) {
+    if (!s.startsWith(seed6, i)) continue;
+    const hasM8 = i > 0 && s[i - 1] === seed7[0];       // m8 互补碱基在位点 5' 端
+    const hasA = i + 6 < s.length && s[i + 6] === "A";  // m1 对应位置的 A 锚定
+    const type = hasM8 && hasA ? "8mer" : hasM8 ? "7mer-m8" : hasA ? "7mer-A1" : "6mer";
+    sites.push({ start: i + 1, type, weight: MIRNA_WEIGHTS[type], site: s.slice(hasM8 ? i - 1 : i, i + 6 + (hasA ? 1 : 0)) });
+  }
+  return sites;
+}
+
+/** 批量扫描：miRNA 列表 × UTR 列表 */
+function mirnaScanAll(miList, utrList) {
+  const sites = [];
+  for (const m of miList) {
+    for (const u of utrList) {
+      for (const st of mirnaFindSites(m.seq, u.seq)) {
+        sites.push({ mi: m.name, gene: u.name, start: st.start, type: st.type, weight: st.weight, site: st.site });
+      }
+    }
+  }
+  return sites;
+}
+
+/** miRNA 靶点 UI */
+let mirnaLastSites = [];
+function mirnaRunScan() {
+  $("mirnaWarn").innerHTML = "";
+  $("mirnaResultCard").classList.add("hidden");
+  const { mi, utr } = mirnaParseLists($("mirnaSeq").value, $("mirnaUtr").value);
+  if (!mi.length || !utr.length) {
+    $("mirnaWarn").innerHTML = '<div class="err-box">错误：请提供至少 1 条 miRNA 与 1 条 UTR 序列（FASTA）。</div>';
+    return;
+  }
+  $("mirnaInfo").textContent = mi.length + " 条 miRNA × " + utr.length + " 条 UTR";
+  mirnaLastSites = mirnaScanAll(mi, utr);
+  renderMirnaResults(mirnaLastSites);
+  $("mirnaWarn").innerHTML = '<div class="ok-box">完成：发现 ' + mirnaLastSites.length + " 个规范种子位点。</div>";
+}
+
+function renderMirnaResults(sites) {
+  // 明细
+  let html = "<tr><th>miRNA</th><th>靶基因</th><th>UTR 位置</th><th>位点类型</th><th>权重</th><th>位点序列</th></tr>";
+  const byMi = new Map();
+  for (const s of sites) {
+    if (!byMi.has(s.mi)) byMi.set(s.mi, []);
+    byMi.get(s.mi).push(s);
+    html += "<tr><th>" + escapeHtml(s.mi) + "</th><td>" + escapeHtml(s.gene) + "</td><td>" + s.start +
+      "</td><td>" + s.type + "</td><td>" + s.weight + "</td><td style='font-family:Consolas,monospace'>" + escapeHtml(s.site) + "</td></tr>";
+  }
+  $("mirnaSitesDiv").innerHTML = "<table class='data'>" + html + "</table>";
+  // 汇总：miRNA × 基因
+  const agg = new Map();
+  for (const s of sites) {
+    const key = s.mi + "||" + s.gene;
+    if (!agg.has(key)) agg.set(key, { mi: s.mi, gene: s.gene, count: 0, weight: 0, best: "6mer" });
+    const a = agg.get(key);
+    a.count++; a.weight += s.weight;
+    if (MIRNA_WEIGHTS[s.type] > MIRNA_WEIGHTS[a.best]) a.best = s.type;
+  }
+  const sorted = Array.from(agg.values()).sort((a, b) => b.weight - a.weight || b.count - a.count);
+  let h2 = "<tr><th>miRNA</th><th>靶基因</th><th>位点数</th><th>累计权重</th><th>最佳位点</th></tr>";
+  for (const a of sorted) {
+    h2 += "<tr><th>" + escapeHtml(a.mi) + "</th><td>" + escapeHtml(a.gene) + "</td><td>" + a.count +
+      "</td><td>" + a.weight.toFixed(2) + "</td><td>" + a.best + "</td></tr>";
+  }
+  $("mirnaSummaryDiv").innerHTML = "<table class='data'>" + h2 + "</table>";
+  $("mirnaResultCard").classList.remove("hidden");
+}
+
+function mirnaExportCSV() {
+  const lines = ["miRNA,靶基因,UTR位置,位点类型,权重,位点序列"];
+  for (const s of mirnaLastSites) lines.push([s.mi, s.gene, s.start, s.type, s.weight, s.site].join(","));
+  downloadTextFile("miRNA靶点.csv", "\uFEFF" + lines.join("\n"));
+}
+
+/* =========================================================================
+ * 模块十：Motif 分析（Gibbs 采样 + PWM + SVG Logo）
+ * ========================================================================= */
+const MOTIF_ALPHABET = ["A", "C", "G", "T"];
+const MOTIF_COMP_IDX = { 0: 3, 1: 2, 2: 1, 3: 0 }; // A<->T, C<->G
+const MOTIF_COLORS = { A: "#2e7d32", C: "#1565c0", G: "#ef6c00", T: "#c62828" };
+
+function motifBaseIdx(ch) { return MOTIF_ALPHABET.indexOf(ch); }
+/** 取位点内第 w 个碱基的字母序号（反向链 = 反向互补，自动镜像） */
+function motifBaseAtW(seq, sitePos, w, width, strand) {
+  const idx = strand === 1 ? sitePos + w : sitePos + width - 1 - w;
+  const ch = seq[idx];
+  const b = motifBaseIdx(ch);
+  return strand === 1 ? b : (b < 0 ? -1 : MOTIF_COMP_IDX[b]);
+}
+
+/** Gibbs 采样发现 motif（OOPS，DNA，支持反向互补）
+ *  返回 { pwm, consensus, ic, sites, bestLL, alphabet } */
+function motifGibbs(seqs, width, opts) {
+  const restarts = opts.restarts || 20, iters = opts.iterations || 300;
+  let rngState = opts.seed || 2026;
+  const rnd = () => { rngState = (rngState * 1103515245 + 12345) % 2147483648; return rngState / 2147483648; };
+  // 背景频率
+  const bg = [0, 0, 0, 0];
+  let bgTotal = 0;
+  for (const s of seqs) for (const ch of s.seq) { const b = motifBaseIdx(ch); if (b >= 0) { bg[b]++; bgTotal++; } }
+  for (let i = 0; i < 4; i++) bg[i] = (bg[i] || 0) / (bgTotal || 1);
+  const usable = seqs.filter(s => s.seq.length >= width);
+  if (usable.length < 3) return null;
+  const n = usable.length;
+  let best = null;
+  for (let restart = 0; restart < restarts; restart++) {
+    const sites = usable.map(s => Math.floor(rnd() * (s.seq.length - width + 1)));
+    const strands = usable.map(() => 1);
+    let runBest = null;
+    for (let it = 0; it < iters; it++) {
+      for (let j = 0; j < n; j++) {
+        const counts = Array.from({ length: width }, () => [0, 0, 0, 0]);
+        for (let i = 0; i < n; i++) {
+          if (i === j) continue;
+          for (let w = 0; w < width; w++) {
+            const b = motifBaseAtW(usable[i].seq, sites[i], w, width, strands[i]);
+            if (b >= 0) counts[w][b]++;
+          }
+        }
+        let bestLL = -Infinity, bestPos = sites[j], bestStrand = strands[j];
+        for (let pos = 0; pos + width <= usable[j].seq.length; pos++) {
+          const strandCandidates = opts.revcomp ? [1, -1] : [1];
+          for (const st of strandCandidates) {
+            let ll = 0;
+            for (let w = 0; w < width; w++) {
+              const b = motifBaseAtW(usable[j].seq, pos, w, width, st);
+              if (b < 0) { ll = -Infinity; break; }
+              const pc = (counts[w][b] + bg[b]) / (n - 1 + 1); // 伪计数
+              ll += Math.log(pc / bg[b]);
+            }
+            if (ll > bestLL) { bestLL = ll; bestPos = pos; bestStrand = st; }
+          }
+        }
+        sites[j] = bestPos; strands[j] = bestStrand;
+      }
+      const pwm = motifBuildPwm(usable, sites, strands, width);
+      let ll = 0;
+      for (let w = 0; w < width; w++) for (let b = 0; b < 4; b++) ll += pwm[w][b] > 0 ? pwm[w][b] * Math.log(pwm[w][b] / bg[b]) : 0;
+      if (!runBest || ll > runBest.ll) runBest = { ll, sites: sites.slice(), strands: strands.slice(), pwm };
+    }
+    if (!best || runBest.ll > best.ll) best = runBest;
+  }
+  if (!best) return null;
+  const pwm = motifBuildPwm(usable, best.sites, best.strands, width);
+  const ic = pwm.map(col => MOTIF_ALPHABET.reduce((acc, _, b) => col[b] > 0 ? acc + col[b] * Math.log2(col[b] / 0.25) : acc, 0));
+  const consensus = pwm.map(col => MOTIF_ALPHABET[col.indexOf(Math.max(...col))]).join("");
+  const sites = usable.map((s, i) => ({ name: s.name, start: best.sites[i] + 1, strand: best.strands[i] === 1 ? "+" : "-", seq: s.seq.substr(best.sites[i], width) }));
+  return { pwm, consensus, ic, sites, bestLL: best.ll, alphabet: MOTIF_ALPHABET.slice() };
+}
+
+function motifBuildPwm(usable, sites, strands, width) {
+  const pwm = Array.from({ length: width }, () => [0.25, 0.25, 0.25, 0.25]);
+  const counts = Array.from({ length: width }, () => [0, 0, 0, 0]);
+  for (let i = 0; i < usable.length; i++) {
+    for (let w = 0; w < width; w++) {
+      const b = motifBaseAtW(usable[i].seq, sites[i], w, width, strands[i]);
+      if (b >= 0) counts[w][b]++;
+    }
+  }
+  const pseudo = 0.05; // 小伪计数，避免 0 概率同时保留信息量
+  for (let w = 0; w < width; w++) {
+    const tot = counts[w].reduce((a, b) => a + b, 0) + 4 * pseudo;
+    for (let b = 0; b < 4; b++) pwm[w][b] = (counts[w][b] + pseudo) / tot;
+  }
+  return pwm;
+}
+
+/** PWM → SVG 序列 Logo（碱基高度 ∝ 概率 × 信息量比例） */
+function motifLogoSVG(pwm) {
+  const W = pwm.length, cellW = 34, colH = 110, marginL = 34, marginT = 16;
+  const width = marginL + W * cellW + 20, height = marginT + colH + 44;
+  let svg = '<svg width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + " " + height + '" style="max-width:100%;display:block;font-family:Arial,sans-serif">';
+  svg += '<rect width="100%" height="100%" fill="#fafbfc" rx="8"/>';
+  svg += '<line x1="' + marginL + '" y1="' + (marginT + 4) + '" x2="' + marginL + '" y2="' + (marginT + colH + 4) + '" stroke="#9e9e9e"/>';
+  svg += '<text x="4" y="' + (marginT + 10) + '" font-size="11" fill="#5f6368">2.0</text>';
+  svg += '<text x="4" y="' + (marginT + colH) + '" font-size="11" fill="#5f6368">0</text>';
+  for (let w = 0; w < W; w++) {
+    const col = pwm[w];
+    const ic = MOTIF_ALPHABET.reduce((acc, _, b) => col[b] > 0 ? acc + col[b] * Math.log2(col[b] / 0.25) : acc, 0);
+    const scale = Math.max(0, ic) / 2 * colH;
+    // 碱基按概率降序自上而下堆叠，高度 = 概率 × 列高 × 信息量比例
+    const order = [0, 1, 2, 3].sort((a, b) => col[b] - col[a]);
+    let yTop = marginT + 4 + scale;
+    for (const b of order) {
+      if (col[b] <= 0.01) continue;
+      const h = col[b] / 2 * colH;
+      const fs = Math.min(h, 30);
+      svg += '<text x="' + (marginL + w * cellW + cellW / 2) + '" y="' + (yTop + h * 0.5 + fs * 0.36) +
+        '" text-anchor="middle" font-size="' + Math.max(6, fs).toFixed(1) + '" font-weight="bold" fill="' + MOTIF_COLORS[MOTIF_ALPHABET[b]] + '">' +
+        MOTIF_ALPHABET[b] + "</text>";
+      yTop += h;
+    }
+    svg += '<text x="' + (marginL + w * cellW + cellW / 2) + '" y="' + (marginT + colH + 22) + '" text-anchor="middle" font-size="11" fill="#5f6368">' + (w + 1) + "</text>";
+    svg += '<text x="' + (marginL + w * cellW + cellW / 2) + '" y="' + (marginT + colH + 36) + '" text-anchor="middle" font-size="10" fill="#9e9e9e">' + ic.toFixed(2) + "</text>";
+  }
+  svg += "</svg>";
+  return svg;
+}
+
+let motifLast = null;
+function motifRun() {
+  $("motifWarn").innerHTML = "";
+  $("motifResultCard").classList.add("hidden");
+  const seqs = parseFastaMulti($("motifSeqs").value).map(s => ({ name: s.name, seq: s.seq.replace(/[^ACGTacgt]/g, "").toUpperCase() }));
+  if (seqs.length < 3) {
+    $("motifWarn").innerHTML = '<div class="err-box">错误：请提供至少 3 条 DNA 序列（FASTA，仅 A/C/G/T）。</div>';
+    return;
+  }
+  const width = Math.round(parseFloat($("motifWidth").value)) || 8;
+  const restarts = Math.round(parseFloat($("motifRestarts").value)) || 20;
+  const iters = Math.round(parseFloat($("motifIters").value)) || 300;
+  const revcomp = $("motifRevcomp").checked;
+  if (width < 4 || width > 30) {
+    $("motifWarn").innerHTML = '<div class="err-box">错误：Motif 宽度需在 4-30 之间。</div>';
+    return;
+  }
+  $("motifInfo").textContent = seqs.length + " 条序列，宽度 " + width + "，" + restarts + " 次重启 × " + iters + " 迭代";
+  const res = motifGibbs(seqs, width, { restarts, iterations: iters, revcomp, seed: 2026 });
+  if (!res) {
+    $("motifWarn").innerHTML = '<div class="err-box">错误：序列太短（需不小于 Motif 宽度）或数量不足。</div>';
+    return;
+  }
+  motifLast = res;
+  renderMotifResults(res, width);
+  $("motifWarn").innerHTML = '<div class="ok-box">完成：一致性序列 <b>' + res.consensus + "</b>，各位点信息量合计 " +
+    res.ic.reduce((a, b) => a + b, 0).toFixed(2) + " bit。</div>";
+}
+
+function renderMotifResults(res, width) {
+  $("motifLogoDiv").innerHTML = motifLogoSVG(res.pwm);
+  $("motifSummary").innerHTML = '<div class="ok-box" style="margin-top:8px">一致性序列：<b style="font-family:Consolas,monospace">' + res.consensus + "</b>（宽度 " + width + "）</div>";
+  let html = "<tr><th>位置</th>" + res.alphabet.map(a => "<th>" + a + "</th>").join("") + "<th>IC (bit)</th></tr>";
+  res.pwm.forEach((col, w) => {
+    html += "<tr><th>" + (w + 1) + "</th>" + col.map(p => "<td>" + p.toFixed(3) + "</td>").join("") + "<td>" + res.ic[w].toFixed(3) + "</td></tr>";
+  });
+  $("motifPwmDiv").innerHTML = "<table class='data'>" + html + "</table>";
+  let h2 = "<tr><th>序列</th><th>位置</th><th>链</th><th>Motif 序列</th></tr>";
+  for (const s of res.sites) h2 += "<tr><th>" + escapeHtml(s.name) + "</th><td>" + s.start + "</td><td>" + s.strand + "</td><td style='font-family:Consolas,monospace'>" + s.seq + "</td></tr>";
+  $("motifSitesDiv").innerHTML = "<table class='data'>" + h2 + "</table>";
+}
+
+function motifExportCSV() {
+  if (!motifLast) return;
+  const lines = ["位置," + motifLast.alphabet.join(",") + ",IC"];
+  motifLast.pwm.forEach((col, w) => lines.push([w + 1].concat(col.map(p => p.toFixed(4))).concat([motifLast.ic[w].toFixed(4)]).join(",")));
+  downloadTextFile("motif_PWM.csv", lines.join("\n"));
+}
+
+/* =========================================================================
+ * 模块十一：共线性分析（点阵图 + 链式共线性块检测）
+ * ========================================================================= */
+/** 坐标解析：gene → {chr, start}，并给出每条染色体内按 start 排序的序号 */
+function synParseCoords(text) {
+  const lines = String(text || "").split(/\r?\n/).map(l => l.trim()).filter(l => l);
+  let delim = null;
+  for (const l of lines) {
+    if (l.includes("\t")) { delim = "\t"; break; }
+    if (l.includes(",")) { delim = ","; break; }
+  }
+  if (!delim) delim = /\s+/;
+  const raw = [];
+  for (const l of lines) {
+    const c = l.split(delim).map(x => x.trim()).filter(x => x !== "");
+    if (c.length < 3) continue;
+    const start = parseFloat(c[2]);
+    if (!isFinite(start)) continue;
+    raw.push({ gene: c[0].toUpperCase(), chr: c[1], start });
+  }
+  // 每染色体按 start 排序 → 序号
+  const byChr = new Map();
+  for (const g of raw) {
+    if (!byChr.has(g.chr)) byChr.set(g.chr, []);
+    byChr.get(g.chr).push(g);
+  }
+  const rank = new Map();
+  for (const [chr, arr] of byChr) {
+    arr.sort((a, b) => a.start - b.start);
+    arr.forEach((g, i) => rank.set(g.gene, { chr, rank: i, start: g.start }));
+  }
+  return { rank, coord: new Map(raw.map(g => [g.gene, { chr: g.chr, start: g.start }])) };
+}
+
+/** 同源对解析：[{a, b, score}]，支持逐行混合分隔符（Tab/逗号/空格） */
+function synParsePairs(text) {
+  const lines = String(text || "").split(/\r?\n/).map(l => l.trim()).filter(l => l);
+  const pairs = [];
+  for (const l of lines) {
+    let delim = l.includes("\t") ? "\t" : (l.includes(",") ? "," : (l.includes(";") ? ";" : /\s+/));
+    const c = l.split(delim).map(x => x.trim()).filter(x => x !== "");
+    if (c.length < 2) continue;
+    pairs.push({ a: c[0].toUpperCase(), b: c[1].toUpperCase(), score: c[2] ? parseFloat(c[2]) : null });
+  }
+  return pairs;
+}
+
+/** 链式共线性块检测（mini-MCScan） */
+function synDetectBlocks(pairs, coordA, coordB, opts) {
+  const maxGap = opts.maxGap || 5, minGenes = opts.minGenes || 5;
+  const pts = [];
+  for (const p of pairs) {
+    const ra = coordA.rank.get(p.a), rb = coordB.rank.get(p.b);
+    if (ra && rb) pts.push({ a: p.a, b: p.b, ra: ra.rank, rb: rb.rank, chrA: ra.chr, chrB: rb.chr });
+  }
+  pts.sort((x, y) => x.ra - y.ra || x.rb - y.rb);
+  const blocks = [];
+  let cur = null;
+  for (const pt of pts) {
+    if (cur) {
+      const dRa = pt.ra - cur.lastRa, dRb = pt.rb - cur.lastRb;
+      const sameDir = cur.strand === 0 ? dRb !== 0 : Math.sign(dRb) === cur.strand;
+      if (Math.abs(dRb) >= 1 && Math.abs(dRb) <= maxGap && dRa >= 1 && dRa <= maxGap && sameDir) {
+        cur.pairs.push(pt);
+        cur.lastRa = pt.ra; cur.lastRb = pt.rb;
+        continue;
+      }
+      blocks.push(cur);
+    }
+    cur = { pairs: [pt], lastRa: pt.ra, lastRb: pt.rb, strand: 0, chrA: pt.chrA, chrB: pt.chrB };
+  }
+  if (cur) blocks.push(cur);
+  // 补充 strand 信息（取块内中位方向）与过滤
+  const out = blocks
+    .map(b => {
+      let strand = b.strand;
+      if (!strand && b.pairs.length >= 2) {
+        const d = b.pairs[1].rb - b.pairs[0].rb;
+        strand = Math.sign(d) || 1;
+      }
+      return { count: b.pairs.length, chrA: b.chrA, chrB: b.chrB, strand, pairs: b.pairs };
+    })
+    .filter(b => b.count >= minGenes)
+    .sort((a, b) => b.count - a.count);
+  return { blocks: out, mapped: pts.length, total: pairs.length, pts };
+}
+
+/** 点阵图绘制 */
+function synDrawDot(blocks, mappedPts) {
+  const canvas = $("synDot");
+  const dpr = window.devicePixelRatio || 1;
+  const size = 520, margin = 46;
+  canvas.width = (size + margin) * dpr;
+  canvas.height = (size + margin) * dpr;
+  canvas.style.width = (size + margin) + "px";
+  canvas.style.height = (size + margin) + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = "#fafbfc";
+  ctx.fillRect(0, 0, size + margin, size + margin);
+  let maxRa = 1, maxRb = 1;
+  for (const p of mappedPts) { maxRa = Math.max(maxRa, p.ra); maxRb = Math.max(maxRb, p.rb); }
+  const sx = v => margin + v / maxRa * size, sy = v => size - v / maxRb * size;
+  ctx.font = "12px 'Microsoft YaHei',sans-serif";
+  ctx.fillStyle = "#5f6368";
+  ctx.fillText("物种 A 基因序 →", margin + size / 2 - 40, size + margin - 8);
+  ctx.save();
+  ctx.translate(12, size / 2 + 40); ctx.rotate(-Math.PI / 2);
+  ctx.fillText("物种 B 基因序 →", 0, 0);
+  ctx.restore();
+  for (const p of mappedPts) {
+    ctx.fillStyle = "#b0bec5";
+    ctx.fillRect(sx(p.ra) - 1, sy(p.rb) - 1, 2.4, 2.4);
+  }
+  const palette = ["#e53935", "#1e88e5", "#43a047", "#fb8c00", "#8e24aa", "#00897b"];
+  blocks.forEach((b, i) => {
+    ctx.strokeStyle = palette[i % palette.length];
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    b.pairs.forEach((p, j) => {
+      const x = sx(p.ra), y = sy(p.rb);
+      if (j === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  });
+}
+
+let synLast = null;
+function synRun() {
+  $("synWarn").innerHTML = "";
+  $("synResultCard").classList.add("hidden");
+  const pairs = synParsePairs($("synPairs").value);
+  const coordA = synParseCoords($("synCoordA").value);
+  const coordB = synParseCoords($("synCoordB").value);
+  if (pairs.length < 3 || !coordA.rank.size || !coordB.rank.size) {
+    $("synWarn").innerHTML = '<div class="err-box">错误：请提供同源基因对与两物种的坐标文件（每行：基因 + 染色体 + 起点）。</div>';
+    return;
+  }
+  const maxGap = Math.round(parseFloat($("synGap").value)) || 5;
+  const minGenes = Math.round(parseFloat($("synMin").value)) || 5;
+  const res = synDetectBlocks(pairs, coordA, coordB, { maxGap, minGenes });
+  synLast = res;
+  synDrawDot(res.blocks, res.pts || []);
+  synRenderTables(res);
+  $("synWarn").innerHTML = '<div class="ok-box">完成：' + res.mapped + "/" + res.total + " 对同源基因有坐标，发现 " + res.blocks.length + " 个共线性块（≥" + minGenes + " 基因）。</div>";
+  $("synResultCard").classList.remove("hidden");
+}
+
+function synRenderTables(res) {
+  let html = "<tr><th>#</th><th>基因对数</th><th>物种A染色体</th><th>物种B染色体</th><th>方向</th><th>操作</th></tr>";
+  res.blocks.forEach((b, i) => {
+    html += "<tr><td>" + (i + 1) + "</td><th>" + b.count + "</th><td>" + escapeHtml(b.chrA) + "</td><td>" + escapeHtml(b.chrB) +
+      "</td><td>" + (b.strand === -1 ? "倒位 (-)" : "正向 (+)") +
+      '</td><td><button class="btn btn-sm" data-syn-block="' + i + '">查看</button></td></tr>';
+  });
+  $("synBlocksDiv").innerHTML = "<table class='data'>" + html + "</table>";
+  $("synBlocksDiv").querySelectorAll("button[data-syn-block]").forEach(btn => {
+    btn.addEventListener("click", () => synShowBlock(parseInt(btn.dataset.synBlock, 10)));
+  });
+  synShowBlock(0);
+}
+
+function synShowBlock(i) {
+  const b = synLast && synLast.blocks[i];
+  if (!b) return;
+  let html = "<tr><th>#</th><th>物种A基因</th><th>物种B基因</th><th>序号 A</th><th>序号 B</th></tr>";
+  b.pairs.forEach((p, j) => {
+    html += "<tr><td>" + (j + 1) + "</td><th>" + escapeHtml(p.a) + "</th><td>" + escapeHtml(p.b) + "</td><td>" + p.ra + "</td><td>" + p.rb + "</td></tr>";
+  });
+  $("synPairsDiv").innerHTML = "<table class='data'>" + html + "</table>";
+}
+
+function synExportCSV() {
+  if (!synLast) return;
+  const lines = ["块编号,块内序号,物种A基因,物种B基因,A染色体,B染色体,A序号,B序号,方向"];
+  synLast.blocks.forEach((b, i) => {
+    b.pairs.forEach((p, j) => lines.push([i + 1, j + 1, p.a, p.b, b.chrA, b.chrB, p.ra, p.rb, b.strand === -1 ? "-" : "+"].join(",")));
+  });
+  downloadTextFile("共线性块.csv", "\uFEFF" + lines.join("\n"));
+}
+
+/* --- PubChem 配体检索（PUG REST，支持跨域） --- */
+async function pcFetchJson(url) {
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error("HTTP " + resp.status + "（化合物名不存在或接口不可达）");
+  return await resp.json();
+}
+
+/** 解析 PubChem cids/TXT 纯文本响应 */
+function pcParseCids(text) {
+  return String(text || "").split(/\r?\n/).map(s => s.trim()).filter(s => /^\d+$/.test(s)).slice(0, 8);
+}
+
+async function pcRunSearch() {
+  $("pcLog").innerHTML = "";
+  $("pcResult").classList.add("hidden");
+  const q = $("pcQuery").value.trim();
+  if (!q) { agentLog("pcLog", "错误：请输入化合物名或 CID", "err"); return; }
+  try {
+    let cids = [];
+    if (/^\d+$/.test(q)) {
+      cids = [q];
+      agentLog("pcLog", "① 输入为 CID：" + q);
+    } else {
+      agentLog("pcLog", "① 在 PubChem 按名称检索 “" + q + "” …");
+      const resp = await fetch("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/" + encodeURIComponent(q) + "/cids/TXT");
+      if (!resp.ok) throw new Error("HTTP " + resp.status + "（名称不存在？）");
+      cids = pcParseCids(await resp.text());
+      agentLog("pcLog", "② 找到 " + cids.length + " 个 CID");
+    }
+    if (!cids.length) { agentLog("pcLog", "未找到对应化合物", "err"); return; }
+    agentLog("pcLog", "③ 批量获取性质…");
+    const rows = [];
+    for (const cid of cids) {
+      try {
+        const d = await pcFetchJson("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/" + cid + "/property/MolecularFormula,MolecularWeight,CanonicalSMILES,IUPACName/JSON");
+        rows.push({ cid, ...d.PropertyTable.Properties[0] });
+      } catch (e) { rows.push({ cid }); }
+    }
+    pcRenderTable(rows);
+    agentLog("pcLog", "完成：共 " + rows.length + " 条记录。", "ok");
+  } catch (e) {
+    agentLog("pcLog", "✘ 失败：" + e.message, "err");
+  }
+}
+
+function pcRenderTable(rows) {
+  let html = "<tr><th>CID</th><th>分子式</th><th>分子量</th><th>IUPAC 名称</th><th>操作</th></tr>";
+  for (const r of rows) {
+    html += "<tr><th>" + r.cid + "</th><td>" + escapeHtml(r.MolecularFormula || "—") + "</td><td>" +
+      (r.MolecularWeight ? Math.round(r.MolecularWeight * 100) / 100 : "—") + "</td><td style='text-align:left;font-size:12px'>" +
+      escapeHtml(r.IUPACName || "—") + "</td><td>" +
+      '<button class="btn btn-sm" data-pc-view="' + r.cid + '">🧪 3D 查看 + 送对接</button> ' +
+      '<button class="btn btn-ghost btn-sm" data-pc-sdf="' + r.cid + '">⬇ SDF</button></td></tr>';
+  }
+  $("pcTable").innerHTML = html;
+  $("pcResult").classList.remove("hidden");
+  $("pcTable").querySelectorAll("button[data-pc-view]").forEach(btn =>
+    btn.addEventListener("click", () => pcViewAndDock(btn.dataset.pcView)));
+  $("pcTable").querySelectorAll("button[data-pc-sdf]").forEach(btn =>
+    btn.addEventListener("click", () => pcDownloadSdf(btn.dataset.pcSdf)));
+}
+
+async function pcFetchSdf(cid) {
+  let resp = await fetch("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/" + cid + "/record/SDF/?record_type=3d");
+  if (!resp.ok) {
+    resp = await fetch("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/" + cid + "/record/SDF/?record_type=2d");
+    if (!resp.ok) throw new Error("HTTP " + resp.status + "（结构下载失败）");
+    return { text: await resp.text(), dim: "2d" };
+  }
+  return { text: await resp.text(), dim: "3d" };
+}
+
+async function pcViewAndDock(cid) {
+  agentLog("pcLog", "▶ [" + cid + "] 获取 3D 结构…");
+  try {
+    const { text, dim } = await pcFetchSdf(cid);
+    showPage("page-dock");
+    $("ligText").value = text.slice(0, 200000);
+    loadLigand($("ligText").value, null, "sdf");
+    showToast("已载入 CID " + cid + "（" + dim + " 结构）到对接工作台配体位");
+    agentLog("pcLog", "[" + cid + "] 完成（" + dim + " 结构）。提示：Vina 需 pdbqt，请在 WSL 用 mk_prepare_ligand 转换，或用 Windows 一键对接包。", "ok");
+  } catch (e) {
+    agentLog("pcLog", "✘ [" + cid + "] 失败：" + e.message, "err");
+  }
+}
+
+async function pcDownloadSdf(cid) {
+  try {
+    const { text, dim } = await pcFetchSdf(cid);
+    downloadTextFile("pubchem_" + cid + "_" + dim + ".sdf", text);
+    showToast("已下载 SDF");
+  } catch (e) { showToast("下载失败：" + e.message); }
 }
 
 
@@ -3440,6 +4252,83 @@ function init() {
     if (!org || !digits) { showToast("请输入物种缩写（如 hsa）与 5 位通路号（如 04010）"); return; }
     window.open("https://www.kegg.jp/kegg-bin/show_pathway?" + org + digits, "_blank");
   });
+
+  /* ---------- PubChem 配体检索 ---------- */
+  $("pcRun").addEventListener("click", pcRunSearch);
+
+  /* ---------- miRNA 靶点预测 ---------- */
+  $("mirnaFile").addEventListener("change", function () {
+    if (this.files[0]) readFileToText(this.files[0], t => { $("mirnaSeq").value = t; });
+  });
+  $("mirnaUtrFile").addEventListener("change", function () {
+    if (this.files[0]) readFileToText(this.files[0], t => { $("mirnaUtr").value = t; });
+  });
+  $("mirnaExample").addEventListener("click", () => {
+    $("mirnaSeq").value = ">hsa-let-7a-5p\nUGAGGUAGUAGGUUGUAUAGUU\n>hsa-miR-21-5p\nAGCUUAUCAGACUGAUGUUGACU";
+    $("mirnaUtr").value = ">示例UTR_1（含 let-7 规范 8mer 位点）\nCCCUACCTCACUGGGCAUGG\n>示例UTR_2（无位点）\nGGAUCCGGUACCGGCAU";
+    $("mirnaInfo").textContent = "2 条 miRNA × 2 条 UTR";
+    showToast("已载入 miRNA 靶点示例");
+  });
+  $("mirnaRun").addEventListener("click", mirnaRunScan);
+  $("mirnaClear").addEventListener("click", () => {
+    $("mirnaSeq").value = ""; $("mirnaUtr").value = "";
+    $("mirnaWarn").innerHTML = ""; $("mirnaInfo").textContent = "";
+    $("mirnaResultCard").classList.add("hidden");
+  });
+  $("mirnaExport").addEventListener("click", mirnaExportCSV);
+
+  /* ---------- Motif 分析 ---------- */
+  $("motifFile").addEventListener("change", function () {
+    if (this.files[0]) readFileToText(this.files[0], t => { $("motifSeqs").value = t; });
+  });
+  $("motifExample").addEventListener("click", () => {
+    let s = 3;
+    const rnd = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
+    const planted = "TGTTCACG";
+    const lines = [];
+    for (let i = 1; i <= 12; i++) {
+      let seq = "";
+      for (let k = 0; k < 40; k++) seq += "ACGT"[Math.floor(rnd() * 4)];
+      const pos = Math.floor(rnd() * (seq.length - planted.length));
+      seq = seq.slice(0, pos) + planted + seq.slice(pos + planted.length);
+      lines.push(">seq" + i + "\n" + seq);
+    }
+    $("motifSeqs").value = lines.join("\n");
+    $("motifWidth").value = 8;
+    $("motifInfo").textContent = "12 条 40 nt 序列";
+    showToast("已载入示例（植入 motif：" + planted + "）");
+  });
+  $("motifRun").addEventListener("click", motifRun);
+  $("motifClear").addEventListener("click", () => {
+    $("motifSeqs").value = ""; $("motifWarn").innerHTML = ""; $("motifInfo").textContent = "";
+    $("motifResultCard").classList.add("hidden");
+  });
+  $("motifExport").addEventListener("click", motifExportCSV);
+
+  /* ---------- 共线性分析 ---------- */
+  $("synFile").addEventListener("change", function () {
+    if (this.files[0]) readFileToText(this.files[0], t => { $("synPairs").value = t; });
+  });
+  $("synExample").addEventListener("click", () => {
+    const pairs = [], ca = [], cb = [];
+    for (let i = 1; i <= 30; i++) {
+      ca.push("os01g" + String(i).padStart(5, "0") + "\tchr1\t" + (i * 1000));
+      cb.push("at1g" + String(i).padStart(5, "0") + "\tchr1\t" + (i * 1000));
+    }
+    for (let i = 1; i <= 12; i++) pairs.push("os01g" + String(i).padStart(5, "0") + "\tat1g" + String(i).padStart(5, "0"));
+    for (let i = 15; i <= 22; i++) pairs.push("os01g" + String(i).padStart(5, "0") + "\tat1g" + String(i + 4).padStart(5, "0"));
+    pairs.push("os01g00025\tat1g00005");
+    $("synPairs").value = pairs.join("\n");
+    $("synCoordA").value = ca.join("\n");
+    $("synCoordB").value = cb.join("\n");
+    showToast("已载入共线性示例（2 个共线性块 + 1 个孤立比对）");
+  });
+  $("synRun").addEventListener("click", synRun);
+  $("synClear").addEventListener("click", () => {
+    $("synPairs").value = ""; $("synCoordA").value = ""; $("synCoordB").value = "";
+    $("synWarn").innerHTML = ""; $("synResultCard").classList.add("hidden");
+  });
+  $("synExport").addEventListener("click", synExportCSV);
 }
 
 init();
