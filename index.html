@@ -171,7 +171,7 @@
 
 <header>
   <h1>🧬 中文生信工具整合站</h1>
-  <div class="sub">序列比对 · 相关性 · 分子对接 · 序列工具 · 进化树 · 引物 · Agent · 基因家族与富集 · miRNA · Motif · 共线性 —— 一站式生信分析平台</div>
+  <div class="sub">序列比对 · 相关性 · 分子对接 · 序列工具 · 进化树 · 引物 · Agent · 家族与富集 · miRNA · Motif · 共线性 · 组学绘图 —— 一站式生信分析平台</div>
   <div class="privacy">🔒 所有计算均在您的浏览器本地完成，数据不会上传到任何服务器</div>
 </header>
 
@@ -188,6 +188,7 @@
     <button class="nav-btn" data-page="page-mirna">🧫 miRNA 靶点</button>
     <button class="nav-btn" data-page="page-motif">🔤 Motif 分析</button>
     <button class="nav-btn" data-page="page-syn">🧩 共线性分析</button>
+    <button class="nav-btn" data-page="page-omics">📊 组学绘图工具集</button>
   </nav>
 
   <main>
@@ -792,6 +793,213 @@ at1g01020&lt;TAB&gt;chr1&lt;TAB&gt;2100"></textarea>
         <h4>块内基因对（点击上方行查看）</h4>
         <div style="overflow-x:auto" id="synPairsDiv" class="hint">点击上方某一块查看基因对。</div>
         <div class="row"><button class="btn btn-ghost btn-sm" id="synExport">⬇ 导出共线性块 CSV</button></div>
+      </div>
+    </section>
+
+    <!-- ======================= 页面十二：组学绘图工具集 ======================= -->
+    <section class="page hidden" id="page-omics">
+      <h2>📊 组学绘图工具集</h2>
+      <div class="page-desc">整合常见组学分析与可视化工具：韦恩图、PCA、火山图、聚类热图、GSEA、包珠图、多组差异散点、桑基图、网络热图。全部本地计算（GSEA 置换检验亦在浏览器完成）；GO/KEGG 富集分析请见「基因家族与富集」页。</div>
+
+      <div class="card">
+        <div class="row" id="omicsTabs" style="margin:0 0 4px"></div>
+      </div>
+
+      <!-- 工具1：韦恩图 -->
+      <div class="card omics-tool hidden" id="omics-venn">
+        <h3>① 韦恩图 / 网络韦恩图（2-5 组）</h3>
+        <label class="form-label">各组元素（FASTA 风格：&gt;组名 后每行一个元素；2-3 组画经典韦恩图，4-5 组自动切换网络韦恩图）</label>
+        <textarea class="seq-input" id="vennInput" style="height:140px" placeholder="&gt;处理组
+gene1
+gene2
+gene3
+&gt;对照组
+gene2
+gene3
+gene4"></textarea>
+        <div class="row">
+          <button class="btn btn-ghost btn-sm" id="vennExample">载入示例</button>
+          <button class="btn" id="vennRun">▶ 生成韦恩图</button>
+          <button class="btn btn-ghost" id="vennClear">清空</button>
+          <span class="hint">元素重复自动去重</span>
+        </div>
+        <div id="vennWarn"></div>
+        <div class="hidden" id="vennOut"><div id="vennSvgDiv" style="overflow-x:auto"></div><div id="vennRegionsDiv" style="margin-top:10px"></div></div>
+      </div>
+
+      <!-- 工具2：PCA -->
+      <div class="card omics-tool hidden" id="omics-pca">
+        <h3>② 主成分分析（PCA）</h3>
+        <label class="form-label">数据矩阵：首列样本名，其余列数值变量（TSV/CSV）；若勾选分组，最后 1 列为分组名</label>
+        <textarea class="seq-input" id="pcaInput" style="height:150px" placeholder="样本\t基因1\t基因2\t基因3\t分组
+S1\t10.2\t8.1\t3.3\t处理
+S2\t9.8\t7.9\t3.1\t处理"></textarea>
+        <div class="row">
+          <button class="btn btn-ghost btn-sm" id="pcaExample">载入示例</button>
+          <label><input type="checkbox" id="pcaScale" checked> 变量标准化（z-score）</label>
+          <label><input type="checkbox" id="pcaGroup" checked> 最后 1 列为分组</label>
+          <button class="btn" id="pcaRun">▶ 运行 PCA</button>
+          <button class="btn btn-ghost" id="pcaClear">清空</button>
+        </div>
+        <div id="pcaWarn"></div>
+        <div class="hidden" id="pcaOut">
+          <h4>得分图（PC1 vs PC2）</h4>
+          <canvas id="pcaPlot" height="80"></canvas>
+          <h4>方差解释率</h4>
+          <canvas id="pcaVar" height="50"></canvas>
+          <h4>载荷表（按 |PC1 载荷| 降序，前 10）</h4>
+          <div style="overflow-x:auto" id="pcaLoadDiv"></div>
+        </div>
+      </div>
+
+      <!-- 工具3：火山图 -->
+      <div class="card omics-tool hidden" id="omics-volcano">
+        <h3>③ 火山图</h3>
+        <label class="form-label">差异结果：基因 + log2FC + pvalue（TSV/CSV，每行一个基因；首行可为表头）</label>
+        <textarea class="seq-input" id="volcanoInput" style="height:150px" placeholder="gene&lt;TAB&gt;log2FC&lt;TAB&gt;pvalue
+TP53&lt;TAB&gt;2.5&lt;TAB&gt;0.0001
+EGFR&lt;TAB&gt;-1.8&lt;TAB&gt;0.003"></textarea>
+        <div class="row">
+          <button class="btn btn-ghost btn-sm" id="volcanoExample">载入示例</button>
+          <span class="hint">|log2FC| ≥</span><input type="number" id="volcanoFc" value="1" step="0.1" style="width:70px">
+          <span class="hint">p &lt;</span><input type="number" id="volcanoP" value="0.05" step="0.01" style="width:70px">
+          <span class="hint">标注 Top</span><input type="number" id="volcanoLabel" value="10" min="0" max="50" style="width:70px">
+          <button class="btn" id="volcanoRun">▶ 绘制火山图</button>
+          <button class="btn btn-ghost" id="volcanoClear">清空</button>
+        </div>
+        <div id="volcanoWarn"></div>
+        <div class="hidden" id="volcanoOut"><canvas id="volcanoCanvas" height="90"></canvas><div id="volcanoStats" class="hint" style="margin-top:6px"></div></div>
+      </div>
+
+      <!-- 工具4：聚类热图 -->
+      <div class="card omics-tool hidden" id="omics-heat">
+        <h3>④ 聚类热图（距离排序 + 分组注释条 + 稀疏标签）</h3>
+        <div class="grid-2">
+          <div>
+            <label class="form-label">表达矩阵（首行表头=样本，首列=基因）</label>
+            <textarea class="seq-input" id="heatInput" style="height:130px" placeholder="gene\tS1\tS2\tS3
+gene1\t2.1\t0.5\t-1.2"></textarea>
+          </div>
+          <div>
+            <label class="form-label">样本分组注释（可选：样本 + 分组）</label>
+            <textarea class="seq-input" id="heatGroups" style="height:130px" placeholder="S1\t处理
+S2\t对照"></textarea>
+          </div>
+        </div>
+        <div class="row">
+          <button class="btn btn-ghost btn-sm" id="heatExample">载入示例</button>
+          <label><input type="checkbox" id="heatZscore" checked> 行方向 z-score 归一化</label>
+          <button class="btn" id="heatRun">▶ 绘制热图</button>
+          <button class="btn btn-ghost" id="heatClear">清空</button>
+          <span class="hint">行/列按最近邻串接排序（seriation）；标签自动稀疏防重叠；行列数 ≤ 200</span>
+        </div>
+        <div id="heatWarn"></div>
+        <div class="hidden" id="heatOut"><div style="overflow-x:auto" id="heatCanvasDiv"></div></div>
+      </div>
+
+      <!-- 工具5：GSEA -->
+      <div class="card omics-tool hidden" id="omics-gsea">
+        <h3>⑤ GSEA（基因集富集分析，加权 + 置换检验）</h3>
+        <div class="grid-2">
+          <div>
+            <label class="form-label">排序基因列表（基因 + 得分，按得分降序排列；如 log2FC / 相关性）</label>
+            <textarea class="seq-input" id="gseaRanked" style="height:140px" placeholder="geneA&lt;TAB&gt;2.5
+geneB\t1.8
+..."></textarea>
+          </div>
+          <div>
+            <label class="form-label">基因集（术语 + 逗号分隔的基因）</label>
+            <textarea class="seq-input" id="gseaSets" style="height:140px" placeholder="糖酵解\tGAPDH,PKM,ALDOA
+核糖体\tRPL1,RPS3"></textarea>
+          </div>
+        </div>
+        <div class="row">
+          <button class="btn btn-ghost btn-sm" id="gseaExample">载入示例</button>
+          <span class="hint">置换次数</span><input type="number" id="gseaPerm" value="200" min="20" max="2000" step="20" style="width:90px">
+          <button class="btn" id="gseaRun">▶ 运行 GSEA</button>
+          <button class="btn btn-ghost" id="gseaClear">清空</button>
+        </div>
+        <div id="gseaWarn"></div>
+        <div class="hidden" id="gseaOut">
+          <h4>富集结果（点击行查看 Running ES 曲线）</h4>
+          <div style="overflow-x:auto" id="gseaTableDiv"></div>
+          <h4 id="gseaCurveTitle">Running ES 曲线</h4>
+          <canvas id="gseaCurve" height="70"></canvas>
+        </div>
+      </div>
+
+      <!-- 工具6：包珠图 -->
+      <div class="card omics-tool hidden" id="omics-pack">
+        <h3>⑥ 包珠图（Circular Packing，两级层级）</h3>
+        <label class="form-label">层级数据：类别 + 元素 + 数值（气泡面积 ∝ 数值）</label>
+        <textarea class="seq-input" id="packInput" style="height:140px" placeholder="类别A\titem1\t120
+类别A\titem2\t80
+类别B\titem3\t200"></textarea>
+        <div class="row">
+          <button class="btn btn-ghost btn-sm" id="packExample">载入示例</button>
+          <button class="btn" id="packRun">▶ 生成包珠图</button>
+          <button class="btn btn-ghost" id="packClear">清空</button>
+        </div>
+        <div id="packWarn"></div>
+        <div class="hidden" id="packOut"><div id="packSvgDiv" style="overflow-x:auto"></div></div>
+      </div>
+
+      <!-- 工具7：多组差异散点图 -->
+      <div class="card omics-tool hidden" id="omics-diff">
+        <h3>⑦ 多组差异散点图（多组"火山图"）</h3>
+        <label class="form-label">长表：基因 + 比较组 + log2FC + pvalue</label>
+        <textarea class="seq-input" id="diffInput" style="height:150px" placeholder="gene\t比较组\tlog2FC\tpvalue
+TP53\t处理vs对照\t2.1\t0.001
+EGFR\t处理vs对照\t-1.2\t0.02
+MYC\t敲除vsWT\t3.0\t0.0005"></textarea>
+        <div class="row">
+          <button class="btn btn-ghost btn-sm" id="diffExample">载入示例</button>
+          <span class="hint">|log2FC| ≥</span><input type="number" id="diffFc" value="1" step="0.1" style="width:70px">
+          <span class="hint">p &lt;</span><input type="number" id="diffP" value="0.05" step="0.01" style="width:70px">
+          <button class="btn" id="diffRun">▶ 绘制</button>
+          <button class="btn btn-ghost" id="diffClear">清空</button>
+        </div>
+        <div id="diffWarn"></div>
+        <div class="hidden" id="diffOut"><canvas id="diffCanvas" height="90"></canvas><div id="diffStats" class="hint" style="margin-top:6px"></div></div>
+      </div>
+
+      <!-- 工具8：桑基图 -->
+      <div class="card omics-tool hidden" id="omics-sankey">
+        <h3>⑧ 桑基图（两层流向）</h3>
+        <label class="form-label">流向数据：源 + 目标 + 数值</label>
+        <textarea class="seq-input" id="sankeyInput" style="height:150px" placeholder="mRNA\tlncRNA\t30
+mRNA\tcircRNA\t20
+lncRNA\tsmallRNA\t25"></textarea>
+        <div class="row">
+          <button class="btn btn-ghost btn-sm" id="sankeyExample">载入示例</button>
+          <button class="btn" id="sankeyRun">▶ 生成桑基图</button>
+          <button class="btn btn-ghost" id="sankeyClear">清空</button>
+        </div>
+        <div id="sankeyWarn"></div>
+        <div class="hidden" id="sankeyOut"><div id="sankeySvgDiv" style="overflow-x:auto"></div></div>
+      </div>
+
+      <!-- 工具9：网络热图 -->
+      <div class="card omics-tool hidden" id="omics-corr">
+        <h3>⑨ 网络热图（相关性矩阵：热图 + 相关性网络）</h3>
+        <label class="form-label">相关矩阵（方阵：首行元素名，后续每行 = 元素名 + 相关系数；取值 -1 ~ 1）</label>
+        <textarea class="seq-input" id="corrMInput" style="height:150px" placeholder="\tA\tB\tC
+A\t1\t0.8\t-0.6
+B\t0.8\t1\t-0.3
+C\t-0.6\t-0.3\t1"></textarea>
+        <div class="row">
+          <button class="btn btn-ghost btn-sm" id="corrMExample">载入示例</button>
+          <span class="hint">网络边阈值 |r| ≥</span><input type="number" id="corrThr" value="0.6" step="0.1" min="0.1" max="1" style="width:70px">
+          <button class="btn" id="corrMRun">▶ 绘制</button>
+          <button class="btn btn-ghost" id="corrMClear">清空</button>
+        </div>
+        <div id="corrMWarn"></div>
+        <div class="hidden" id="corrOut">
+          <h4>组学内相关性热图</h4>
+          <div style="overflow-x:auto"><canvas id="corrHeatCanvas" height="70"></canvas></div>
+          <h4>相关性网络（圆形布局，红线正相关 / 蓝线负相关，线宽 ∝ |r|）</h4>
+          <div style="overflow-x:auto"><canvas id="corrNetCanvas" height="90"></canvas></div>
+        </div>
       </div>
     </section>
   </main>
@@ -4101,6 +4309,995 @@ function synExportCSV() {
   downloadTextFile("共线性块.csv", "\uFEFF" + lines.join("\n"));
 }
 
+/* =========================================================================
+ * 模块十二：组学绘图工具集（韦恩/PCA/火山/聚类热图/GSEA/包珠/多组差异/桑基/网络热图）
+ * ========================================================================= */
+const OMICS_TOOLS = [
+  { id: "venn", name: "① 韦恩图" }, { id: "pca", name: "② PCA" },
+  { id: "volcano", name: "③ 火山图" }, { id: "heat", name: "④ 聚类热图" },
+  { id: "gsea", name: "⑤ GSEA" }, { id: "pack", name: "⑥ 包珠图" },
+  { id: "diff", name: "⑦ 多组差异" }, { id: "sankey", name: "⑧ 桑基图" },
+  { id: "corr", name: "⑨ 网络热图" }
+];
+let omicsCurrent = "venn";
+function omicsShowTool(id) {
+  omicsCurrent = id;
+  document.querySelectorAll(".omics-tool").forEach(d => d.classList.add("hidden"));
+  const el = $("omics-" + id);
+  if (el) el.classList.remove("hidden");
+  document.querySelectorAll("#omicsTabs button[data-tool]").forEach(b => b.classList.toggle("active", b.dataset.tool === id));
+}
+
+/* ---------- 工具1：韦恩图 ---------- */
+function vennParseSets(text) {
+  const sets = [];
+  let cur = null;
+  for (const line of String(text || "").split(/\r?\n/)) {
+    const t = line.trim();
+    if (!t) continue;
+    if (t.startsWith(">")) {
+      if (cur) sets.push(cur);
+      cur = { name: t.slice(1).trim() || ("组" + (sets.length + 1)), items: new Set() };
+    } else {
+      if (!cur) cur = { name: "组1", items: new Set() };
+      cur.items.add(t);
+    }
+  }
+  if (cur) sets.push(cur);
+  return sets.filter(s => s.items.size);
+}
+
+function vennComputeRegions(sets) {
+  const regions = new Map();
+  const all = new Set();
+  sets.forEach(s => s.items.forEach(i => all.add(i)));
+  for (const item of all) {
+    let key = 0;
+    sets.forEach((s, i) => { if (s.items.has(item)) key |= (1 << i); });
+    if (!regions.has(key)) regions.set(key, []);
+    regions.get(key).push(item);
+  }
+  return regions;
+}
+
+function vennRender(sets, regions) {
+  const palette = ["#1e88e5", "#e53935", "#43a047", "#fb8c00", "#8e24aa"];
+  let svg = "";
+  if (sets.length === 2) {
+    svg = '<svg width="460" height="290" viewBox="0 0 460 290" style="max-width:100%;display:block">';
+    svg += '<rect width="100%" height="100%" fill="#fafbfc" rx="8"/>';
+    svg += '<circle cx="175" cy="140" r="100" fill="' + palette[0] + '" fill-opacity="0.35" stroke="' + palette[0] + '"/>';
+    svg += '<circle cx="285" cy="140" r="100" fill="' + palette[1] + '" fill-opacity="0.35" stroke="' + palette[1] + '"/>';
+    svg += '<text x="95" y="145" font-size="13" font-weight="bold">' + escapeHtml(sets[0].name) + "（" + sets[0].items.size + "）</text>";
+    svg += '<text x="255" y="145" font-size="13" font-weight="bold">' + escapeHtml(sets[1].name) + "（" + sets[1].items.size + "）</text>";
+    svg += '<text x="160" y="145" font-size="14" font-weight="bold">' + (regions.get(1) || []).length + "</text>";
+    svg += '<text x="285" y="145" font-size="14" font-weight="bold">' + (regions.get(2) || []).length + "</text>";
+    svg += '<text x="228" y="145" font-size="14" font-weight="bold">' + (regions.get(3) || []).length + "</text>";
+    svg += "</svg>";
+  } else if (sets.length === 3) {
+    svg = '<svg width="480" height="330" viewBox="0 0 480 330" style="max-width:100%;display:block">';
+    svg += '<rect width="100%" height="100%" fill="#fafbfc" rx="8"/>';
+    svg += '<circle cx="190" cy="125" r="95" fill="' + palette[0] + '" fill-opacity="0.35" stroke="' + palette[0] + '"/>';
+    svg += '<circle cx="290" cy="125" r="95" fill="' + palette[1] + '" fill-opacity="0.35" stroke="' + palette[1] + '"/>';
+    svg += '<circle cx="240" cy="210" r="95" fill="' + palette[2] + '" fill-opacity="0.35" stroke="' + palette[2] + '"/>';
+    svg += '<text x="80" y="100" font-size="12" font-weight="bold">' + escapeHtml(sets[0].name) + "（" + sets[0].items.size + "）</text>";
+    svg += '<text x="330" y="100" font-size="12" font-weight="bold">' + escapeHtml(sets[1].name) + "（" + sets[1].items.size + "）</text>";
+    svg += '<text x="240" y="312" font-size="12" font-weight="bold">' + escapeHtml(sets[2].name) + "（" + sets[2].items.size + "）</text>";
+    svg += '<text x="130" y="120" font-size="13" font-weight="bold">' + (regions.get(1) || []).length + "</text>";
+    svg += '<text x="345" y="120" font-size="13" font-weight="bold">' + (regions.get(2) || []).length + "</text>";
+    svg += '<text x="240" y="265" font-size="13" font-weight="bold">' + (regions.get(4) || []).length + "</text>";
+    svg += '<text x="240" y="105" font-size="13" font-weight="bold">' + (regions.get(3) || []).length + "</text>";
+    svg += '<text x="175" y="190" font-size="13" font-weight="bold">' + (regions.get(5) || []).length + "</text>";
+    svg += '<text x="300" y="190" font-size="13" font-weight="bold">' + (regions.get(6) || []).length + "</text>";
+    svg += '<text x="240" y="155" font-size="13" font-weight="bold">' + (regions.get(7) || []).length + "</text>";
+    svg += "</svg>";
+  } else {
+    // 网络韦恩图（4-5 组）：组节点 + 元素节点
+    const n = sets.length, R = 150, cx = 300, cy = 260;
+    let nodes = "", edges = "";
+    let elemTotal = 0;
+    sets.forEach(s => elemTotal += s.items.size);
+    const all = new Set();
+    sets.forEach(s => s.items.forEach(i => all.add(i)));
+    const many = all.size > 220;
+    const groupPos = sets.map((_, i) => ({ x: cx + R * Math.sin(2 * Math.PI * i / n), y: cy - R * Math.cos(2 * Math.PI * i / n) }));
+    sets.forEach((s, i) => {
+      const p = groupPos[i];
+      const r = 16 + Math.sqrt(s.items.size) * 2;
+      nodes += '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="' + palette[i % 5] + '" fill-opacity="0.85"/>';
+      nodes += '<text x="' + p.x.toFixed(1) + '" y="' + (p.y - r - 6).toFixed(1) + '" text-anchor="middle" font-size="12" font-weight="bold">' + escapeHtml(s.name) + "</text>";
+    });
+    if (!many) {
+      let ei = 0;
+      for (const item of all) {
+        const mask = sets.reduce((acc, s, i) => acc | (s.items.has(item) ? (1 << i) : 0), 0);
+        const cnt = sets.reduce((acc, s, i) => acc + (s.items.has(item) ? 1 : 0), 0);
+        const angle = 2 * Math.PI * ei / all.size;
+        const dist = cnt === 1 ? R * 0.55 : R * 0.25;
+        const ex = cx + dist * Math.sin(angle), ey = cy - dist * Math.cos(angle);
+        sets.forEach((s, i) => {
+          if (s.items.has(item)) edges += '<line x1="' + ex.toFixed(1) + '" y1="' + ey.toFixed(1) + '" x2="' + groupPos[i].x.toFixed(1) + '" y2="' + groupPos[i].y.toFixed(1) + '" stroke="#b0bec5" stroke-opacity="0.55"/>';
+        });
+        nodes += '<circle cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="4.5" fill="' + (cnt === 1 ? "#90a4ae" : "#e53935") + '"/>';
+        if (cnt > 1) nodes += '<text x="' + (ex + 6).toFixed(1) + '" y="' + (ey + 3).toFixed(1) + '" font-size="9" fill="#37474f">' + escapeHtml(item) + "</text>";
+        ei++;
+      }
+    } else {
+      nodes += '<text x="' + cx + '" y="' + cy + '" text-anchor="middle" font-size="12" fill="#5f6368">元素过多（' + all.size + " 个），仅显示组节点</text>";
+    }
+    svg = '<svg width="600" height="520" viewBox="0 0 600 520" style="max-width:100%;display:block"><rect width="100%" height="100%" fill="#fafbfc" rx="8"/>' + edges + nodes + "</svg>";
+  }
+  $("vennSvgDiv").innerHTML = svg;
+  // 区域明细表
+  let html = "<tr><th>区域</th><th>数量</th><th>元素（最多列 12 个）</th></tr>";
+  const bitsName = (key) => sets.map((s, i) => (key & (1 << i)) ? s.name : null).filter(Boolean).join("∩");
+  Array.from(regions.keys()).sort((a, b) => regions.get(b).length - regions.get(a).length).forEach(key => {
+    const items = regions.get(key);
+    html += "<tr><th>" + escapeHtml(bitsName(key) || "无") + "</th><td>" + items.length + "</td><td style='text-align:left'>" + escapeHtml(items.slice(0, 12).join(", ")) + (items.length > 12 ? " …" : "") + "</td></tr>";
+  });
+  $("vennRegionsDiv").innerHTML = "<table class='data'>" + html + "</table>";
+}
+
+function vennRunTool() {
+  $("vennWarn").innerHTML = "";
+  $("vennOut").classList.add("hidden");
+  const sets = vennParseSets($("vennInput").value);
+  if (sets.length < 2 || sets.length > 5) {
+    $("vennWarn").innerHTML = '<div class="err-box">错误：请提供 2-5 组元素（每组以 &gt;组名 开头）。</div>';
+    return;
+  }
+  const regions = vennComputeRegions(sets);
+  vennRender(sets, regions);
+  $("vennWarn").innerHTML = '<div class="ok-box">完成：' + sets.length + " 组，元素总计 " + sets.reduce((a, s) => a + s.items.size, 0) + "（去重后 " + new Set(sets.flatMap(s => Array.from(s.items))).size + "）。</div>";
+  $("vennOut").classList.remove("hidden");
+}
+
+/* ---------- 工具2：PCA ---------- */
+function pcaParse(text, hasGroup) {
+  const lines = String(text || "").split(/\r?\n/).map(l => l.trim()).filter(l => l);
+  if (!lines.length) return null;
+  let delim = null;
+  for (const l of lines) {
+    if (l.includes("\t")) { delim = "\t"; break; }
+    if (l.includes(",")) { delim = ","; break; }
+    if (l.includes(";")) { delim = ";"; break; }
+  }
+  if (!delim) delim = /\s+/;
+  const rows = lines.map(l => l.split(delim).map(c => c.trim()));
+  let start = 0;
+  const probe = rows[0].slice(hasGroup ? 1 : 0, rows[0].length - (hasGroup ? 1 : 0));
+  if (probe.some(c => c !== "" && isNaN(parseFloat(c)))) start = 1; // 表头
+  const names = [], vars = [], groups = [];
+  for (let i = start; i < rows.length; i++) {
+    const c = rows[i];
+    const nVar = c.length - 1 - (hasGroup ? 1 : 0);
+    if (nVar < 2) continue;
+    const vals = [];
+    for (let j = 1; j <= nVar; j++) vals.push(parseFloat(c[j]));
+    if (vals.some(v => !isFinite(v))) continue;
+    names.push(c[0]);
+    vars.push(vals);
+    groups.push(hasGroup ? (c[c.length - 1] || "组1") : "全部");
+  }
+  if (vars.length < 3) return null;
+  return { names, vars, groups };
+}
+
+/** Jacobi 特征分解（对称矩阵），特征值降序 */
+function pcaJacobi(A) {
+  const n = A.length;
+  const a = A.map(r => r.slice());
+  const V = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => i === j ? 1 : 0));
+  for (let sweep = 0; sweep < 100; sweep++) {
+    let off = 0;
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) off += a[i][j] * a[i][j];
+    if (off < 1e-20) break;
+    for (let p = 0; p < n - 1; p++) for (let q = p + 1; q < n; q++) {
+      if (Math.abs(a[p][q]) < 1e-18) continue;
+      const theta = (a[q][q] - a[p][p]) / (2 * a[p][q]);
+      const t = (theta >= 0 ? 1 : -1) / (Math.abs(theta) + Math.sqrt(theta * theta + 1));
+      const c = 1 / Math.sqrt(t * t + 1), s = t * c;
+      for (let k = 0; k < n; k++) {
+        const akp = a[k][p], akq = a[k][q];
+        a[k][p] = c * akp - s * akq; a[k][q] = s * akp + c * akq;
+      }
+      for (let k = 0; k < n; k++) {
+        const apk = a[p][k], aqk = a[q][k];
+        a[p][k] = c * apk - s * aqk; a[q][k] = s * apk + c * aqk;
+      }
+      for (let k = 0; k < n; k++) {
+        const vkp = V[k][p], vkq = V[k][q];
+        V[k][p] = c * vkp - s * vkq; V[k][q] = s * vkp + c * vkq;
+      }
+    }
+  }
+  const values = [], vectors = [];
+  for (let i = 0; i < n; i++) { values.push(a[i][i]); vectors.push(V.map(row => row[i])); }
+  const order = values.map((v, i) => i).sort((x, y) => values[y] - values[x]);
+  return { values: order.map(i => values[i]), vectors: order.map(i => vectors[i]) };
+}
+
+function pcaRunTool() {
+  $("pcaWarn").innerHTML = "";
+  $("pcaOut").classList.add("hidden");
+  const hasGroup = $("pcaGroup").checked;
+  const data = pcaParse($("pcaInput").value, hasGroup);
+  if (!data) {
+    $("pcaWarn").innerHTML = '<div class="err-box">错误：无法解析矩阵（需 ≥3 个样本、≥2 个数值变量）。</div>';
+    return;
+  }
+  const scale = $("pcaScale").checked;
+  const { names, vars, groups } = data;
+  const nVar = vars[0].length;
+  // 中心化（+可选标准化）
+  const mat = vars.map(r => r.slice());
+  for (let j = 0; j < nVar; j++) {
+    const mean = vars.reduce((a, r) => a + r[j], 0) / vars.length;
+    const sd = Math.sqrt(vars.reduce((a, r) => a + (r[j] - mean) ** 2, 0) / vars.length) || 1;
+    for (let i = 0; i < mat.length; i++) mat[i][j] = scale ? (vars[i][j] - mean) / sd : vars[i][j] - mean;
+  }
+  // 协方差矩阵
+  const cov = Array.from({ length: nVar }, () => new Array(nVar).fill(0));
+  for (let i = 0; i < nVar; i++) for (let j = i; j < nVar; j++) {
+    let s = 0;
+    for (let k = 0; k < mat.length; k++) s += mat[k][i] * mat[k][j];
+    cov[i][j] = cov[j][i] = s / (mat.length - 1);
+  }
+  const eig = pcaJacobi(cov);
+  const total = eig.values.reduce((a, b) => a + Math.max(b, 0), 0) || 1;
+  const explained = eig.values.map(v => Math.max(v, 0) / total * 100);
+  // 得分
+  const scores = mat.map(row => eig.vectors.map(vec => row.reduce((a, v, j) => a + v * vec[j], 0)));
+  // 绘图：PC1 vs PC2 散点（按组着色）
+  const groupNames = Array.from(new Set(groups));
+  const palette = ["#1e88e5", "#e53935", "#43a047", "#fb8c00", "#8e24aa", "#00897b"];
+  const datasets = groupNames.map((g, i) => ({
+    label: g,
+    data: names.map((nm, k) => groups[k] === g ? { x: scores[k][0], y: scores[k][1], name: nm } : null).filter(Boolean),
+    backgroundColor: palette[i % palette.length], pointRadius: 5
+  }));
+  if (window.pcaPlotChart) window.pcaPlotChart.destroy();
+  window.pcaPlotChart = new Chart($("pcaPlot").getContext("2d"), {
+    type: "scatter",
+    data: { datasets },
+    options: { responsive: true, scales: { x: { title: { display: true, text: "PC1（" + explained[0].toFixed(1) + "%）" } }, y: { title: { display: true, text: "PC2（" + (explained[1] || 0).toFixed(1) + "%）" } } } }
+  });
+  if (window.pcaVarChart) window.pcaVarChart.destroy();
+  window.pcaVarChart = new Chart($("pcaVar").getContext("2d"), {
+    type: "bar",
+    data: {
+      labels: eig.values.slice(0, 6).map((_, i) => "PC" + (i + 1)),
+      datasets: [{ label: "方差解释率 %", data: explained.slice(0, 6), backgroundColor: "#1e88e5" }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true, title: { display: true, text: "%" } } }, plugins: { legend: { display: false } } }
+  });
+  // 载荷表
+  let html = "<tr><th>变量</th>" + eig.values.slice(0, 4).map((_, i) => "<th>PC" + (i + 1) + " 载荷</th>").join("") + "</tr>";
+  const loadRows = vars[0].map((_, j) => ({ j, load: Math.abs(eig.vectors[0][j]) })).sort((a, b) => b.load - a.load).slice(0, 10);
+  for (const { j } of loadRows) {
+    html += "<tr><th>" + (j + 1) + "</th>" + eig.vectors.slice(0, 4).map(vec => "<td>" + vec[j].toFixed(4) + "</td>").join("") + "</tr>";
+  }
+  $("pcaLoadDiv").innerHTML = "<table class='data'>" + html + "</table>";
+  $("pcaOut").classList.remove("hidden");
+  $("pcaWarn").innerHTML = '<div class="ok-box">完成：' + names.length + " 个样本、" + nVar + " 个变量，PC1+PC2 累计解释 " + (explained[0] + (explained[1] || 0)).toFixed(1) + "%。</div>";
+}
+
+/* ---------- 工具3：火山图 ---------- */
+function volcanoParse(text) {
+  const lines = String(text || "").split(/\r?\n/).map(l => l.trim()).filter(l => l);
+  const rows = [];
+  let first = true;
+  for (const l of lines) {
+    let delim = l.includes("\t") ? "\t" : (l.includes(",") ? "," : /\s+/);
+    const c = l.split(delim).map(x => x.trim());
+    if (c.length < 3) continue;
+    const fc = parseFloat(c[1]), p = parseFloat(c[2]);
+    if (!isFinite(fc) || !isFinite(p)) { first = false; continue; }
+    first = false;
+    rows.push({ gene: c[0].toUpperCase(), fc, p });
+  }
+  return rows;
+}
+
+function volcanoClassify(rows, fcT, pT) {
+  const up = [], down = [], ns = [];
+  for (const r of rows) {
+    if (Math.abs(r.fc) >= fcT && r.p < pT) (r.fc > 0 ? up : down).push(r);
+    else ns.push(r);
+  }
+  return { up, down, ns };
+}
+
+function drawVolcano(rows, fcT, pT, labelN) {
+  const canvas = $("volcanoCanvas");
+  const dpr = window.devicePixelRatio || 1;
+  const W = 720, H = 460, marginL = 56, marginB = 46, marginT = 16, marginR = 16;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + "px"; canvas.style.height = H + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = "#fafbfc"; ctx.fillRect(0, 0, W, H);
+  ctx.font = "12px 'Microsoft YaHei',sans-serif";
+  const maxAbsFc = Math.max(...rows.map(r => Math.abs(r.fc)), fcT) * 1.05;
+  const yMax = Math.max(...rows.map(r => -Math.log10(Math.max(r.p, 1e-300))), -Math.log10(pT)) * 1.05;
+  const x = v => marginL + (v + maxAbsFc) / (2 * maxAbsFc) * (W - marginL - marginR);
+  const y = v => H - marginB - Math.min(v, yMax) / yMax * (H - marginB - marginT);
+  // 阈值线
+  ctx.strokeStyle = "#90a4ae"; ctx.setLineDash([5, 4]);
+  ctx.beginPath(); ctx.moveTo(x(-fcT), y(-Math.log10(pT))); ctx.lineTo(x(-fcT), y(yMax)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x(fcT), y(-Math.log10(pT))); ctx.lineTo(x(fcT), y(yMax)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(marginL, y(-Math.log10(pT))); ctx.lineTo(W - marginR, y(-Math.log10(pT))); ctx.stroke();
+  ctx.setLineDash([]);
+  // 点
+  const cls = volcanoClassify(rows, fcT, pT);
+  for (const r of rows) {
+    const sig = Math.abs(r.fc) >= fcT && r.p < pT;
+    ctx.fillStyle = !sig ? "#b0bec5" : (r.fc > 0 ? "#e53935" : "#43a047");
+    ctx.beginPath(); ctx.arc(x(r.fc), y(-Math.log10(Math.max(r.p, 1e-300))), 2.6, 0, Math.PI * 2); ctx.fill();
+  }
+  // 标注 Top N（按 p 最小的显著基因）
+  const labeled = cls.up.concat(cls.down).sort((a, b) => a.p - b.p).slice(0, labelN);
+  ctx.fillStyle = "#212121";
+  for (const r of labeled) ctx.fillText(r.gene, x(r.fc) + 4, y(-Math.log10(Math.max(r.p, 1e-300))) - 3);
+  // 轴
+  ctx.strokeStyle = "#455a64";
+  ctx.beginPath(); ctx.moveTo(marginL, marginT); ctx.lineTo(marginL, H - marginB); ctx.lineTo(W - marginR, H - marginB); ctx.stroke();
+  ctx.fillStyle = "#5f6368"; ctx.textAlign = "center";
+  for (let t = -Math.floor(maxAbsFc); t <= maxAbsFc; t += Math.ceil(maxAbsFc / 4)) ctx.fillText(t, x(t), H - marginB + 16);
+  ctx.fillText("log2FC", W / 2, H - 8);
+  ctx.textAlign = "right";
+  for (let t = 0; t <= yMax; t += yMax / 4) ctx.fillText(t.toFixed(0), marginL - 6, y(t) + 4);
+  ctx.textAlign = "left";
+  ctx.fillText("-log10(p)", marginL + 6, marginT + 2);
+  $("volcanoStats").textContent = "上调 " + cls.up.length + " ｜ 下调 " + cls.down.length + " ｜ 不显著 " + cls.ns.length + "（阈值 |log2FC|≥" + fcT + "，p<" + pT + "）";
+  return cls;
+}
+
+function volcanoRunTool() {
+  $("volcanoWarn").innerHTML = "";
+  $("volcanoOut").classList.add("hidden");
+  const rows = volcanoParse($("volcanoInput").value);
+  if (rows.length < 5) {
+    $("volcanoWarn").innerHTML = '<div class="err-box">错误：请提供至少 5 行有效的基因 + log2FC + pvalue 数据。</div>';
+    return;
+  }
+  const fcT = parseFloat($("volcanoFc").value) || 1, pT = parseFloat($("volcanoP").value) || 0.05;
+  const labelN = Math.round(parseFloat($("volcanoLabel").value)) || 0;
+  drawVolcano(rows, fcT, pT, labelN);
+  $("volcanoWarn").innerHTML = '<div class="ok-box">完成：共 ' + rows.length + " 个基因。</div>";
+  $("volcanoOut").classList.remove("hidden");
+}
+
+/* ---------- 工具4：聚类热图 ---------- */
+function heatParse(text) {
+  const lines = String(text || "").split(/\r?\n/).map(l => l.trim()).filter(l => l);
+  if (!lines.length) return null;
+  let delim = null;
+  for (const l of lines) {
+    if (l.includes("\t")) { delim = "\t"; break; }
+    if (l.includes(",")) { delim = ","; break; }
+    if (l.includes(";")) { delim = ";"; break; }
+  }
+  if (!delim) delim = /\s+/;
+  const rows = lines.map(l => l.split(delim).map(c => c.trim()));
+  let start = 0;
+  if (rows[0].slice(1).some(c => c !== "" && isNaN(parseFloat(c)))) start = 1;
+  const colNames = rows[start].slice(1);
+  const genes = [], vals = [];
+  for (let i = start + 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (r.length < colNames.length + 1) continue;
+    const v = r.slice(1, colNames.length + 1).map(parseFloat);
+    if (v.some(x => !isFinite(x))) continue;
+    genes.push(r[0]); vals.push(v);
+  }
+  if (!genes.length || !colNames.length) return null;
+  return { genes, colNames, vals };
+}
+
+function heatGroupMap(text) {
+  const m = new Map();
+  for (const l of String(text || "").split(/\r?\n/)) {
+    const c = l.trim().split(/[\t,;]/).map(x => x.trim()).filter(x => x);
+    if (c.length >= 2) m.set(c[0], c[1]);
+  }
+  return m;
+}
+
+/** 行/列排序：基于欧氏距离的最近邻串接（seriation）——从最接近的一对出发，依次跳到最近邻 */
+function hclustOrder(vecs) {
+  const n = vecs.length;
+  if (n <= 1) return [0];
+  const d = Array.from({ length: n }, () => new Array(n).fill(0));
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+    let s = 0;
+    for (let k = 0; k < vecs[i].length; k++) s += (vecs[i][k] - vecs[j][k]) ** 2;
+    d[i][j] = d[j][i] = Math.sqrt(s);
+  }
+  // 起点：全局最近的一对中较小索引
+  let start = 0, best = Infinity;
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+    if (d[i][j] < best) { best = d[i][j]; start = i; }
+  }
+  const visited = new Set([start]);
+  const order = [start];
+  let cur = start;
+  while (order.length < n) {
+    let next = -1, nd = Infinity;
+    for (let i = 0; i < n; i++) {
+      if (visited.has(i)) continue;
+      if (d[cur][i] < nd) { nd = d[cur][i]; next = i; }
+    }
+    order.push(next); visited.add(next); cur = next;
+  }
+  return order;
+}
+
+function heatDraw(data, grouped) {
+  const canvas = document.createElement("canvas");
+  const dpr = window.devicePixelRatio || 1;
+  const genes = data.genes, cols = data.colNames;
+  const cellW = 16, cellH = 18, labelW = 90, annH = grouped ? 18 : 0, marginT = 30;
+  const width = labelW + cols.length * cellW + 20;
+  const height = marginT + annH + genes.length * cellH + 30;
+  canvas.width = width * dpr; canvas.height = height * dpr;
+  canvas.style.width = width + "px"; canvas.style.height = height + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = "#fafbfc"; ctx.fillRect(0, 0, width, height);
+  ctx.font = "10px 'Microsoft YaHei',sans-serif";
+  const labelEvery = Math.max(1, Math.ceil(genes.length / 45));
+  const colEvery = Math.max(1, Math.ceil(cols.length / 40));
+  // 行 z-score
+  const vals = data.vals.map(r => {
+    if (!$("heatZscore").checked) return r;
+    const mean = r.reduce((a, b) => a + b, 0) / r.length;
+    const sd = Math.sqrt(r.reduce((a, b) => a + (b - mean) ** 2, 0) / r.length) || 1;
+    return r.map(v => (v - mean) / sd);
+  });
+  const flatMax = Math.max(...vals.flat().map(Math.abs), 0.5);
+  const color = v => {
+    const t = Math.max(-1, Math.min(1, v / flatMax));
+    return t >= 0 ? "rgba(211,47,47," + t.toFixed(2) + ")" : "rgba(21,101,192," + (-t).toFixed(2) + ")";
+  };
+  // 注释条
+  const groupPalette = ["#1e88e5", "#e53935", "#43a047", "#fb8c00", "#8e24aa", "#00897b"];
+  const gMap = grouped ? heatGroupMap($("heatGroups").value) : null;
+  const gColors = new Map();
+  if (grouped && gMap) {
+    let gi = 0;
+    cols.forEach((c, j) => {
+      const g = gMap.get(c);
+      if (g === undefined) return;
+      if (!gColors.has(g)) gColors.set(g, groupPalette[(gi++) % groupPalette.length]);
+      ctx.fillStyle = gColors.get(g);
+      ctx.fillRect(labelW + j * cellW, marginT, cellW, annH - 4);
+    });
+    let lx = labelW;
+    gColors.forEach((col, g) => {
+      ctx.fillStyle = col; ctx.fillRect(lx, marginT + annH - 2, 10, 10);
+      ctx.fillStyle = "#333"; ctx.fillText(g, lx + 12, marginT + annH + 6);
+      lx += ctx.measureText(g).width + 30;
+    });
+  }
+  // 单元格
+  vals.forEach((row, i) => {
+    row.forEach((v, j) => {
+      ctx.fillStyle = color(v);
+      ctx.fillRect(labelW + j * cellW, marginT + annH + i * cellH, cellW - 1, cellH - 1);
+    });
+    if (i % labelEvery === 0) {
+      ctx.fillStyle = "#212121"; ctx.textAlign = "right";
+      const gl = genes[i].length > 12 ? genes[i].slice(0, 12) + "…" : genes[i];
+      ctx.fillText(gl, labelW - 4, marginT + annH + i * cellH + cellH - 4);
+      ctx.textAlign = "left";
+    }
+  });
+  cols.forEach((c, j) => {
+    if (j % colEvery !== 0) return;
+    ctx.save();
+    ctx.translate(labelW + j * cellW + cellW / 2, marginT + annH - 2);
+    ctx.rotate(-Math.PI / 2); ctx.textAlign = "left"; ctx.fillStyle = "#333";
+    ctx.fillText(c.length > 10 ? c.slice(0, 10) + "…" : c, 0, 0);
+    ctx.restore();
+  });
+  ctx.fillStyle = "#5f6368"; ctx.textAlign = "left";
+  ctx.fillText("图例：红=高 蓝=低（" + ($("heatZscore").checked ? "行 z-score" : "原始值") + "，|最大|=" + flatMax.toFixed(2) + "）", labelW, height - 8);
+  $("heatCanvasDiv").innerHTML = "";
+  $("heatCanvasDiv").appendChild(canvas);
+}
+
+function heatRunTool() {
+  $("heatWarn").innerHTML = "";
+  $("heatOut").classList.add("hidden");
+  const data = heatParse($("heatInput").value);
+  if (!data) {
+    $("heatWarn").innerHTML = '<div class="err-box">错误：无法解析矩阵（首行表头=样本，首列=基因名）。</div>';
+    return;
+  }
+  if (data.genes.length > 200 || data.colNames.length > 100) {
+    $("heatWarn").innerHTML = '<div class="err-box">错误：矩阵过大（行 ≤ 200、列 ≤ 100）。请筛选后重试。</div>';
+    return;
+  }
+  // 行/列层次聚类排序
+  const rowOrder = hclustOrder(data.vals.map(r => r.slice()));
+  const colOrder = hclustOrder(data.colNames.map((_, i) => data.vals.map(r => r[i])));
+  const grouped = $("heatGroups").value.trim() !== "";
+  heatDraw({
+    genes: rowOrder.map(i => data.genes[i]),
+    colNames: colOrder.map(i => data.colNames[i]),
+    vals: rowOrder.map(ri => colOrder.map(ci => data.vals[ri][ci]))
+  }, grouped);
+  $("heatWarn").innerHTML = '<div class="ok-box">完成：' + data.genes.length + " 行 × " + data.colNames.length + " 列，已按距离排序。</div>";
+  $("heatOut").classList.remove("hidden");
+}
+
+/* ---------- 工具5：GSEA ---------- */
+function gseaParseRanked(text) {
+  const rows = [];
+  for (const l of String(text || "").split(/\r?\n/)) {
+    const c = l.trim().split(/[\t,;]/).map(x => x.trim()).filter(x => x);
+    if (c.length < 2) continue;
+    const v = parseFloat(c[1]);
+    if (!isFinite(v)) continue; // 表头跳过
+    rows.push({ gene: c[0].toUpperCase(), score: v });
+  }
+  rows.sort((a, b) => b.score - a.score);
+  return rows;
+}
+
+function gseaParseSets(text) {
+  const sets = [];
+  for (const l of String(text || "").split(/\r?\n/)) {
+    const c = l.trim().split(/[\t,;]/).map(x => x.trim()).filter(x => x);
+    if (c.length < 2) continue;
+    sets.push({ term: c[0], genes: new Set(c.slice(1).map(g => g.toUpperCase())) });
+  }
+  return sets;
+}
+
+/** 加权 Running ES */
+function gseaES(ranked, geneSet) {
+  const Nh = ranked.filter(r => geneSet.has(r.gene)).length;
+  if (Nh === 0 || Nh === ranked.length) return { es: 0, path: [], peak: 0 };
+  let sumW = 0;
+  for (const r of ranked) if (geneSet.has(r.gene)) sumW += Math.abs(r.score);
+  let running = 0, maxR = -Infinity, minR = Infinity, peak = 0;
+  const path = [];
+  for (let i = 0; i < ranked.length; i++) {
+    running += geneSet.has(ranked[i].gene) ? Math.abs(ranked[i].score) / sumW : -1 / (ranked.length - Nh);
+    path.push(running);
+    if (running > maxR) maxR = running;
+    if (running < minR) minR = running;
+  }
+  const es = Math.abs(maxR) >= Math.abs(minR) ? maxR : minR;
+  for (let i = 0; i < path.length; i++) if (path[i] === es) { peak = i; break; }
+  return { es, path, peak };
+}
+
+function gseaRunTool() {
+  $("gseaWarn").innerHTML = "";
+  $("gseaOut").classList.add("hidden");
+  const ranked = gseaParseRanked($("gseaRanked").value);
+  const sets = gseaParseSets($("gseaSets").value);
+  if (ranked.length < 10 || !sets.length) {
+    $("gseaWarn").innerHTML = '<div class="err-box">错误：请提供 ≥10 行排序基因列表与至少 1 个基因集。</div>';
+    return;
+  }
+  const perms = Math.round(parseFloat($("gseaPerm").value)) || 200;
+  const geneUniverse = ranked.map(r => r.gene);
+  const results = [];
+  for (const s of sets) {
+    const hit = new Set(Array.from(s.genes).filter(g => geneUniverse.includes(g)));
+    const size = hit.size;
+    if (size < 3 || size >= ranked.length) { results.push({ term: s.term, size, es: NaN, nes: NaN, p: NaN, q: NaN, path: null, peak: 0 }); continue; }
+    const { es, path, peak } = gseaES(ranked, hit);
+    // 置换：随机同大小基因集
+    let same = 0, total = 0, permSum = 0;
+    for (let k = 0; k < perms; k++) {
+      const permSet = new Set();
+      while (permSet.size < size) permSet.add(geneUniverse[Math.floor(Math.random() * geneUniverse.length)]);
+      const pes = gseaES(ranked, permSet).es;
+      if ((es >= 0 && pes >= 0) || (es < 0 && pes < 0)) { total++; if (Math.abs(pes) >= Math.abs(es)) same++; permSum += Math.abs(pes); }
+      else { permSum += Math.abs(pes); }
+    }
+    const p = (same + 1) / (perms + 1);
+    const nes = es / ((permSum / perms) || 1);
+    const leading = ranked.filter((r, i) => hit.has(r.gene) && (es >= 0 ? i <= peak : i >= peak)).map(r => r.gene);
+    results.push({ term: s.term, size, es, nes, p, q: 0, path, peak, leading });
+  }
+  const qs = bhFDR(results.map(r => (isFinite(r.p) ? r.p : 1)));
+  results.forEach((r, i) => r.q = qs[i]);
+  results.sort((a, b) => (b.nes || 0) - (a.nes || 0));
+  gseaLast = { results, ranked };
+  // 表格
+  let html = "<tr><th>基因集</th><th>大小</th><th>ES</th><th>NES</th><th>p</th><th>FDR</th><th>Leading edge</th></tr>";
+  for (const r of results) {
+    const sel = r.path ? " style='cursor:pointer' data-gsea-row='" + escapeHtml(r.term) + "'" : "";
+    html += "<tr" + sel + "><th>" + escapeHtml(r.term) + (r.q < 0.05 ? " ★" : "") + "</th><td>" + r.size + "</td><td>" +
+      (isFinite(r.es) ? r.es.toFixed(3) : "—") + "</td><td>" + (isFinite(r.nes) ? r.nes.toFixed(3) : "—") + "</td><td>" +
+      (isFinite(r.p) ? r.p.toExponential(2) : "—") + "</td><td>" + (isFinite(r.q) ? r.q.toExponential(2) : "—") +
+      "</td><td style='text-align:left'>" + escapeHtml((r.leading || []).join(", ")) + "</td></tr>";
+  }
+  $("gseaTableDiv").innerHTML = "<table class='data'>" + html + "</table>";
+  $("gseaTableDiv").querySelectorAll("tr[data-gsea-row]").forEach(tr => {
+    tr.addEventListener("click", () => gseaDrawCurve(tr.dataset.gseaRow));
+  });
+  if (results.length && results[0].path) gseaDrawCurve(results[0].term);
+  $("gseaWarn").innerHTML = '<div class="ok-box">完成：' + results.filter(r => isFinite(r.es)).length + "/" + sets.length + " 个基因集完成检验（置换 " + perms + " 次，FDR<0.05 标 ★）。</div>";
+  $("gseaOut").classList.remove("hidden");
+}
+
+function gseaDrawCurve(term) {
+  const r = gseaLast.results.find(x => x.term === term);
+  if (!r || !r.path) return;
+  const canvas = $("gseaCurve");
+  const dpr = window.devicePixelRatio || 1;
+  const W = 720, H = 240, marginL = 60, marginB = 40, marginT = 16, marginR = 16;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + "px"; canvas.style.height = H + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = "#fafbfc"; ctx.fillRect(0, 0, W, H);
+  ctx.font = "11px 'Microsoft YaHei',sans-serif";
+  const N = r.path.length;
+  const maxAbs = Math.max(...r.path.map(Math.abs), 0.01);
+  const x = i => marginL + i / (N - 1) * (W - marginL - marginR);
+  const y = v => marginT + (H - marginT - marginB) * (1 - (v + maxAbs) / (2 * maxAbs));
+  ctx.strokeStyle = "#cfd8dc";
+  ctx.beginPath(); ctx.moveTo(marginL, y(0)); ctx.lineTo(W - marginR, y(0)); ctx.stroke();
+  // ES 曲线
+  ctx.strokeStyle = "#1e88e5"; ctx.lineWidth = 2;
+  ctx.beginPath();
+  r.path.forEach((v, i) => { if (i === 0) ctx.moveTo(x(i), y(v)); else ctx.lineTo(x(i), y(v)); });
+  ctx.stroke();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "#e53935";
+  ctx.beginPath(); ctx.moveTo(x(r.peak), y(r.path[r.peak])); ctx.lineTo(x(r.peak), y(0)); ctx.stroke();
+  ctx.fillStyle = "#212121"; ctx.textAlign = "center";
+  ctx.fillText(term + "（ES=" + r.es.toFixed(3) + "，峰值位置 " + (r.peak + 1) + "/" + N + "）", W / 2, H - 24);
+  ctx.fillStyle = "#5f6368";
+  ctx.fillText("基因秩 →", W / 2, H - 8);
+  ctx.textAlign = "right"; ctx.fillText("ES", marginL - 6, marginT + 10);
+  $("gseaCurveTitle").textContent = "Running ES 曲线：" + term;
+}
+
+let gseaLast = null;
+
+/* ---------- 工具6：包珠图 ---------- */
+function packCircles(rs) {
+  const placed = [];
+  const overlapAny = (c) => placed.some(p => Math.hypot(p.x - c.x, p.y - c.y) < p.r + c.r - 0.01);
+  for (const r of rs) {
+    if (!placed.length) { placed.push({ x: 0, y: 0, r }); continue; }
+    if (placed.length === 1) { const p = placed[0]; placed.push({ x: 0, y: p.y - (p.r + r), r }); continue; }
+    let best = null;
+    for (let i = 0; i < placed.length - 1; i++) {
+      const c1 = placed[i], c2 = placed[i + 1];
+      const d = Math.hypot(c2.x - c1.x, c2.y - c1.y);
+      if (d > c1.r + c2.r + r || d < Math.abs(c1.r - c2.r)) continue;
+      // 与两圆相切的圆心（标准三圆相交公式）
+      const a = (c1.r * c1.r - c2.r * c2.r + d * d) / (2 * d);
+      const h = Math.sqrt(Math.max(0, c1.r * c1.r - a * a));
+      const mx = c1.x + a * (c2.x - c1.x) / d, my = c1.y + a * (c2.y - c1.y) / d;
+      for (const sign of [1, -1]) {
+        const c = { x: mx - sign * h * (c2.y - c1.y) / d, y: my + sign * h * (c2.x - c1.x) / d, r };
+        if (!overlapAny(c) && (!best || Math.hypot(c.x, c.y) < Math.hypot(best.x, best.y))) best = c;
+      }
+    }
+    if (!best) { const p = placed[placed.length - 1]; best = { x: p.x, y: p.y - (p.r + r), r }; }
+    placed.push(best);
+  }
+  return placed;
+}
+
+function packRunTool() {
+  $("packWarn").innerHTML = "";
+  $("packOut").classList.add("hidden");
+  const rows = [];
+  for (const l of String($("packInput").value || "").split(/\r?\n/)) {
+    const c = l.trim().split(/[\t,;]/).map(x => x.trim()).filter(x => x);
+    if (c.length < 3) continue;
+    const v = parseFloat(c[2]);
+    if (!isFinite(v) || v <= 0) continue;
+    rows.push({ cat: c[0], item: c[1], v });
+  }
+  if (!rows.length) {
+    $("packWarn").innerHTML = '<div class="err-box">错误：请提供"类别 + 元素 + 数值"数据。</div>';
+    return;
+  }
+  const byCat = new Map();
+  rows.forEach(r => { if (!byCat.has(r.cat)) byCat.set(r.cat, []); byCat.get(r.cat).push(r); });
+  const cats = Array.from(byCat.keys());
+  const palette = ["#1e88e5", "#e53935", "#43a047", "#fb8c00", "#8e24aa", "#00897b"];
+  const kScale = 6;
+  let xCursor = 20, maxH = 0;
+  let circles = "", labels = "";
+  for (const cat of cats) {
+    const items = byCat.get(cat).slice().sort((a, b) => b.v - a.v);
+    const rs = items.map(it => Math.max(4, kScale * Math.sqrt(it.v)));
+    const placed = packCircles(rs);
+    const parentR = Math.max(...placed.map(p => Math.hypot(p.x, p.y) + p.r)) + 4;
+    const offX = xCursor + parentR;
+    const color = palette[cats.indexOf(cat) % palette.length];
+    circles += '<circle cx="' + offX + '" cy="0" r="' + parentR.toFixed(1) + '" fill="' + color + '" fill-opacity="0.12" stroke="' + color + '" stroke-dasharray="4,3"/>';
+    placed.forEach((p, i) => {
+      circles += '<circle cx="' + (offX + p.x).toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + p.r.toFixed(1) + '" fill="' + color + '" fill-opacity="0.55"/>';
+      if (p.r > 16) circles += '<text x="' + (offX + p.x).toFixed(1) + '" y="' + (p.y + 4).toFixed(1) + '" text-anchor="middle" font-size="10" fill="#fff">' + escapeHtml(items[i].item) + "</text>";
+      else circles += '<title x="0">' + escapeHtml(items[i].item) + "：" + items[i].v + "</title>";
+    });
+    labels += '<text x="' + offX + '" y="' + (parentR + 16) + '" text-anchor="middle" font-size="12" font-weight="bold">' + escapeHtml(cat) + "（" + items.length + "）</text>";
+    xCursor += parentR * 2 + 30;
+    maxH = Math.max(maxH, parentR * 2);
+  }
+  const H = maxH + 60, W = xCursor;
+  $("packSvgDiv").innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + " " + H + '" style="max-width:100%;display:block"><rect width="100%" height="100%" fill="#fafbfc" rx="8"/><g transform="translate(0,' + (H / 2 - maxH / 2) + ')">' + circles + labels + "</g></svg>";
+  $("packWarn").innerHTML = '<div class="ok-box">完成：' + cats.length + " 个类别、" + rows.length + " 个元素。气泡面积 ∝ 数值。</div>";
+  $("packOut").classList.remove("hidden");
+}
+
+/* ---------- 工具7：多组差异散点图 ---------- */
+function diffParse(text) {
+  const rows = [];
+  let first = true;
+  for (const l of String(text || "").split(/\r?\n/)) {
+    const c = l.trim().split(/[\t,;]/).map(x => x.trim()).filter(x => x);
+    if (c.length < 4) continue;
+    const fc = parseFloat(c[2]), p = parseFloat(c[3]);
+    if (!isFinite(fc) || !isFinite(p)) { first = false; continue; }
+    first = false;
+    rows.push({ gene: c[0].toUpperCase(), group: c[1], fc, p });
+  }
+  return rows;
+}
+
+function drawDiffScatter(rows, fcT, pT) {
+  const canvas = $("diffCanvas");
+  const dpr = window.devicePixelRatio || 1;
+  const groups = Array.from(new Set(rows.map(r => r.group)));
+  const W = 720, H = 460, marginL = 56, marginB = 46, marginT = 16, marginR = 16;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + "px"; canvas.style.height = H + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = "#fafbfc"; ctx.fillRect(0, 0, W, H);
+  ctx.font = "12px 'Microsoft YaHei',sans-serif";
+  const maxAbsFc = Math.max(...rows.map(r => Math.abs(r.fc)), fcT) * 1.05;
+  const colW = (W - marginL - marginR) / groups.length;
+  const y = v => H - marginB - Math.min(Math.abs(v), maxAbsFc) / maxAbsFc * (H - marginT - marginB) * Math.sign(v || 1) - (H - marginT - marginB) / 2 + (H - marginT - marginB) / 2;
+  const yv = v => H - marginB - (v + maxAbsFc) / (2 * maxAbsFc) * (H - marginT - marginB);
+  const counts = groups.map(g => ({ g, up: 0, down: 0, ns: 0 }));
+  rows.forEach((r, idx) => {
+    const gi = groups.indexOf(r.group);
+    const sig = Math.abs(r.fc) >= fcT && r.p < pT;
+    if (sig) (r.fc > 0 ? counts[gi].up++ : counts[gi].down++); else counts[gi].ns++;
+    ctx.fillStyle = !sig ? "#b0bec5" : (r.fc > 0 ? "#e53935" : "#43a047");
+    const jitter = ((idx * 37) % 100) / 100 * colW * 0.7 - colW * 0.35;
+    const px = marginL + gi * colW + colW / 2 + jitter;
+    ctx.beginPath(); ctx.arc(px, yv(r.fc), 2.6, 0, Math.PI * 2); ctx.fill();
+  });
+  // 阈值线与组标签
+  ctx.strokeStyle = "#90a4ae"; ctx.setLineDash([5, 4]);
+  [fcT, -fcT, 0].forEach(v => { ctx.beginPath(); ctx.moveTo(marginL, yv(v)); ctx.lineTo(W - marginR, yv(v)); ctx.stroke(); });
+  ctx.setLineDash([]);
+  ctx.fillStyle = "#212121"; ctx.textAlign = "center";
+  groups.forEach((g, i) => {
+    ctx.fillText(g, marginL + i * colW + colW / 2, H - marginB + 16);
+    const c = counts[i];
+    ctx.fillStyle = "#e53935"; ctx.fillText("↑" + c.up, marginL + i * colW + colW / 2 - 26, H - marginB + 32);
+    ctx.fillStyle = "#43a047"; ctx.fillText("↓" + c.down, marginL + i * colW + colW / 2 + 10, H - marginB + 32);
+    ctx.fillStyle = "#212121";
+  });
+  ctx.fillStyle = "#5f6368";
+  ctx.fillText("log2FC", marginL - 40, marginT + 10);
+  ctx.save(); ctx.translate(12, H / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = "center";
+  ctx.fillText("log2FC（|≥" + fcT + "| 且 p<" + pT + " 显著）", 0, 0);
+  ctx.restore();
+  $("diffStats").textContent = groups.map((g, i) => g + "：↑" + counts[i].up + " ↓" + counts[i].down).join("　");
+}
+
+function diffRunTool() {
+  $("diffWarn").innerHTML = "";
+  $("diffOut").classList.add("hidden");
+  const rows = diffParse($("diffInput").value);
+  if (rows.length < 5) {
+    $("diffWarn").innerHTML = '<div class="err-box">错误：请提供长表数据（基因 + 比较组 + log2FC + pvalue，≥5 行）。</div>';
+    return;
+  }
+  const fcT = parseFloat($("diffFc").value) || 1, pT = parseFloat($("diffP").value) || 0.05;
+  drawDiffScatter(rows, fcT, pT);
+  $("diffWarn").innerHTML = '<div class="ok-box">完成：' + rows.length + " 条记录、" + new Set(rows.map(r => r.group)).size + " 个比较组。</div>";
+  $("diffOut").classList.remove("hidden");
+}
+
+/* ---------- 工具8：桑基图 ---------- */
+function sankeyParse(text) {
+  const links = [];
+  for (const l of String(text || "").split(/\r?\n/)) {
+    const c = l.trim().split(/[\t,;]/).map(x => x.trim()).filter(x => x);
+    if (c.length < 3) continue;
+    const v = parseFloat(c[2]);
+    if (!isFinite(v) || v <= 0) continue;
+    links.push({ s: c[0], t: c[1], v });
+  }
+  return links;
+}
+
+function sankeyLayout(links) {
+  const L = new Map(), R = new Map();
+  for (const l of links) {
+    L.set(l.s, (L.get(l.s) || 0) + l.v);
+    R.set(l.t, (R.get(l.t) || 0) + l.v);
+  }
+  const total = Math.max(Array.from(L.values()).reduce((a, b) => a + b, 0), Array.from(R.values()).reduce((a, b) => a + b, 0));
+  const H = 560, pad = 24, scale = (H - 2 * pad) / total;
+  const Lnodes = Array.from(L.entries()).sort((a, b) => b[1] - a[1]).map(([name, v], i) => ({ name, v, y0: 0, h: v * scale, i }));
+  const Rnodes = Array.from(R.entries()).sort((a, b) => b[1] - a[1]).map(([name, v], i) => ({ name, v, y0: 0, h: v * scale, i }));
+  let y = pad;
+  for (const nd of Lnodes) { nd.y0 = y; y += nd.h + 6; }
+  y = pad;
+  for (const nd of Rnodes) { nd.y0 = y; y += nd.h + 6; }
+  const flows = links.slice().sort((a, b) => {
+    const la = Lnodes.find(n => n.name === a.s), lb = Lnodes.find(n => n.name === b.s);
+    const ta = Rnodes.find(n => n.name === a.t), tb = Rnodes.find(n => n.name === b.t);
+    return (la.i - lb.i) || (ta.i - tb.i);
+  });
+  const srcUsed = new Map(), tgtUsed = new Map();
+  for (const f of flows) {
+    const sn = Lnodes.find(n => n.name === f.s), tn = Rnodes.find(n => n.name === f.t);
+    f.h = f.v * scale;
+    f.sy = (srcUsed.get(f.s) || 0) + (sn ? sn.y0 : 0);
+    srcUsed.set(f.s, (srcUsed.get(f.s) || 0) + f.h);
+    f.ty = (tgtUsed.get(f.t) || 0) + (tn ? tn.y0 : 0);
+    tgtUsed.set(f.t, (tgtUsed.get(f.t) || 0) + f.h);
+  }
+  return { Lnodes, Rnodes, flows, H, scale };
+}
+
+function sankeyRunTool() {
+  $("sankeyWarn").innerHTML = "";
+  $("sankeyOut").classList.add("hidden");
+  const links = sankeyParse($("sankeyInput").value);
+  if (!links.length) {
+    $("sankeyWarn").innerHTML = '<div class="err-box">错误：请提供"源 + 目标 + 数值"流向数据。</div>';
+    return;
+  }
+  const lay = sankeyLayout(links);
+  const W = 720, nodeW = 16, x0 = 60, x1 = W - 76;
+  const palette = ["#1e88e5", "#e53935", "#43a047", "#fb8c00", "#8e24aa", "#00897b", "#6d4c41", "#546e7a"];
+  let svg = '<svg width="' + W + '" height="' + (lay.H + 20) + '" viewBox="0 0 ' + W + " " + (lay.H + 20) + '" style="max-width:100%;display:block">';
+  svg += '<rect width="100%" height="100%" fill="#fafbfc" rx="8"/>';
+  const lColor = new Map();
+  lay.Lnodes.forEach((nd, i) => lColor.set(nd.name, palette[i % palette.length]));
+  for (const f of lay.flows) {
+    const sy0 = f.sy, ty0 = f.ty, h = Math.max(1, f.h);
+    const c = lColor.get(f.s) || "#90a4ae";
+    svg += '<path d="M' + (x0 + nodeW) + " " + sy0 +
+      " C " + (x0 + nodeW + (x1 - x0 - nodeW) / 2) + " " + sy0 + ", " + (x0 + nodeW + (x1 - x0 - nodeW) / 2) + " " + ty0 + ", " + x1 + " " + ty0 +
+      " L " + x1 + " " + (ty0 + h) + " C " + (x0 + nodeW + (x1 - x0 - nodeW) / 2) + " " + (ty0 + h) + ", " + (x0 + nodeW + (x1 - x0 - nodeW) / 2) + " " + (sy0 + h) + ", " + (x0 + nodeW) + " " + (sy0 + h) + " Z" +
+      '" fill="' + c + '" fill-opacity="0.45"/>';
+  }
+  const nodeLabel = (nd, x) => {
+    const c = lColor.get(nd.name) || "#90a4ae";
+    let s = '<rect x="' + x + '" y="' + nd.y0 + '" width="' + nodeW + '" height="' + Math.max(1, nd.h) + '" fill="' + c + '"/>';
+    s += '<text x="' + (x === x0 ? x - 6 : x + nodeW + 6) + '" y="' + (nd.y0 + nd.h / 2 + 4) + '" text-anchor="' + (x === x0 ? "end" : "start") + '" font-size="12">' + escapeHtml(nd.name) + "（" + nd.v + "）</text>";
+    return s;
+  };
+  lay.Lnodes.forEach(nd => svg += nodeLabel(nd, x0));
+  lay.Rnodes.forEach(nd => svg += nodeLabel(nd, x1));
+  svg += "</svg>";
+  $("sankeySvgDiv").innerHTML = svg;
+  $("sankeyWarn").innerHTML = '<div class="ok-box">完成：' + links.length + " 条流、左侧 " + lay.Lnodes.length + " 个源节点、右侧 " + lay.Rnodes.length + " 个目标节点。</div>";
+  $("sankeyOut").classList.remove("hidden");
+}
+
+/* ---------- 工具9：网络热图 ---------- */
+function corrMatrixParse(text) {
+  const lines = String(text || "").split(/\r?\n/).map(l => l.trim()).filter(l => l);
+  if (lines.length < 2) return null;
+  let delim = lines[0].includes("\t") ? "\t" : (lines[0].includes(",") ? "," : /\s+/);
+  const head = lines[0].split(delim).map(x => x.trim()).filter(x => x !== "");
+  const rowNames = [], matrix = [];
+  for (let i = 1; i < lines.length; i++) {
+    const c = lines[i].split(delim).map(x => x.trim()).filter(x => x !== "");
+    if (c.length < 2) continue;
+    const name = isNaN(parseFloat(c[0])) ? c[0].toUpperCase() : "R" + i;
+    const vals = (isNaN(parseFloat(c[0])) ? c.slice(1) : c).map(parseFloat).filter(v => isFinite(v));
+    if (vals.length < 2) continue;
+    rowNames.push(name);
+    matrix.push(vals);
+  }
+  const n = rowNames.length;
+  if (n < 3) return null;
+  for (let i = 0; i < n; i++) {
+    while (matrix[i].length < n) matrix[i].push(0);
+    matrix[i].length = n;
+    matrix[i][i] = 1;
+  }
+  for (let i = 0; i < n; i++) for (let j = 0; j < i; j++) {
+    const v = matrix[i][j] || matrix[j][i];
+    matrix[i][j] = matrix[j][i] = v;
+  }
+  const colNames = head.filter(x => isNaN(parseFloat(x)));
+  return { names: colNames.length === n ? colNames : rowNames, matrix };
+}
+
+function corrRunTool() {
+  $("corrMWarn").innerHTML = "";
+  $("corrOut").classList.add("hidden");
+  const parsed = corrMatrixParse($("corrMInput").value);
+  if (!parsed) {
+    $("corrMWarn").innerHTML = '<div class="err-box">错误：无法解析相关矩阵（首行元素名，后续每行 = 元素名 + 数值，方阵 ≥3×3）。</div>';
+    return;
+  }
+  const { names, matrix } = parsed;
+  const thr = parseFloat($("corrThr").value) || 0.6;
+  const n = names.length;
+  // 热图（直接绘制在现有 canvas 上）
+  const heat = $("corrHeatCanvas");
+  const dpr = window.devicePixelRatio || 1;
+  const cell = Math.max(12, Math.min(40, Math.floor(560 / n)));
+  const labelW = 60;
+  heat.width = (labelW + n * cell + 10) * dpr;
+  heat.height = (labelW * 0.6 + n * cell + 10) * dpr;
+  heat.style.width = (labelW + n * cell + 10) + "px";
+  heat.style.height = (labelW * 0.6 + n * cell + 10) + "px";
+  const ctx = heat.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = "#fafbfc"; ctx.fillRect(0, 0, heat.width, heat.height);
+  ctx.font = "11px 'Microsoft YaHei',sans-serif";
+  const colColor = v => v > 0 ? "rgba(211,47,47," + Math.abs(v).toFixed(2) + ")" : "rgba(21,101,192," + Math.abs(v).toFixed(2) + ")";
+  names.forEach((nm, j) => {
+    ctx.save();
+    ctx.translate(labelW + j * cell + cell / 2, labelW * 0.6 - 4);
+    ctx.rotate(-Math.PI / 4); ctx.textAlign = "left"; ctx.fillStyle = "#333";
+    ctx.fillText(nm, 0, 0); ctx.restore();
+  });
+  for (let i = 0; i < n; i++) {
+    ctx.fillStyle = "#212121"; ctx.textAlign = "right";
+    ctx.fillText(names[i], labelW - 4, labelW * 0.6 + i * cell + cell / 2 + 4);
+    for (let j = 0; j < n; j++) {
+      ctx.fillStyle = i === j ? "#eceff1" : colColor(matrix[i][j]);
+      ctx.fillRect(labelW + j * cell + 1, labelW * 0.6 + i * cell + 1, cell - 2, cell - 2);
+      ctx.textAlign = "center";
+      ctx.fillStyle = Math.abs(matrix[i][j]) > 0.55 ? "#fff" : "#333";
+      ctx.fillText(matrix[i][j].toFixed(2), labelW + j * cell + cell / 2, labelW * 0.6 + i * cell + cell / 2 + 4);
+      ctx.textAlign = "right";
+    }
+  }
+  // 网络图
+  const net = $("corrNetCanvas");
+  const size = 560, cx = size / 2, cy = size / 2 + 10, R = 210;
+  net.width = size * dpr; net.height = size * dpr;
+  net.style.width = size + "px"; net.style.height = size + "px";
+  const nctx = net.getContext("2d");
+  nctx.scale(dpr, dpr);
+  nctx.fillStyle = "#fafbfc"; nctx.fillRect(0, 0, size, size);
+  nctx.font = "12px 'Microsoft YaHei',sans-serif";
+  const pos = names.map((_, i) => ({ x: cx + R * Math.sin(2 * Math.PI * i / n), y: cy - R * Math.cos(2 * Math.PI * i / n) }));
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+    const r = matrix[i][j];
+    if (Math.abs(r) < thr) continue;
+    nctx.strokeStyle = r > 0 ? "rgba(211,47,47,0.65)" : "rgba(21,101,192,0.65)";
+    nctx.lineWidth = 1 + Math.abs(r) * 4;
+    nctx.beginPath(); nctx.moveTo(pos[i].x, pos[i].y); nctx.lineTo(pos[j].x, pos[j].y); nctx.stroke();
+  }
+  names.forEach((nm, i) => {
+    const strength = names.reduce((a, _, j) => a + (j === i ? 0 : Math.abs(matrix[i][j])), 0);
+    const r = 7 + Math.min(14, strength * 2);
+    nctx.fillStyle = "#1e88e5";
+    nctx.beginPath(); nctx.arc(pos[i].x, pos[i].y, r, 0, Math.PI * 2); nctx.fill();
+    nctx.fillStyle = "#212121"; nctx.textAlign = "center";
+    const lx = cx + (R + r + 16) * Math.sin(2 * Math.PI * i / n);
+    const ly = cy - (R + r + 16) * Math.cos(2 * Math.PI * i / n);
+    nctx.fillText(nm, lx, ly + 4);
+  });
+  nctx.fillStyle = "#5f6368"; nctx.textAlign = "center";
+  nctx.fillText("节点大小 = Σ|相关系数|　边：|r| ≥ " + thr, cx, size - 8);
+  $("corrMWarn").innerHTML = '<div class="ok-box">完成：' + n + " × " + n + " 相关矩阵，网络边阈值 |r|≥" + thr + "。</div>";
+  $("corrOut").classList.remove("hidden");
+}
+
 /* --- PubChem 配体检索（PUG REST，支持跨域） --- */
 async function pcFetchJson(url) {
   const resp = await fetch(url);
@@ -4260,10 +5457,10 @@ function init() {
 
   /* ---------- 相关性分析 ---------- */
   $("corrFile").addEventListener("change", function () {
-    if (this.files[0]) readFileToText(this.files[0], t => { $("corrInput").value = t; });
+    if (this.files[0]) readFileToText(this.files[0], t => { $("corrMInput").value = t; });
   });
   $("corrExample").addEventListener("click", () => {
-    $("corrInput").value = corrExampleData();
+    $("corrMInput").value = corrExampleData();
     showToast("已载入示例数据（基因表达 + 分子性质，30 行）");
   });
   $("corrRun").addEventListener("click", corrRun);
@@ -4539,6 +5736,128 @@ function init() {
     $("synWarn").innerHTML = ""; $("synResultCard").classList.add("hidden");
   });
   $("synExport").addEventListener("click", synExportCSV);
+
+  /* ---------- 组学绘图工具集 ---------- */
+  const omicsTabs = $("omicsTabs");
+  omicsTabs.innerHTML = OMICS_TOOLS.map(t =>
+    '<button class="nav-btn' + (t.id === omicsCurrent ? " active" : "") + '" data-tool="' + t.id + '">' + t.name + "</button>").join("");
+  omicsTabs.querySelectorAll("button[data-tool]").forEach(b =>
+    b.addEventListener("click", () => omicsShowTool(b.dataset.tool)));
+  omicsShowTool(omicsCurrent);
+
+  $("vennRun").addEventListener("click", vennRunTool);
+  $("vennExample").addEventListener("click", () => {
+    $("vennInput").value = ">处理组上刺\ngene1\ngene2\ngene3\ngene5\n>对照下刺\ngene2\ngene3\ngene4\ngene6\ngene7";
+    showToast("已载入韦恩图示例");
+  });
+  $("vennClear").addEventListener("click", () => { $("vennInput").value = ""; $("vennWarn").innerHTML = ""; $("vennOut").classList.add("hidden"); });
+
+  $("pcaRun").addEventListener("click", pcaRunTool);
+  $("pcaExample").addEventListener("click", () => {
+    let s = 5;
+    const rnd = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
+    const lines = ["样本\t代谢物1\t代谢物2\t代谢物3\t代谢物4\t分组"];
+    for (let i = 1; i <= 18; i++) {
+      const g = i <= 9 ? "处理" : "对照";
+      lines.push("S" + i + "\t" + [0, 1, 2, 3].map(j => (g === "处理" ? 8 + j * 2 : 5) + rnd() * 3).map(v => v.toFixed(2)).join("\t") + "\t" + g);
+    }
+    $("pcaInput").value = lines.join("\n");
+    showToast("已载入 PCA 示例（处理 vs 对照，18 样本）");
+  });
+  $("pcaClear").addEventListener("click", () => { $("pcaInput").value = ""; $("pcaWarn").innerHTML = ""; $("pcaOut").classList.add("hidden"); });
+
+  $("volcanoRun").addEventListener("click", volcanoRunTool);
+  $("volcanoExample").addEventListener("click", () => {
+    let s = 11;
+    const rnd = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
+    const lines = [];
+    for (let i = 1; i <= 300; i++) {
+      const sig = rnd() < 0.15;
+      const fc = sig ? (rnd() < 0.5 ? 1 : -1) * (1 + rnd() * 3) : (rnd() - 0.5) * 1.6;
+      const p = sig ? rnd() * 0.04 : 0.05 + rnd() * 0.9;
+      lines.push("gene" + i + "\t" + fc.toFixed(3) + "\t" + p.toFixed(5));
+    }
+    $("volcanoInput").value = lines.join("\n");
+    showToast("已载入火山图示例（300 基因）");
+  });
+  $("volcanoClear").addEventListener("click", () => { $("volcanoInput").value = ""; $("volcanoWarn").innerHTML = ""; $("volcanoOut").classList.add("hidden"); });
+
+  $("heatRun").addEventListener("click", heatRunTool);
+  $("heatExample").addEventListener("click", () => {
+    let s = 13;
+    const rnd = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
+    const samples = ["处理_1", "处理_2", "对照_1", "对照_2"];
+    const lines = ["gene\t" + samples.join("\t")];
+    for (let i = 1; i <= 40; i++) {
+      lines.push("gene" + i + "\t" + samples.map((_, k) => ((i % 4) === k ? 2 : -2) + rnd() * 1.5).map(v => v.toFixed(2)).join("\t"));
+    }
+    $("heatInput").value = lines.join("\n");
+    $("heatGroups").value = samples.map((sm, i) => sm + "\t" + (i < 2 ? "处理" : "对照")).join("\n");
+    showToast("已载入聚类热图示例（40 基因 × 4 样本）");
+  });
+  $("heatClear").addEventListener("click", () => { $("heatInput").value = ""; $("heatGroups").value = ""; $("heatWarn").innerHTML = ""; $("heatOut").classList.add("hidden"); });
+
+  $("gseaRun").addEventListener("click", gseaRunTool);
+  $("gseaExample").addEventListener("click", () => {
+    let s = 17;
+    const rnd = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
+    const setA = Array.from({ length: 20 }, (_, i) => "GLY" + (i + 1));
+    const setB = Array.from({ length: 20 }, (_, i) => "RIB" + (i + 1));
+    const ranked = [];
+    setA.forEach((g, i) => ranked.push(g + "\t" + (3 - i * 0.12).toFixed(3)));
+    for (let i = 1; i <= 60; i++) ranked.push("BG" + i + "\t" + (1.4 - i * 0.04 - rnd() * 0.1).toFixed(3));
+    setB.forEach((g, i) => ranked.push(g + "\t" + (-2.5 + i * 0.1).toFixed(3)));
+    for (let i = 1; i <= 20; i++) ranked.push("BGX" + i + "\t" + (-3.5 + i * 0.05).toFixed(3));
+    ranked.sort((a, b) => parseFloat(b.split("\t")[1]) - parseFloat(a.split("\t")[1]));
+    $("gseaRanked").value = ranked.join("\n");
+    $("gseaSets").value = "糖酵解通路\t" + setA.join(",") + "\n核糖体通路\t" + setB.join(",");
+    showToast("已载入 GSEA 示例（糖酵解富集于高得分端）");
+  });
+  $("gseaClear").addEventListener("click", () => { $("gseaRanked").value = ""; $("gseaSets").value = ""; $("gseaWarn").innerHTML = ""; $("gseaOut").classList.add("hidden"); });
+
+  $("packRun").addEventListener("click", packRunTool);
+  $("packExample").addEventListener("click", () => {
+    $("packInput").value = "免疫细胞\tT细胞\t120\n免疫细胞\tB细胞\t80\n免疫细胞\tNK细胞\t45\n免疫细胞\t巨噬细胞\t150\n肿瘤细胞\t上皮癌\t200\n肿瘤细胞\t基质细胞\t60\n基质\t成纤维细胞\t90\n基质\t内皮细胞\t40";
+    showToast("已载入包珠图示例（肿瘤免疫微环境）");
+  });
+  $("packClear").addEventListener("click", () => { $("packInput").value = ""; $("packWarn").innerHTML = ""; $("packOut").classList.add("hidden"); });
+
+  $("diffRun").addEventListener("click", diffRunTool);
+  $("diffExample").addEventListener("click", () => {
+    let s = 19;
+    const rnd = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
+    const lines = [];
+    for (let g = 1; g <= 3; g++) {
+      const grp = ["处理vs对照", "敲除vsWT", "给药vs溶媒"][g - 1];
+      for (let i = 1; i <= 60; i++) {
+        const sig = rnd() < 0.18;
+        const fc = sig ? (rnd() < 0.5 ? 1 : -1) * (1 + rnd() * 2.5) : (rnd() - 0.5) * 1.8;
+        const p = sig ? rnd() * 0.04 : 0.05 + rnd() * 0.9;
+        lines.push("gene" + g + "_" + i + "\t" + grp + "\t" + fc.toFixed(3) + "\t" + p.toFixed(5));
+      }
+    }
+    $("diffInput").value = lines.join("\n");
+    showToast("已载入多组差异示例（3 比较组 × 60 基因）");
+  });
+  $("diffClear").addEventListener("click", () => { $("diffInput").value = ""; $("diffWarn").innerHTML = ""; $("diffOut").classList.add("hidden"); });
+
+  $("sankeyRun").addEventListener("click", sankeyRunTool);
+  $("sankeyExample").addEventListener("click", () => {
+    $("sankeyInput").value = "RNA-seq\t差异基因\t45\nRNA-seq\t无差异\t120\n差异基因\t上调\t28\n差异基因\t下调\t17\n上调\t转录因子\t9\n上调\t激酶\t6\n上调\t其他\t13";
+    showToast("已载入桑基图示例");
+  });
+  $("sankeyClear").addEventListener("click", () => { $("sankeyInput").value = ""; $("sankeyWarn").innerHTML = ""; $("sankeyOut").classList.add("hidden"); });
+
+  $("corrMRun").addEventListener("click", corrRunTool);
+  $("corrMExample").addEventListener("click", () => {
+    const names = ["免疫", "代谢", "炎症", "增殖", "凋亡"];
+    const M = [[1, 0.82, -0.65, 0.3, -0.4], [0.82, 1, -0.5, 0.25, -0.35], [-0.65, -0.5, 1, -0.7, 0.6], [0.3, 0.25, -0.7, 1, -0.55], [-0.4, -0.35, 0.6, -0.55, 1]];
+    const lines = ["\t" + names.join("\t")];
+    names.forEach((nm, i) => lines.push(nm + "\t" + M[i].join("\t")));
+    $("corrMInput").value = lines.join("\n");
+    showToast("已载入网络热图示例（免疫-代谢-炎症 假想相关矩阵）");
+  });
+  $("corrMClear").addEventListener("click", () => { $("corrMInput").value = ""; $("corrMWarn").innerHTML = ""; $("corrOut").classList.add("hidden"); });
 }
 
 init();
