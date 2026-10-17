@@ -29,7 +29,7 @@
  */
 
 /** 版本号常量：sw.js 每次改动都必须递增，否则老用户的旧 SW 不会被替换，修复等于没做。 */
-const VERSION = "tiangong-bio-v4";
+const VERSION = "tiangong-bio-v5";
 const PRECACHE = `${VERSION}-precache`;
 const RUNTIME = `${VERSION}-runtime`;
 
