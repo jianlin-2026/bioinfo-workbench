@@ -3,7 +3,7 @@ name: Convert fine-tuned model to MLC
 # 为什么要有这个 workflow：
 #   本机是 Windows，PyPI 上没有可用的 mlc_llm（`mlc-llm-nightly-cpu` 是个 1.4 KB 空壳包），
 #   WSL 被安全策略禁用、也没有 Docker。而 WebLLM 只认 MLC 编译产物，所以转换必须在 Linux 上做。
-#   这里借 ubuntu runner 当那台 Linux，产物直接提交回仓库 model/mlc/ 供 raw.githubusercontent 取用。
+#   这里借 ubuntu runner 当那台 Linux，产物提交回仓库 model/mlc/ 供 raw.githubusercontent 取用。
 #
 # 只转权重、配置与 tokenizer 沿用官方目录（理由见 .github/scripts/fix_mlc_config.py 顶部）。
 
@@ -31,11 +31,29 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install mlc_llm (official wheel index)
+      - name: Install mlc_llm (diagnostic, never fails)
         run: |
-          python -m pip install -U pip
-          python -m pip install --pre -f https://mlc.ai/wheels mlc-llm-nightly-cpu mlc-ai-nightly-cpu
-          python -c "import mlc_llm; print('mlc_llm ok')"
+          set -u
+          python -m pip install -U pip wheel setuptools
+          DIAG=/tmp/mlc_diag.txt
+          : > "$DIAG"
+          {
+            echo "### pip install mlc-llm-nightly-cpu mlc-ai-nightly-cpu"
+            python -m pip install --pre -f https://mlc.ai/wheels mlc-llm-nightly-cpu mlc-ai-nightly-cpu 2>&1 || echo "PIP_EXIT=$?"
+            echo
+            echo "### pip list (mlc / tvm)"
+            python -m pip list 2>/dev/null | grep -iE "mlc|tvm" || echo "(none installed)"
+            echo
+            echo "### import mlc_llm"
+            python -c "import mlc_llm; print('IMPORT_OK', getattr(mlc_llm,'__version__','?'))" 2>&1 || echo "IMPORT_FAILED"
+            echo
+            echo "### 索引里到底有哪些 mlc_llm 轮子（取前 30 行）"
+            curl -s --max-time 60 https://mlc.ai/wheels/ | grep -oE 'mlc[_-]llm[_-]nightly[^"<> ]*' | sort -u | head -30 || echo "(索引抓取失败)"
+          } >> "$DIAG" 2>&1
+          tail -c 6000 "$DIAG"
+
+      - name: Verify mlc_llm usable
+        run: python -c "import mlc_llm; print('mlc_llm ok', getattr(mlc_llm,'__version__','?'))"
 
       - name: Install deps for LoRA merge
         run: |
@@ -58,11 +76,30 @@ jobs:
         run: |
           test -f dist/tuned/mlc-chat-config.json
           test -f dist/tuned/ndarray-cache.json
-          n=$(ls dist/tuned/params_shard_*.bin | wc -l)
-          echo "shards=$n"
+          ls dist/tuned/params_shard_*.bin | wc -l
           du -sh dist/tuned
 
+      - name: Dump diagnostics
+        if: always()
+        continue-on-error: true
+        run: |
+          mkdir -p model
+          {
+            echo "# 转换诊断（CI 自动生成，可删）"
+            echo
+            echo "run id: $GITHUB_RUN_ID"
+            echo
+            echo '```'
+            cat /tmp/mlc_diag.txt 2>/dev/null || echo "(无诊断文件：卡在第一步之前)"
+            echo '```'
+          } > model/diag.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add model/diag.md
+          git diff --cached --quiet || { git commit -m "chore(model): 记录转换诊断 [skip ci]"; git push; }
+
       - name: Commit converted model back to repo
+        if: success()
         run: |
           rm -rf model/mlc
           mkdir -p model
@@ -73,6 +110,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "no change, skip commit"
           else
-            git commit -m "chore(model): convert fine-tuned model to MLC q4f16_1"
+            git commit -m "chore(model): convert fine-tuned model to MLC q4f16_1 [skip ci]"
             git push
           fi
