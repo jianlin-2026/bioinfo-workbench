@@ -67,9 +67,18 @@ jobs:
 
       - name: Convert weights to q4f16_1
         run: |
-          mlc_llm convert_weight ./merged --quantization q4f16_1 -o dist/tuned
-          ls -la dist/tuned
-          du -sh dist/tuned
+          set -x
+          LOG=/tmp/conv.txt
+          : > "$LOG"
+          mlc_llm --help >> "$LOG" 2>&1 || true
+          echo "=== convert_weight --help ===" >> "$LOG"
+          mlc_llm convert_weight --help >> "$LOG" 2>&1 || true
+          echo "=== convert_weight 实际运行 ===" >> "$LOG"
+          mlc_llm convert_weight ./merged --quantization q4f16_1 -o dist/tuned >> "$LOG" 2>&1 || echo "CONVERT_FAILED:$?" >> "$LOG"
+          tail -50 "$LOG"
+          ls -la dist/tuned 2>/dev/null || true
+          du -sh dist/tuned 2>/dev/null || true
+          test -f dist/tuned/ndarray-cache.json
 
       - name: Reuse official config and tokenizer
         run: python .github/scripts/fix_mlc_config.py "dist/tuned"
@@ -92,7 +101,11 @@ jobs:
             echo "run id: $GITHUB_RUN_ID"
             echo
             echo '```'
+            echo "### 安装与导入"
             cat /tmp/mlc_diag.txt 2>/dev/null || echo "(无诊断文件：卡在第一步之前)"
+            echo
+            echo "### 权重转换"
+            cat /tmp/conv.txt 2>/dev/null || echo "(无转换日志：没走到转换步骤)"
             echo '```'
           } > model/diag.md
           git config user.name "github-actions[bot]"
