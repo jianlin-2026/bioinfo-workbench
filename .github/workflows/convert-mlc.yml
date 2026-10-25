@@ -1,0 +1,78 @@
+name: Convert fine-tuned model to MLC
+
+# 为什么要有这个 workflow：
+#   本机是 Windows，PyPI 上没有可用的 mlc_llm（`mlc-llm-nightly-cpu` 是个 1.4 KB 空壳包），
+#   WSL 被安全策略禁用、也没有 Docker。而 WebLLM 只认 MLC 编译产物，所以转换必须在 Linux 上做。
+#   这里借 ubuntu runner 当那台 Linux，产物直接提交回仓库 model/mlc/ 供 raw.githubusercontent 取用。
+#
+# 只转权重、配置与 tokenizer 沿用官方目录（理由见 .github/scripts/fix_mlc_config.py 顶部）。
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "model/lora-adapter/**"
+      - ".github/workflows/convert-mlc.yml"
+      - ".github/scripts/**"
+
+permissions:
+  contents: write
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install mlc_llm (official wheel index)
+        run: |
+          python -m pip install -U pip
+          python -m pip install --pre -f https://mlc.ai/wheels mlc-llm-nightly-cpu mlc-ai-nightly-cpu
+          python -c "import mlc_llm; print('mlc_llm ok')"
+
+      - name: Install deps for LoRA merge
+        run: |
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install transformers peft safetensors sentencepiece protobuf
+
+      - name: Merge LoRA into base
+        run: python .github/scripts/merge_lora.py "Qwen/Qwen2-0.5B-Instruct" "model/lora-adapter" "merged"
+
+      - name: Convert weights to q4f16_1
+        run: |
+          mlc_llm convert_weight ./merged --quantization q4f16_1 -o dist/tuned
+          ls -la dist/tuned
+          du -sh dist/tuned
+
+      - name: Reuse official config and tokenizer
+        run: python .github/scripts/fix_mlc_config.py "dist/tuned"
+
+      - name: Sanity check output
+        run: |
+          test -f dist/tuned/mlc-chat-config.json
+          test -f dist/tuned/ndarray-cache.json
+          n=$(ls dist/tuned/params_shard_*.bin | wc -l)
+          echo "shards=$n"
+          du -sh dist/tuned
+
+      - name: Commit converted model back to repo
+        run: |
+          rm -rf model/mlc
+          mkdir -p model
+          cp -r dist/tuned model/mlc
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add model/mlc
+          if git diff --cached --quiet; then
+            echo "no change, skip commit"
+          else
+            git commit -m "chore(model): convert fine-tuned model to MLC q4f16_1"
+            git push
+          fi
