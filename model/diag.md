@@ -1,6 +1,6 @@
 # 转换诊断（CI 自动生成，可删）
 
-run id: 40169757577
+run id: 40170115067
 
 ```
 ### 安装与导入
@@ -8,10 +8,10 @@ run id: 40169757577
 Looking in links: https://mlc.ai/wheels
 Collecting mlc-llm-nightly-cpu
   Downloading mlc_llm_nightly_cpu-0.26.dev6-py3-none-manylinux_2_28_x86_64.whl (24.9 MB)
-     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 24.9/24.9 MB 42.2 MB/s  0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 24.9/24.9 MB 107.4 MB/s  0:00:00
 Collecting mlc-ai-nightly-cpu
   Downloading mlc_ai_nightly_cpu-0.26.dev246-py3-none-manylinux_2_28_x86_64.whl (72.9 MB)
-     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 72.9/72.9 MB 64.3 MB/s  0:00:01
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 72.9/72.9 MB 106.3 MB/s  0:00:00
 Collecting psutil
   Downloading psutil-7.2.2-cp36-abi3-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl.metadata (22 kB)
 Collecting apache-tvm-ffi (from mlc-llm-nightly-cpu)
@@ -200,28 +200,28 @@ Collecting nvidia-nvshmem-cu13==3.4.5 (from torch->mlc-llm-nightly-cpu)
   Downloading nvidia_nvshmem_cu13-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.1 kB)
 Collecting triton~=3.8.0 (from torch->mlc-llm-nightly-cpu)
   Downloading triton-3.8.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (978 bytes)
-Collecting nvidia-cusparse==12.6.3.3.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
-  Downloading nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.8 kB)
-Collecting nvidia-nvjitlink<14,>=13.0.88 (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
-  Downloading nvidia_nvjitlink-13.4.92-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl.metadata (1.8 kB)
-Collecting nvidia-cuda-nvrtc==13.0.88.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
-  Downloading nvidia_cuda_nvrtc-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl.metadata (1.7 kB)
-Collecting nvidia-cuda-cupti==13.0.85.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
-  Downloading nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_x86_64.whl.metadata (1.7 kB)
-Collecting nvidia-cufft==12.0.0.61.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
-  Downloading nvidia_cufft-12.0.0.61-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.8 kB)
-Collecting nvidia-cufile==1.15.1.6.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
-  Downloading nvidia_cufile-1.15.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.7 kB)
 Collecting nvidia-cublas==13.1.1.3.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
   Downloading nvidia_cublas-13.1.1.3-py3-none-manylinux_2_27_x86_64.whl.metadata (1.8 kB)
+Collecting nvidia-cuda-nvrtc==13.0.88.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
+  Downloading nvidia_cuda_nvrtc-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-cufft==12.0.0.61.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
+  Downloading nvidia_cufft-12.0.0.61-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.8 kB)
+Collecting nvidia-nvjitlink<14,>=13.0.88 (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
+  Downloading nvidia_nvjitlink-13.4.92-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl.metadata (1.8 kB)
+Collecting nvidia-cuda-runtime==13.0.96.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
+  Downloading nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.7 kB)
 Collecting nvidia-cusolver==12.0.4.66.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
   Downloading nvidia_cusolver-12.0.4.66-py3-none-manylinux_2_27_x86_64.whl.metadata (1.8 kB)
+Collecting nvidia-cusparse==12.6.3.3.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
+  Downloading nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.8 kB)
 Collecting nvidia-nvtx==13.0.85.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
   Downloading nvidia_nvtx-13.0.85-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl.metadata (1.8 kB)
 Collecting nvidia-curand==10.4.0.35.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
   Downloading nvidia_curand-10.4.0.35-py3-none-manylinux_2_27_x86_64.whl.metadata (1.7 kB)
-Collecting nvidia-cuda-runtime==13.0.96.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
-  Downloading nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-cuda-cupti==13.0.85.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
+  Downloading nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-cufile==1.15.1.6.* (from cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.3; platform_system == "Linux"->torch->mlc-llm-nightly-cpu)
+  Downloading nvidia_cufile-1.15.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.7 kB)
 Collecting mpmath<1.4,>=1.1.0 (from sympy>=1.13.3->torch->mlc-llm-nightly-cpu)
   Downloading mpmath-1.3.0-py3-none-any.whl.metadata (8.6 kB)
 Collecting MarkupSafe>=2.0 (from jinja2->torch->mlc-llm-nightly-cpu)
@@ -242,25 +242,25 @@ Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=13.8.0->typer->transfor
   Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
 Downloading psutil-7.2.2-cp36-abi3-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl (155 kB)
 Downloading apache_tvm_ffi-0.1.15.post0-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (3.3 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 73.6 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 116.3 MB/s  0:00:00
 Downloading ml_dtypes-0.6.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (412 kB)
 Downloading numpy-2.2.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.8 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.8/16.8 MB 236.7 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.8/16.8 MB 133.8 MB/s  0:00:00
 Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
 Downloading datasets-5.1.0-py3-none-any.whl (604 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 604.4/604.4 kB 115.8 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 604.4/604.4 kB 12.1 MB/s  0:00:00
 Downloading dill-0.4.1-py3-none-any.whl (120 kB)
 Downloading fsspec-2026.7.0-py3-none-any.whl (206 kB)
 Downloading huggingface_hub-2.3.0-py3-none-any.whl (855 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 855.2/855.2 kB 166.7 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 855.2/855.2 kB 94.1 MB/s  0:00:00
 Downloading click-8.5.0-py3-none-any.whl (125 kB)
 Downloading hf_xet-1.8.0.dev0-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (68.3 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 68.3/68.3 MB 294.9 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 68.3/68.3 MB 105.6 MB/s  0:00:00
 Downloading httpx2-2.14.0-py3-none-any.whl (96 kB)
 Downloading httpcore2-2.14.0-py3-none-any.whl (84 kB)
 Downloading multiprocess-0.70.19-py310-none-any.whl (134 kB)
 Downloading aiohttp-3.14.5-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (1.9 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.9/1.9 MB 282.9 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.9/1.9 MB 116.0 MB/s  0:00:00
 Downloading async_timeout-5.0.1-py3-none-any.whl (6.2 kB)
 Downloading multidict-7.1.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (464 kB)
 Downloading yarl-1.25.1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (118 kB)
@@ -275,9 +275,9 @@ Downloading h11-0.16.0-py3-none-any.whl (37 kB)
 Downloading idna-3.20-py3-none-any.whl (69 kB)
 Downloading propcache-0.5.4-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (224 kB)
 Downloading pyarrow-25.0.1-cp310-cp310-manylinux_2_28_x86_64.whl (50.1 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 50.1/50.1 MB 126.1 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 50.1/50.1 MB 124.1 MB/s  0:00:00
 Downloading pyyaml-6.0.3-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (770 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 770.3/770.3 kB 151.4 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 770.3/770.3 kB 80.7 MB/s  0:00:00
 Downloading tomli-2.5.0-py3-none-any.whl (14 kB)
 Downloading tqdm-4.70.1-py3-none-any.whl (80 kB)
 Downloading truststore-0.10.5-py3-none-any.whl (19 kB)
@@ -286,116 +286,116 @@ Downloading annotated_doc-0.0.5-py3-none-any.whl (5.3 kB)
 Downloading opentelemetry_api-1.45.1-py3-none-any.whl (60 kB)
 Downloading pydantic-2.14.1-py3-none-any.whl (488 kB)
 Downloading pydantic_core-2.50.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.2 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 277.1 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 117.6 MB/s  0:00:00
 Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
 Downloading starlette-1.7.0-py3-none-any.whl (78 kB)
 Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
 Downloading flashinfer_python-0.7.2.post1-py3-none-any.whl (62.1 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 62.1/62.1 MB 19.0 MB/s  0:00:03
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 62.1/62.1 MB 114.9 MB/s  0:00:00
 Downloading cuda_python-13.4.4-py3-none-any.whl (7.6 kB)
 Downloading cuda_bindings-13.4.4-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (7.2 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.2/7.2 MB 330.7 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.2/7.2 MB 115.8 MB/s  0:00:00
 Downloading cuda_core-1.2.2-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (6.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.5/6.5 MB 225.8 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.5/6.5 MB 128.0 MB/s  0:00:00
 Downloading cuda_pathfinder-1.8.3-py3-none-any.whl (62 kB)
 Downloading cuda_tile-1.7.0-cp310-cp310-manylinux2014_x86_64.whl (426 kB)
 Downloading nccl_extensions-0.1.0-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (22.4 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 22.4/22.4 MB 229.8 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 22.4/22.4 MB 107.2 MB/s  0:00:00
 Downloading nccl4py-0.6.0-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (3.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.5/3.5 MB 121.8 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.5/3.5 MB 103.2 MB/s  0:00:00
 Downloading nvidia_cudnn_frontend-1.31.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (10.1 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.1/10.1 MB 242.6 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.1/10.1 MB 130.2 MB/s  0:00:00
 Downloading nvidia_cutlass_dsl-4.8.1-py3-none-any.whl (10 kB)
 Downloading nvidia_cutlass_dsl_libs_base-4.8.1-cp310-cp310-manylinux_2_28_x86_64.whl (3.1 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.1/3.1 MB 269.1 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.1/3.1 MB 114.4 MB/s  0:00:00
 Downloading nvidia_cutlass_dsl_libs_core-4.8.1-py3-none-any.whl (1.6 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.6/1.6 MB 203.1 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.6/1.6 MB 118.0 MB/s  0:00:00
 Downloading nvidia_cutlass_dsl_libs_cu12-4.8.1-cp310-cp310-manylinux_2_28_x86_64.whl (91.7 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 91.7/91.7 MB 234.1 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 91.7/91.7 MB 111.8 MB/s  0:00:00
 Downloading nvidia_cutlass_dsl_libs_cu13-4.8.1-cp310-cp310-manylinux_2_28_x86_64.whl (92.0 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 92.0/92.0 MB 224.9 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 92.0/92.0 MB 113.3 MB/s  0:00:00
 Downloading protobuf-7.37.0rc1-cp310-abi3-manylinux2014_x86_64.whl (360 kB)
 Downloading backports_strenum-1.3.1-py3-none-any.whl (8.3 kB)
 Downloading einops-0.9.0.dev0-py3-none-any.whl (67 kB)
 Downloading ninja-1.13.2-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (183 kB)
 Downloading nvidia_ml_py-13.615.71-py3-none-any.whl (58 kB)
 Downloading openai-3.37.0-py3-none-any.whl (2.3 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.3/2.3 MB 312.6 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.3/2.3 MB 130.4 MB/s  0:00:00
 Downloading jiter-0.18.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (337 kB)
 Downloading pandas-2.3.3-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.8 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.8/12.8 MB 352.1 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.8/12.8 MB 119.2 MB/s  0:00:00
 Downloading python_dateutil-3.0.0-py2.py3-none-any.whl (94 kB)
 Downloading pytz-2026.5-py2.py3-none-any.whl (506 kB)
 Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
 Downloading tzdata-2026.5-py2.py3-none-any.whl (347 kB)
 Downloading prompt_toolkit-3.0.53-py3-none-any.whl (392 kB)
 Downloading wcwidth-0.9.4-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (785 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 785.9/785.9 kB 146.4 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 785.9/785.9 kB 91.3 MB/s  0:00:00
 Downloading requests-2.34.2-py3-none-any.whl (73 kB)
 Downloading charset_normalizer-3.5.2-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (271 kB)
 Downloading urllib3-2.8.0-py3-none-any.whl (135 kB)
 Downloading certifi-2026.10.23-py3-none-any.whl (135 kB)
 Downloading safetensors-0.9.0rc1-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (594 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 594.1/594.1 kB 125.0 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 594.1/594.1 kB 67.1 MB/s  0:00:00
 Downloading sentencepiece-0.2.2-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (1.4 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.4/1.4 MB 249.0 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.4/1.4 MB 88.7 MB/s  0:00:00
 Downloading shortuuid-1.0.13-py3-none-any.whl (10 kB)
 Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)
 Downloading tabulate-0.10.0-py3-none-any.whl (39 kB)
 Downloading tiktoken-0.14.0-cp310-cp310-manylinux_2_28_x86_64.whl (1.2 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 221.5 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 93.8 MB/s  0:00:00
 Downloading regex-2026.9.29-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (797 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 797.6/797.6 kB 169.1 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 797.6/797.6 kB 79.8 MB/s  0:00:00
 Downloading torch-2.14.1-cp310-cp310-manylinux_2_28_x86_64.whl (554.6 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 554.6/554.6 MB 81.3 MB/s  0:00:03
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 554.6/554.6 MB 44.5 MB/s  0:00:06
 Downloading cuda_toolkit-13.0.3.0-py2.py3-none-any.whl (2.5 kB)
 Downloading nvidia_cudnn_cu13-9.24.0.43-py3-none-manylinux_2_27_x86_64.whl (553.1 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 553.1/553.1 MB 95.3 MB/s  0:00:03
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 553.1/553.1 MB 44.3 MB/s  0:00:06
 Downloading nvidia_cusparselt_cu13-0.8.1-py3-none-manylinux2014_x86_64.whl (170.1 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 170.1/170.1 MB 328.0 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 170.1/170.1 MB 133.5 MB/s  0:00:01
 Downloading nvidia_nccl_cu13-2.30.7-py3-none-manylinux_2_18_x86_64.whl (216.0 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 216.0/216.0 MB 290.3 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 216.0/216.0 MB 89.8 MB/s  0:00:02
 Downloading nvidia_nvshmem_cu13-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (60.4 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.4/60.4 MB 388.6 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.4/60.4 MB 129.1 MB/s  0:00:00
 Downloading nvidia_cublas-13.1.1.3-py3-none-manylinux_2_27_x86_64.whl (423.1 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 423.1/423.1 MB 63.4 MB/s  0:00:04
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 423.1/423.1 MB 45.8 MB/s  0:00:05
 Downloading nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_x86_64.whl (10.7 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.7/10.7 MB 345.9 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.7/10.7 MB 112.5 MB/s  0:00:00
 Downloading nvidia_cuda_nvrtc-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl (90.2 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 90.2/90.2 MB 343.4 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 90.2/90.2 MB 133.6 MB/s  0:00:00
 Downloading nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.2 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 300.3 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 119.6 MB/s  0:00:00
 Downloading nvidia_cufft-12.0.0.61-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (214.1 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 214.1/214.1 MB 298.0 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 214.1/214.1 MB 66.2 MB/s  0:00:03
 Downloading nvidia_cufile-1.15.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (1.2 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 231.9 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 11.9 MB/s  0:00:00
 Downloading nvidia_curand-10.4.0.35-py3-none-manylinux_2_27_x86_64.whl (59.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 59.5/59.5 MB 384.7 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 59.5/59.5 MB 132.0 MB/s  0:00:00
 Downloading nvidia_cusolver-12.0.4.66-py3-none-manylinux_2_27_x86_64.whl (200.9 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 200.9/200.9 MB 307.3 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 200.9/200.9 MB 74.9 MB/s  0:00:02
 Downloading nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (145.9 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 145.9/145.9 MB 298.4 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 145.9/145.9 MB 135.0 MB/s  0:00:01
 Downloading nvidia_nvjitlink-13.4.92-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl (42.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 42.5/42.5 MB 392.0 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 42.5/42.5 MB 129.8 MB/s  0:00:00
 Downloading nvidia_nvtx-13.0.85-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl (148 kB)
 Downloading triton-3.8.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (247.8 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 247.8/247.8 MB 120.8 MB/s  0:00:02
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 247.8/247.8 MB 69.0 MB/s  0:00:03
 Downloading networkx-3.4.2-py3-none-any.whl (1.7 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 99.5 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 5.6 MB/s  0:00:00
 Downloading sympy-1.14.0-py3-none-any.whl (6.3 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.3/6.3 MB 357.2 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.3/6.3 MB 25.7 MB/s  0:00:00
 Downloading mpmath-1.3.0-py3-none-any.whl (536 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 536.2/536.2 kB 97.2 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 536.2/536.2 kB 1.2 MB/s  0:00:00
 Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
 Downloading markupsafe-3.0.4-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (20 kB)
 Downloading transformers-5.20.2-py3-none-any.whl (12.8 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.8/12.8 MB 350.2 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.8/12.8 MB 125.8 MB/s  0:00:00
 Downloading tokenizers-0.23.3-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.4 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.4/3.4 MB 327.9 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.4/3.4 MB 121.5 MB/s  0:00:00
 Downloading typer-0.27.3-py3-none-any.whl (123 kB)
 Downloading rich-15.0.0-py3-none-any.whl (310 kB)
 Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 221.6 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 106.3 MB/s  0:00:00
 Downloading markdown_it_py-4.2.0-py3-none-any.whl (91 kB)
 Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
 Downloading shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
@@ -411,26 +411,26 @@ mlc-ai-nightly-cpu           0.26.dev246
 mlc-llm-nightly-cpu          0.26.dev6
 
 ### import mlc_llm
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "snapdragon835", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "kirin970", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2837", "mattr": ("+neon",), "mtriple": "armv7l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2711", "mattr": ("+neon",), "mcpu": "cortex-a72", "mtriple": "armv8l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "pynq", "mattr": ("+neon",), "mtriple": "armv7a-linux-eabi"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "beagleai", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a15", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "stm32mp1", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a7", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "snapdragon835", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "beagleai", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a15", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "kirin970", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "stm32mp1", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a7", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2711", "mattr": ("+neon",), "mcpu": "cortex-a72", "mtriple": "armv8l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "pynq", "mattr": ("+neon",), "mtriple": "armv7a-linux-eabi"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2837", "mattr": ("+neon",), "mtriple": "armv7l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mcpu": "apple-m1", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mcpu": "apple-m1", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
-[06:40:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mcpu": "apple-m2", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "snapdragon835", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "kirin970", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2837", "mattr": ("+neon",), "mtriple": "armv7l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2711", "mattr": ("+neon",), "mcpu": "cortex-a72", "mtriple": "armv8l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "pynq", "mattr": ("+neon",), "mtriple": "armv7a-linux-eabi"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "beagleai", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a15", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "stm32mp1", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a7", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "snapdragon835", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "beagleai", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a15", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "kirin970", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "stm32mp1", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a7", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2711", "mattr": ("+neon",), "mcpu": "cortex-a72", "mtriple": "armv8l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "pynq", "mattr": ("+neon",), "mtriple": "armv7a-linux-eabi"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:12] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2837", "mattr": ("+neon",), "mtriple": "armv7l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:13] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:13] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mcpu": "apple-m1", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:13] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:13] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mcpu": "apple-m1", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:13] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:13] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mcpu": "apple-m2", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
 IMPORT_OK 0.1.dev0
 
 ### 索引里到底有哪些 mlc_llm 轮子（取前 30 行）
@@ -447,10 +447,182 @@ mlc_llm_nightly_rocm61-0.26.dev6-py3-none-manylinux_2_28_x86_64.whl
 mlc_llm_nightly_rocm62-0.26.dev6-py3-none-manylinux_2_28_x86_64.whl
 
 ### 权重转换
-/home/runner/work/_temp/110a982d-492d-47d0-b72f-982aa04f3286.sh: line 4: mlc_llm: command not found
+用 python -m mlc_llm
+=== help ===
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "snapdragon835", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "kirin970", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2837", "mattr": ("+neon",), "mtriple": "armv7l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2711", "mattr": ("+neon",), "mcpu": "cortex-a72", "mtriple": "armv8l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "pynq", "mattr": ("+neon",), "mtriple": "armv7a-linux-eabi"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "beagleai", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a15", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "stm32mp1", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a7", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "snapdragon835", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "beagleai", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a15", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "kirin970", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "stm32mp1", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a7", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2711", "mattr": ("+neon",), "mcpu": "cortex-a72", "mtriple": "armv8l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "pynq", "mattr": ("+neon",), "mtriple": "armv7a-linux-eabi"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2837", "mattr": ("+neon",), "mtriple": "armv7l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mcpu": "apple-m1", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mcpu": "apple-m1", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:41] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mcpu": "apple-m2", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+usage: MLC LLM Command Line Interface. [-h]
+                                       {compile,convert_weight,gen_config,chat,serve,package,calibrate,router}
+
+positional arguments:
+  {compile,convert_weight,gen_config,chat,serve,package,calibrate,router}
+                        Subcommand to to run. (choices: compile,
+                        convert_weight, gen_config, chat, serve, package,
+                        calibrate, router)
+
+options:
+  -h, --help            show this help message and exit
 === convert_weight --help ===
-/home/runner/work/_temp/110a982d-492d-47d0-b72f-982aa04f3286.sh: line 6: mlc_llm: command not found
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "snapdragon835", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "kirin970", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2837", "mattr": ("+neon",), "mtriple": "armv7l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2711", "mattr": ("+neon",), "mcpu": "cortex-a72", "mtriple": "armv8l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "pynq", "mattr": ("+neon",), "mtriple": "armv7a-linux-eabi"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "beagleai", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a15", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "stm32mp1", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a7", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "snapdragon835", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "beagleai", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a15", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "kirin970", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "stm32mp1", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a7", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2711", "mattr": ("+neon",), "mcpu": "cortex-a72", "mtriple": "armv8l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "pynq", "mattr": ("+neon",), "mtriple": "armv7a-linux-eabi"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2837", "mattr": ("+neon",), "mtriple": "armv7l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mcpu": "apple-m1", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mcpu": "apple-m1", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:44] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mcpu": "apple-m2", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+usage: MLC AutoLLM Quantization Framework [-h] --quantization
+                                          {q0f16,q0bf16,q0f32,q3f16_0,q3f16_1,q4f16_0,q4f16_1,q4bf16_0,q4bf16_1,q4f32_1,q4f16_2,q4f16_autoawq,q4f16_ft,e5m2_e5m2_f16,e4m3_e4m3_f16,e4m3_e4m3_f16_max_calibrate,fp8_e4m3fn_bf16_block_scale,fp8_e4m3fn_bf16_block_scale_static_activation}
+                                          [--model-type {auto,llama,llama4,mistral,ministral3,gemma,gemma2,gemma3,gemma3_text,gpt2,mixtral,gpt_neox,gpt_bigcode,phi-msft,phi,phi3,phi3_v,qwen,qwen2,qwen2_moe,qwen3,qwen3-embedding,qwen3_5,qwen3_5_text,qwen3_moe,deepseek_v2,deepseek_v3,stablelm,baichuan,internlm,internlm2,rwkv5,orion,llava,rwkv6,chatglm,eagle,bert,medusa,starcoder2,cohere,minicpm,deepseek,gptj,olmo,olmo2,nemotron,bert-bge}]
+                                          [--device DEVICE] [--source SOURCE]
+                                          [--source-format {auto,huggingface-torch,huggingface-safetensor,awq}]
+                                          --output OUTPUT
+                                          [--lora-adapter LORA_ADAPTER]
+                                          config
+
+positional arguments:
+  config                1) Path to a HuggingFace model directory that contains
+                        a `config.json` or 2) Path to `config.json` in
+                        HuggingFace format, or 3) The name of a pre-defined
+                        model architecture. A `config.json` file in
+                        HuggingFace format defines the model architecture,
+                        including the vocabulary size, the number of layers,
+                        the hidden size, number of attention heads, etc.
+                        Example: https://huggingface.co/codellama/CodeLlama-
+                        7b-hf/blob/main/config.json. A HuggingFace directory
+                        often contains a `config.json` which defines the model
+                        architecture, the non-quantized model weights in
+                        PyTorch or SafeTensor format, tokenizer
+                        configurations, as well as an optional
+                        `generation_config.json` provides additional default
+                        configuration for text generation. Example: https://hu
+                        ggingface.co/codellama/CodeLlama-7b-hf/tree/main.
+                        (required)
+
+options:
+  -h, --help            show this help message and exit
+  --quantization {q0f16,q0bf16,q0f32,q3f16_0,q3f16_1,q4f16_0,q4f16_1,q4bf16_0,q4bf16_1,q4f32_1,q4f16_2,q4f16_autoawq,q4f16_ft,e5m2_e5m2_f16,e4m3_e4m3_f16,e4m3_e4m3_f16_max_calibrate,fp8_e4m3fn_bf16_block_scale,fp8_e4m3fn_bf16_block_scale_static_activation}
+                        The quantization mode we use to compile. If
+                        unprovided, will infer from `model`. (required,
+                        choices: q0f16, q0bf16, q0f32, q3f16_0, q3f16_1,
+                        q4f16_0, q4f16_1, q4bf16_0, q4bf16_1, q4f32_1,
+                        q4f16_2, q4f16_autoawq, q4f16_ft, e5m2_e5m2_f16,
+                        e4m3_e4m3_f16, e4m3_e4m3_f16_max_calibrate,
+                        fp8_e4m3fn_bf16_block_scale,
+                        fp8_e4m3fn_bf16_block_scale_static_activation)
+  --model-type {auto,llama,llama4,mistral,ministral3,gemma,gemma2,gemma3,gemma3_text,gpt2,mixtral,gpt_neox,gpt_bigcode,phi-msft,phi,phi3,phi3_v,qwen,qwen2,qwen2_moe,qwen3,qwen3-embedding,qwen3_5,qwen3_5_text,qwen3_moe,deepseek_v2,deepseek_v3,stablelm,baichuan,internlm,internlm2,rwkv5,orion,llava,rwkv6,chatglm,eagle,bert,medusa,starcoder2,cohere,minicpm,deepseek,gptj,olmo,olmo2,nemotron,bert-bge}
+                        Model architecture such as "llama". If not set, it is
+                        inferred from `mlc-chat-config.json`. (default:
+                        "auto")
+  --device DEVICE       The device used to do quantization such as "cuda" or
+                        "cuda:0". Will detect from local available GPUs if not
+                        specified. (default: "auto")
+  --source SOURCE       The path to original model weight, infer from `config`
+                        if missing. (default: "auto")
+  --source-format {auto,huggingface-torch,huggingface-safetensor,awq}
+                        The format of source model weight, infer from `config`
+                        if missing. (default: "auto", choices: auto,
+                        huggingface-torch, huggingface-safetensor, awq")
+  --output OUTPUT, -o OUTPUT
+                        The output directory to save the quantized model
+                        weight. Will create `params_shard_*.bin` and `tensor-
+                        cache.json` in this directory. (required)
+  --lora-adapter LORA_ADAPTER
+                        Path to a LoRA adapter directory in PEFT format. When
+                        provided, adapter weights are merged into the base
+                        model before quantization.
 === convert_weight 实际运行 ===
-/home/runner/work/_temp/110a982d-492d-47d0-b72f-982aa04f3286.sh: line 8: mlc_llm: command not found
-CONVERT_FAILED:127
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "snapdragon835", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "kirin970", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2837", "mattr": ("+neon",), "mtriple": "armv7l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2711", "mattr": ("+neon",), "mcpu": "cortex-a72", "mtriple": "armv8l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "pynq", "mattr": ("+neon",), "mtriple": "armv7a-linux-eabi"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "beagleai", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a15", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "stm32mp1", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a7", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "snapdragon835", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "beagleai", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a15", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "kirin970", "mattr": ("+neon",), "mtriple": "arm64-linux-android"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "stm32mp1", "mattr": ("+neon", "+vfp4", "+thumb2"), "mcpu": "cortex-a7", "mtriple": "armv7a-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2711", "mattr": ("+neon",), "mcpu": "cortex-a72", "mtriple": "armv8l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "pynq", "mattr": ("+neon",), "mtriple": "armv7a-linux-eabi"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "keys": ("arm_cpu", "cpu"), "device": "arm_cpu", "model": "bcm2837", "mattr": ("+neon",), "mtriple": "armv7l-linux-gnueabihf"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mcpu": "apple-m1", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mcpu": "apple-m1", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[06:46:47] /workspace/tvm/src/target/canonicalizer/llvm/arm_aprofile.cc:104: Warning: Cannot parse target features for target: {"kind": "llvm", "mcpu": "apple-m2", "mtriple": "arm64-apple-macos"}. LLVM was not compiled with support for Arm(R)-based targets.
+[2026-10-25 06:46:48] INFO auto_config.py:113: [92mFound[0m model configuration: merged/config.json
+[2026-10-25 06:46:51] INFO auto_device.py:91: [91mNot found[0m device: cuda:0
+[2026-10-25 06:46:54] INFO auto_device.py:91: [91mNot found[0m device: rocm:0
+[2026-10-25 06:46:57] INFO auto_device.py:91: [91mNot found[0m device: metal:0
+[2026-10-25 06:47:00] INFO auto_device.py:91: [91mNot found[0m device: vulkan:0
+[2026-10-25 06:47:03] INFO auto_device.py:91: [91mNot found[0m device: opencl:0
+[2026-10-25 06:47:06] INFO auto_device.py:80: [92mFound[0m device: cpu:0
+[2026-10-25 06:47:06] INFO auto_device.py:36: Using device: [1mcpu:0[0m
+[2026-10-25 06:47:06] INFO auto_weight.py:71: Finding weights in: merged
+[2026-10-25 06:47:06] INFO auto_weight.py:137: [91mNot found[0m Huggingface PyTorch
+[2026-10-25 06:47:06] INFO auto_weight.py:161: [92mFound[0m source weight format: huggingface-safetensor. Source configuration: merged/model.safetensors.index.json
+[2026-10-25 06:47:06] INFO auto_weight.py:107: Using source weight configuration: [1mmerged/model.safetensors.index.json[0m. Use `--source` to override.
+[2026-10-25 06:47:06] INFO auto_weight.py:111: Using source weight format: [1mhuggingface-safetensor[0m. Use `--source-format` to override.
+[2026-10-25 06:47:06] INFO auto_config.py:151: [92mFound[0m model type: [1mqwen2[0m. Use `--model-type` to override.
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/mlc_llm/__main__.py", line 67, in <module>
+    main()
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/mlc_llm/__main__.py", line 37, in main
+    cli.main(sys.argv[2:])
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/mlc_llm/cli/convert_weight.py", line 103, in main
+    convert_weight(
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/mlc_llm/interface/convert_weight.py", line 250, in convert_weight
+    _convert_args(args)
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/mlc_llm/interface/convert_weight.py", line 104, in _convert_args
+    model_config = args.model.config.from_file(args.config)
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/mlc_llm/support/config.py", line 70, in from_file
+    return cls.from_dict(json.load(in_file))
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/mlc_llm/support/config.py", line 50, in from_dict
+    return cls(**fields, kwargs=kwargs)
+TypeError: QWen2Config.__init__() missing 1 required positional argument: 'rope_theta'
+[1mWeight conversion with arguments:[0m
+  [1m--config[0m          merged/config.json
+  [1m--quantization[0m    GroupQuantize(name='q4f16_1', kind='group-quant', group_size=32, quantize_dtype='int4', storage_dtype='uint32', model_dtype='float16', linear_weight_layout='NK', quantize_embedding=True, quantize_final_fc=True, num_elem_per_storage=8, num_storage_per_group=4, max_int_value=7, tensor_parallel_shards=0)
+  [1m--model-type[0m      qwen2
+  [1m--device[0m          cpu:0
+  [1m--source[0m          merged/model.safetensors.index.json
+  [1m--source-format[0m   huggingface-safetensor
+  [1m--output[0m          dist/tuned
+CONVERT_FAILED:1
 ```
