@@ -7,7 +7,9 @@ name: Convert fine-tuned model to MLC
 #
 # 只转权重、配置与 tokenizer 沿用官方目录（理由见 .github/scripts/fix_mlc_config.py 顶部）。
 
-# ⚠ 当前状态（2026-10-25）：**手动触发**，不要接 push。
+# ⚠ 当前状态（2026-10-25，7 次尝试后结论）：**手动触发**，不要接 push。
+#   cpu 版(0.26.dev6) → 量化阶段 SIGSEGV(139)；cu124 版(0.20.dev162) → CPU runner 上 import 失败。
+#   耗时 7 轮已超过换机器成本，改用 tools/nlu/finetune/run-convert-in-wsl.sh 在真实 Linux 上做。
 #   连续 5 次尝试后卡在最后一步：ubuntu runner 上 mlc_llm(0.26.dev6 cpu) 的
 #   convert_weight 在量化阶段直接 SIGSEGV（退出码 139），不是脚本写法问题。
 #   已经在 CI 里逐段排掉的问题（都记在 model/diag.md 里）：
@@ -17,11 +19,6 @@ name: Convert fine-tuned model to MLC
 #   mlc_llm）比继续在 runner 上换版本更省时间。手动 trigger 本 workflow 仍可复现诊断。
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "model/lora-adapter/**"
-      - ".github/workflows/convert-mlc.yml"
-      - ".github/scripts/**"
 
 permissions:
   contents: write
@@ -49,10 +46,7 @@ jobs:
             echo "### pip install mlc-llm-nightly-cpu mlc-ai-nightly-cpu"
             # psutil 是 mlc_llm.serve 的隐式依赖（没在 install_requires 里），
             # 不装的话 `import mlc_llm` 会在 popen_server.py 处 ModuleNotFoundError
-            # 试第 6 次：0.26.dev6(cpu) 在量化阶段 SIGSEGV，改试用仓库里更早的 cu124 配对版本
-            python -m pip install --pre -f https://mlc.ai/wheels "mlc-llm-nightly-cu124==0.20.dev162" "mlc-ai-nightly-cu124" psutil 2>&1 || echo "PIP_EXIT=$?"
-            echo "--- 备选：若上条失败，回退 cpu 版 ---"
-            python -c "import mlc_llm" 2>&1 | tail -3 || python -m pip install --pre -f https://mlc.ai/wheels mlc-llm-nightly-cpu mlc-ai-nightly-cpu psutil 2>&1 | tail -3
+            python -m pip install --pre -f https://mlc.ai/wheels mlc-llm-nightly-cpu mlc-ai-nightly-cpu psutil 2>&1 || echo "PIP_EXIT=$?"
             echo
             echo "### pip list (mlc / tvm)"
             python -m pip list 2>/dev/null | grep -iE "mlc|tvm" || echo "(none installed)"
