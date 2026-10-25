@@ -39,7 +39,9 @@ jobs:
           : > "$DIAG"
           {
             echo "### pip install mlc-llm-nightly-cpu mlc-ai-nightly-cpu"
-            python -m pip install --pre -f https://mlc.ai/wheels mlc-llm-nightly-cpu mlc-ai-nightly-cpu 2>&1 || echo "PIP_EXIT=$?"
+            # psutil 是 mlc_llm.serve 的隐式依赖（没在 install_requires 里），
+            # 不装的话 `import mlc_llm` 会在 popen_server.py 处 ModuleNotFoundError
+            python -m pip install --pre -f https://mlc.ai/wheels mlc-llm-nightly-cpu mlc-ai-nightly-cpu psutil 2>&1 || echo "PIP_EXIT=$?"
             echo
             echo "### pip list (mlc / tvm)"
             python -m pip list 2>/dev/null | grep -iE "mlc|tvm" || echo "(none installed)"
