@@ -17,6 +17,11 @@ name: Convert fine-tuned model to MLC
 #   mlc_llm）比继续在 runner 上换版本更省时间。手动 trigger 本 workflow 仍可复现诊断。
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - "model/lora-adapter/**"
+      - ".github/workflows/convert-mlc.yml"
+      - ".github/scripts/**"
 
 permissions:
   contents: write
@@ -44,7 +49,10 @@ jobs:
             echo "### pip install mlc-llm-nightly-cpu mlc-ai-nightly-cpu"
             # psutil 是 mlc_llm.serve 的隐式依赖（没在 install_requires 里），
             # 不装的话 `import mlc_llm` 会在 popen_server.py 处 ModuleNotFoundError
-            python -m pip install --pre -f https://mlc.ai/wheels mlc-llm-nightly-cpu mlc-ai-nightly-cpu psutil 2>&1 || echo "PIP_EXIT=$?"
+            # 试第 6 次：0.26.dev6(cpu) 在量化阶段 SIGSEGV，改试用仓库里更早的 cu124 配对版本
+            python -m pip install --pre -f https://mlc.ai/wheels "mlc-llm-nightly-cu124==0.20.dev162" "mlc-ai-nightly-cu124==0.20.dev162" psutil 2>&1 || echo "PIP_EXIT=$?"
+            echo "--- 备选：若上条失败，回退 cpu 版 ---"
+            python -c "import mlc_llm" 2>&1 | tail -3 || python -m pip install --pre -f https://mlc.ai/wheels mlc-llm-nightly-cpu mlc-ai-nightly-cpu psutil 2>&1 | tail -3
             echo
             echo "### pip list (mlc / tvm)"
             python -m pip list 2>/dev/null | grep -iE "mlc|tvm" || echo "(none installed)"
