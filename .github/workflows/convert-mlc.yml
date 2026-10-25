@@ -70,14 +70,20 @@ jobs:
           set -x
           LOG=/tmp/conv.txt
           : > "$LOG"
-          mlc_llm --help >> "$LOG" 2>&1 || true
+          # 这个 wheel 装完后不一定有名为 mlc_llm 的 console script（实测 CI 里没有），
+          # 所以先探测，再退到 `python -m mlc_llm`，两个都不行才算失败。
+          MLC=""
+          if command -v mlc_llm >/dev/null 2>&1; then MLC="mlc_llm"; echo "用 console script" >> "$LOG"
+          elif python -m mlc_llm --help >/dev/null 2>&1; then MLC="python -m mlc_llm"; echo "用 python -m mlc_llm" >> "$LOG"
+          else echo "MLC_CLI_NOT_FOUND" >> "$LOG"; fi
+          echo "=== help ===" >> "$LOG"
+          $MLC --help >> "$LOG" 2>&1 || true
           echo "=== convert_weight --help ===" >> "$LOG"
-          mlc_llm convert_weight --help >> "$LOG" 2>&1 || true
+          $MLC convert_weight --help >> "$LOG" 2>&1 || true
           echo "=== convert_weight 实际运行 ===" >> "$LOG"
-          mlc_llm convert_weight ./merged --quantization q4f16_1 -o dist/tuned >> "$LOG" 2>&1 || echo "CONVERT_FAILED:$?" >> "$LOG"
-          tail -50 "$LOG"
+          $MLC convert_weight ./merged --quantization q4f16_1 -o dist/tuned >> "$LOG" 2>&1 || echo "CONVERT_FAILED:$?" >> "$LOG"
+          tail -60 "$LOG"
           ls -la dist/tuned 2>/dev/null || true
-          du -sh dist/tuned 2>/dev/null || true
           test -f dist/tuned/ndarray-cache.json
 
       - name: Reuse official config and tokenizer
