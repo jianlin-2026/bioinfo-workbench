@@ -7,13 +7,16 @@ name: Convert fine-tuned model to MLC
 #
 # 只转权重、配置与 tokenizer 沿用官方目录（理由见 .github/scripts/fix_mlc_config.py 顶部）。
 
+# ⚠ 当前状态（2026-10-25）：**手动触发**，不要接 push。
+#   连续 5 次尝试后卡在最后一步：ubuntu runner 上 mlc_llm(0.26.dev6 cpu) 的
+#   convert_weight 在量化阶段直接 SIGSEGV（退出码 139），不是脚本写法问题。
+#   已经在 CI 里逐段排掉的问题（都记在 model/diag.md 里）：
+#     ① import mlc_llm 缺 psutil（隐式依赖）② wheel 不提供名为 mlc_llm 的 console script
+#     ③ transformers 5.x 把 rope_theta 挪进 rope_parameters，mlc_llm 按 v4 读 → TypeError
+#   剩下这一步属于 mlc_llm 该版本的二进制问题，换机器（本机 WSL / 任意 Linux + conda 装
+#   mlc_llm）比继续在 runner 上换版本更省时间。手动 trigger 本 workflow 仍可复现诊断。
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "model/lora-adapter/**"
-      - ".github/workflows/convert-mlc.yml"
-      - ".github/scripts/**"
 
 permissions:
   contents: write
