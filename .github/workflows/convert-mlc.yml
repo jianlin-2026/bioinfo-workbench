@@ -84,11 +84,15 @@ jobs:
 
       - name: Convert weights (q4f16_1)
         run: |
-          set -eux
+          set -uo pipefail
           rm -rf model/mlc
           if command -v mlc_llm >/dev/null 2>&1; then MLC="mlc_llm"; else MLC="python -m mlc_llm"; fi
           echo "using: $MLC"
-          $MLC convert_weight /tmp/merged --quantization q4f16_1 -o model/mlc
+          { $MLC convert_weight --help 2>&1 | head -40; } > /tmp/convert.log || true
+          $MLC convert_weight /tmp/merged --quantization q4f16_1 -o model/mlc 2>&1 | tee -a /tmp/convert.log | tail -40
+          st=${PIPESTATUS[0]}
+          echo "convert_exit=$st"
+          [ "$st" = "0" ] || exit "$st"
           du -sh model/mlc
           ls model/mlc
 
@@ -146,6 +150,16 @@ jobs:
             echo "#### import mlc_llm 输出"
             echo '```'
             cat /tmp/import.log 2>/dev/null || echo "(无 /tmp/import.log)"
+            echo '```'
+            echo
+            echo "#### convert_weight 输出（末尾 120 行，含 --help）"
+            echo '```'
+            tail -120 /tmp/convert.log 2>/dev/null || echo "(无 /tmp/convert.log)"
+            echo '```'
+            echo
+            echo "#### 合并后的模型目录"
+            echo '```'
+            ls -la /tmp/merged 2>/dev/null | head -20 || true
             echo '```'
             echo
             echo "#### 已安装版本"
