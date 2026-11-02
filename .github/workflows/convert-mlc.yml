@@ -39,13 +39,15 @@ jobs:
         run: |
           set -eux
           python -m pip install -U pip wheel setuptools
-          W=https://mlc.ai/wheels
+          # mlc.ai/wheels 的索引里，条目 href 指向 GitHub Release（v0.9.dev0），
+          # 不是 https://mlc.ai/wheels/<file>（直链会 404，第一次就是这样失败的）
+          W=https://github.com/mlc-ai/package/releases/download/v0.9.dev0
           python -m pip install \
             "$W/mlc_ai_cpu-0.20.0-py3-none-manylinux_2_28_x86_64.whl" \
             "$W/mlc_llm_cpu-0.20.0.dev0-py3-none-manylinux_2_28_x86_64.whl" \
-            psutil
+            psutil 2>&1 | tee /tmp/install.log | tail -20
           python -m pip list | grep -iE "mlc|tvm" || true
-          python -c "import mlc_llm, tvm; print('IMPORT_OK tvm', tvm.__version__)"
+          python -c "import mlc_llm, tvm; print('IMPORT_OK tvm', tvm.__version__)" 2>&1 | tee /tmp/import.log | tail -5
 
       - name: Install merge deps (CPU torch)
         run: |
@@ -135,9 +137,20 @@ jobs:
           set -u
           {
             echo "### 失败时间 $(date -u)"
+            echo
+            echo "#### pip install 输出（末尾 60 行）"
+            echo '```'
+            tail -60 /tmp/install.log 2>/dev/null || echo "(无 /tmp/install.log)"
+            echo '```'
+            echo
+            echo "#### import mlc_llm 输出"
+            echo '```'
+            cat /tmp/import.log 2>/dev/null || echo "(无 /tmp/import.log)"
+            echo '```'
+            echo
+            echo "#### 已安装版本"
             echo '```'
             python -m pip list 2>/dev/null | grep -iE "mlc|tvm|torch|transformers|peft" || true
-            python -c "import mlc_llm, tvm; print('tvm', tvm.__version__)" 2>&1 | tail -5 || true
             echo '```'
           } > model/diag.md 2>&1
           git config user.name "github-actions[bot]"
