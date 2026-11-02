@@ -1,59 +1,59 @@
-### 失败时间 Mon Nov  2 14:50:54 UTC 2026
+### 失败时间 Mon Nov  2 14:57:32 UTC 2026
 
 #### pip install 输出（末尾 60 行）
 ```
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 797.6/797.6 kB 165.7 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 797.6/797.6 kB 99.9 MB/s  0:00:00
 Downloading torch-2.14.1-cp310-cp310-manylinux_2_28_x86_64.whl (554.6 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 554.6/554.6 MB 64.0 MB/s  0:00:04
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 554.6/554.6 MB 42.6 MB/s  0:00:06
 Downloading cuda_toolkit-13.0.3.0-py2.py3-none-any.whl (2.5 kB)
 Downloading nvidia_cudnn_cu13-9.24.0.43-py3-none-manylinux_2_27_x86_64.whl (553.1 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 553.1/553.1 MB 93.8 MB/s  0:00:03
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 553.1/553.1 MB 43.4 MB/s  0:00:06
 Downloading nvidia_cusparselt_cu13-0.8.1-py3-none-manylinux2014_x86_64.whl (170.1 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 170.1/170.1 MB 225.2 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 170.1/170.1 MB 134.9 MB/s  0:00:01
 Downloading nvidia_nccl_cu13-2.30.7-py3-none-manylinux_2_18_x86_64.whl (216.0 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 216.0/216.0 MB 207.2 MB/s  0:00:01
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 216.0/216.0 MB 87.9 MB/s  0:00:02
 Downloading nvidia_nvshmem_cu13-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (60.4 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.4/60.4 MB 243.9 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.4/60.4 MB 132.0 MB/s  0:00:00
 Downloading nvidia_cublas-13.1.1.3-py3-none-manylinux_2_27_x86_64.whl (423.1 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 423.1/423.1 MB 67.5 MB/s  0:00:04
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 423.1/423.1 MB 38.2 MB/s  0:00:07
 Downloading nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_x86_64.whl (10.7 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.7/10.7 MB 245.4 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.7/10.7 MB 139.9 MB/s  0:00:00
 Downloading nvidia_cuda_nvrtc-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl (90.2 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 90.2/90.2 MB 262.7 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 90.2/90.2 MB 117.4 MB/s  0:00:00
 Downloading nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.2 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 278.5 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 130.0 MB/s  0:00:00
 Downloading nvidia_cufft-12.0.0.61-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (214.1 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 214.1/214.1 MB 225.4 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 214.1/214.1 MB 109.1 MB/s  0:00:01
 Downloading nvidia_cufile-1.15.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (1.2 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 224.3 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 196.9 MB/s  0:00:00
 Downloading nvidia_curand-10.4.0.35-py3-none-manylinux_2_27_x86_64.whl (59.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 59.5/59.5 MB 269.2 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 59.5/59.5 MB 101.0 MB/s  0:00:00
 Downloading nvidia_cusolver-12.0.4.66-py3-none-manylinux_2_27_x86_64.whl (200.9 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 200.9/200.9 MB 230.1 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 200.9/200.9 MB 60.3 MB/s  0:00:03
 Downloading nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (145.9 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 145.9/145.9 MB 250.5 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 145.9/145.9 MB 102.3 MB/s  0:00:01
 Downloading nvidia_nvjitlink-13.4.92-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl (42.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 42.5/42.5 MB 276.4 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 42.5/42.5 MB 103.3 MB/s  0:00:00
 Downloading nvidia_nvtx-13.0.85-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl (148 kB)
 Downloading triton-3.8.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (247.8 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 247.8/247.8 MB 136.1 MB/s  0:00:01
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 247.8/247.8 MB 52.4 MB/s  0:00:04
 Downloading networkx-3.4.2-py3-none-any.whl (1.7 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 257.4 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 218.7 MB/s  0:00:00
 Downloading sympy-1.14.0-py3-none-any.whl (6.3 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.3/6.3 MB 262.2 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.3/6.3 MB 83.8 MB/s  0:00:00
 Downloading mpmath-1.3.0-py3-none-any.whl (536 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 536.2/536.2 kB 97.5 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 536.2/536.2 kB 115.8 MB/s  0:00:00
 Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
 Downloading markupsafe-3.0.4-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (20 kB)
 Downloading tornado-6.5.10-cp39-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (467 kB)
 Downloading transformers-5.20.2-py3-none-any.whl (12.8 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.8/12.8 MB 265.7 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.8/12.8 MB 109.8 MB/s  0:00:00
 Downloading tokenizers-0.23.3-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.4 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.4/3.4 MB 273.2 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.4/3.4 MB 129.7 MB/s  0:00:00
 Downloading typer-0.27.3-py3-none-any.whl (123 kB)
 Downloading rich-15.0.0-py3-none-any.whl (310 kB)
 Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 215.0 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 186.6 MB/s  0:00:00
 Downloading markdown_it_py-4.2.0-py3-none-any.whl (91 kB)
 Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
 Downloading shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
@@ -79,6 +79,59 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/ctypes/__init__.py", line 374, in __init__
     self._handle = _dlopen(self._name, mode)
 OSError: /opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/tvm/lib/libtvm_runtime.so: undefined symbol: _ZN3tvm3ffi4json9StringifyERKNS0_3AnyENS0_8OptionalIivEE
+```
+
+#### convert_weight 输出（末尾 120 行，含 --help）
+```
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/runpy.py", line 187, in _run_module_as_main
+    mod_name, mod_spec, code = _get_module_details(mod_name, _Error)
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/runpy.py", line 146, in _get_module_details
+    return _get_module_details(pkg_main_name, error)
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/runpy.py", line 110, in _get_module_details
+    __import__(pkg_name)
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/mlc_llm/__init__.py", line 6, in <module>
+    from tvm import register_global_func
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/tvm/__init__.py", line 29, in <module>
+    from .base import TVMError, __version__, _RUNTIME_ONLY
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/tvm/base.py", line 51, in <module>
+    _LIB_RUNTIME = libinfo.load_lib_ctypes(
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/tvm/libinfo.py", line 143, in load_lib_ctypes
+    return ctypes.CDLL(str(lib_path), getattr(ctypes, mode))
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/ctypes/__init__.py", line 374, in __init__
+    self._handle = _dlopen(self._name, mode)
+OSError: /opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/tvm/lib/libtvm_runtime.so: undefined symbol: _ZN3tvm3ffi4json9StringifyERKNS0_3AnyENS0_8OptionalIivEE
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/runpy.py", line 187, in _run_module_as_main
+    mod_name, mod_spec, code = _get_module_details(mod_name, _Error)
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/runpy.py", line 146, in _get_module_details
+    return _get_module_details(pkg_main_name, error)
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/runpy.py", line 110, in _get_module_details
+    __import__(pkg_name)
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/mlc_llm/__init__.py", line 6, in <module>
+    from tvm import register_global_func
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/tvm/__init__.py", line 29, in <module>
+    from .base import TVMError, __version__, _RUNTIME_ONLY
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/tvm/base.py", line 51, in <module>
+    _LIB_RUNTIME = libinfo.load_lib_ctypes(
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/tvm/libinfo.py", line 143, in load_lib_ctypes
+    return ctypes.CDLL(str(lib_path), getattr(ctypes, mode))
+  File "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/ctypes/__init__.py", line 374, in __init__
+    self._handle = _dlopen(self._name, mode)
+OSError: /opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/tvm/lib/libtvm_runtime.so: undefined symbol: _ZN3tvm3ffi4json9StringifyERKNS0_3AnyENS0_8OptionalIivEE
+```
+
+#### 合并后的模型目录
+```
+total 1941036
+drwxr-xr-x  2 runner runner       4096 Nov  2 14:57 .
+drwxrwxrwt 15 root   root        12288 Nov  2 14:57 ..
+-rw-r--r--  1 runner runner        328 Nov  2 14:57 chat_template.jinja
+-rw-r--r--  1 runner runner       1337 Nov  2 14:57 config.json
+-rw-r--r--  1 runner runner        242 Nov  2 14:57 generation_config.json
+-rw-------  1 runner runner 1976163472 Nov  2 14:57 model.safetensors
+-rw-r--r--  1 runner runner   11418262 Nov  2 14:57 tokenizer.json
+-rw-r--r--  1 runner runner        447 Nov  2 14:57 tokenizer_config.json
 ```
 
 #### 已安装版本
