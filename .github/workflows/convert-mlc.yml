@@ -35,25 +35,29 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install mlc_llm (stable pair, direct wheel URLs)
+      - name: Install torch (CPU) first — 避免 pip 去装 CUDA 版
         run: |
           set -eux
           python -m pip install -U pip wheel setuptools
-          # mlc.ai/wheels 的索引里，条目 href 指向 GitHub Release（v0.9.dev0），
-          # 不是 https://mlc.ai/wheels/<file>（直链会 404，第一次就是这样失败的）
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch 2>&1 | tail -5
+
+      - name: Install mlc_llm (0.20 用 apache-tvm-ffi，不要装 mlc_ai_cpu)
+        run: |
+          set -euo pipefail
+          # 关键：mlc-llm-cpu 0.20.0.dev0 的 METADATA 依赖是 `apache-tvm-ffi`（PyPI 有），
+          # 不是旧的 `mlc-ai-cpu`(tvm)。两者同时装 → tvm 的 ABI 冲突：
+          #   libtvm_runtime.so: undefined symbol: tvm::ffi::json::Stringify(...)
+          # 所以这里只装 mlc_llm 轮子，让 pip 自己从 PyPI 拉 apache-tvm-ffi。
           W=https://github.com/mlc-ai/package/releases/download/v0.9.dev0
           python -m pip install \
-            "$W/mlc_ai_cpu-0.20.0-py3-none-manylinux_2_28_x86_64.whl" \
             "$W/mlc_llm_cpu-0.20.0.dev0-py3-none-manylinux_2_28_x86_64.whl" \
             psutil 2>&1 | tee /tmp/install.log | tail -20
           python -m pip list | grep -iE "mlc|tvm" || true
-          python -c "import mlc_llm, tvm; print('IMPORT_OK tvm', tvm.__version__)" 2>&1 | tee /tmp/import.log | tail -5
-
-      - name: Install merge deps (CPU torch)
-        run: |
-          set -eux
-          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
-          python -m pip install transformers peft safetensors
+          set +e
+          python -c "import mlc_llm; print('IMPORT_OK', getattr(mlc_llm,'__version__','?'))" 2>&1 | tee /tmp/import.log | tail -8
+          rc=${PIPESTATUS[0]}
+          echo "import_rc=$rc"
+          [ "$rc" = "0" ]
 
       - name: Merge LoRA into base (Qwen2-0.5B-Instruct)
         run: |
