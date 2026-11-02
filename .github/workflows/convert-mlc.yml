@@ -1,24 +1,23 @@
 name: Convert fine-tuned model to MLC
 
-# 为什么要有这个 workflow：
-#   本机是 Windows，PyPI 上没有可用的 mlc_llm（`mlc-llm-nightly-cpu` 是个 1.4 KB 空壳包），
-#   WSL 被安全策略禁用、也没有 Docker。而 WebLLM 只认 MLC 编译产物，所以转换必须在 Linux 上做。
-#   这里借 ubuntu runner 当那台 Linux，产物提交回仓库 model/mlc/ 供 raw.githubusercontent 取用。
+# 目标：把 model/lora-adapter/（后训练 LoRA，加负样本版，有害错误率 9.6%）
+#      合并进 Qwen2-0.5B-Instruct 基座，再转成 WebLLM 可加载的 MLC q4f16_1 产物，
+#      产物直接提交回 model/mlc/（每个分片 ~48 MB，单文件 < GitHub 100 MB 限制）。
 #
-# 只转权重、配置与 tokenizer 沿用官方目录（理由见 .github/scripts/fix_mlc_config.py 顶部）。
+# 为什么在 CI 做（2026-11-02 重新启用）：
+#   · 本机 Windows 的 mlc_llm 只有 0.26.dev20，而 mlc.ai 的 win tvm 只有 0.26.dev529 → API 不匹配，import 即崩
+#   · 本机 WSL 的 LxssManager 反复卡在 StopPending（多次实测），不能作为可靠执行环境
+#   · 之前 CI 失败是「两个 nightly 包版本不一致」（mlc_llm 0.26.dev6 + mlc_ai 0.26.dev246）
+#     → 这次改用**稳定发行版配对**：mlc_llm_cpu-0.20.0.dev0 + mlc_ai_cpu-0.20.0（同一发行批次）
+#   并且**按 wheel 直链安装**：PyPI 上有同名空壳包（1.4 KB），用 `-f/--find-links` 会静默装错。
 
-# ⚠ 当前状态（2026-10-25，7 次尝试后结论）：**手动触发**，不要接 push。
-#   cpu 版(0.26.dev6) → 量化阶段 SIGSEGV(139)；cu124 版(0.20.dev162) → CPU runner 上 import 失败。
-#   耗时 7 轮已超过换机器成本，改用 tools/nlu/finetune/run-convert-in-wsl.sh 在真实 Linux 上做。
-#   连续 5 次尝试后卡在最后一步：ubuntu runner 上 mlc_llm(0.26.dev6 cpu) 的
-#   convert_weight 在量化阶段直接 SIGSEGV（退出码 139），不是脚本写法问题。
-#   已经在 CI 里逐段排掉的问题（都记在 model/diag.md 里）：
-#     ① import mlc_llm 缺 psutil（隐式依赖）② wheel 不提供名为 mlc_llm 的 console script
-#     ③ transformers 5.x 把 rope_theta 挪进 rope_parameters，mlc_llm 按 v4 读 → TypeError
-#   剩下这一步属于 mlc_llm 该版本的二进制问题，换机器（本机 WSL / 任意 Linux + conda 装
-#   mlc_llm）比继续在 runner 上换版本更省时间。手动 trigger 本 workflow 仍可复现诊断。
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "model/lora-adapter/**"
+      - ".github/workflows/convert-mlc.yml"
 
 permissions:
   contents: write
@@ -26,7 +25,7 @@ permissions:
 jobs:
   convert:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,106 +35,113 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install mlc_llm (diagnostic, never fails)
+      - name: Install mlc_llm (stable pair, direct wheel URLs)
         run: |
-          set -u
+          set -eux
           python -m pip install -U pip wheel setuptools
-          DIAG=/tmp/mlc_diag.txt
-          : > "$DIAG"
-          {
-            echo "### pip install mlc-llm-nightly-cpu mlc-ai-nightly-cpu"
-            # psutil 是 mlc_llm.serve 的隐式依赖（没在 install_requires 里），
-            # 不装的话 `import mlc_llm` 会在 popen_server.py 处 ModuleNotFoundError
-            python -m pip install --pre -f https://mlc.ai/wheels mlc-llm-nightly-cpu mlc-ai-nightly-cpu psutil 2>&1 || echo "PIP_EXIT=$?"
-            echo
-            echo "### pip list (mlc / tvm)"
-            python -m pip list 2>/dev/null | grep -iE "mlc|tvm" || echo "(none installed)"
-            echo
-            echo "### import mlc_llm"
-            python -c "import mlc_llm; print('IMPORT_OK', getattr(mlc_llm,'__version__','?'))" 2>&1 || echo "IMPORT_FAILED"
-            echo
-            echo "### 索引里到底有哪些 mlc_llm 轮子（取前 30 行）"
-            curl -s --max-time 60 https://mlc.ai/wheels/ | grep -oE 'mlc[_-]llm[_-]nightly[^"<> ]*' | sort -u | head -30 || echo "(索引抓取失败)"
-          } >> "$DIAG" 2>&1
-          tail -c 6000 "$DIAG"
+          W=https://mlc.ai/wheels
+          python -m pip install \
+            "$W/mlc_ai_cpu-0.20.0-py3-none-manylinux_2_28_x86_64.whl" \
+            "$W/mlc_llm_cpu-0.20.0.dev0-py3-none-manylinux_2_28_x86_64.whl" \
+            psutil
+          python -m pip list | grep -iE "mlc|tvm" || true
+          python -c "import mlc_llm, tvm; print('IMPORT_OK tvm', tvm.__version__)"
 
-      - name: Verify mlc_llm usable
-        run: python -c "import mlc_llm; print('mlc_llm ok', getattr(mlc_llm,'__version__','?'))"
-
-      - name: Install deps for LoRA merge
+      - name: Install merge deps (CPU torch)
         run: |
-          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-          python -m pip install transformers peft safetensors sentencepiece protobuf
+          set -eux
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install transformers peft safetensors
 
-      - name: Merge LoRA into base
-        run: python .github/scripts/merge_lora.py "Qwen/Qwen2-0.5B-Instruct" "model/lora-adapter" "merged"
-
-      - name: Convert weights to q4f16_1
+      - name: Merge LoRA into base (Qwen2-0.5B-Instruct)
         run: |
-          set -x
-          LOG=/tmp/conv.txt
-          : > "$LOG"
-          # 这个 wheel 装完后不一定有名为 mlc_llm 的 console script（实测 CI 里没有），
-          # 所以先探测，再退到 `python -m mlc_llm`，两个都不行才算失败。
-          MLC=""
-          if command -v mlc_llm >/dev/null 2>&1; then MLC="mlc_llm"; echo "用 console script" >> "$LOG"
-          elif python -m mlc_llm --help >/dev/null 2>&1; then MLC="python -m mlc_llm"; echo "用 python -m mlc_llm" >> "$LOG"
-          else echo "MLC_CLI_NOT_FOUND" >> "$LOG"; fi
-          echo "=== help ===" >> "$LOG"
-          $MLC --help >> "$LOG" 2>&1 || true
-          echo "=== convert_weight --help ===" >> "$LOG"
-          $MLC convert_weight --help >> "$LOG" 2>&1 || true
-          echo "=== convert_weight 实际运行 ===" >> "$LOG"
-          $MLC convert_weight ./merged --quantization q4f16_1 -o dist/tuned >> "$LOG" 2>&1 || echo "CONVERT_FAILED:$?" >> "$LOG"
-          tail -60 "$LOG"
-          ls -la dist/tuned 2>/dev/null || true
-          test -f dist/tuned/ndarray-cache.json
+          set -eux
+          python - <<'PY'
+          import torch, json, os
+          from transformers import AutoModelForCausalLM, AutoTokenizer
+          from peft import PeftModel
+          base_id = "Qwen/Qwen2-0.5B-Instruct"
+          out = "/tmp/merged"
+          tok = AutoTokenizer.from_pretrained(base_id)
+          model = AutoModelForCausalLM.from_pretrained(base_id, torch_dtype=torch.float32)
+          model = PeftModel.from_pretrained(model, "model/lora-adapter")
+          model = model.merge_and_unload()
+          model.save_pretrained(out, safe_serialization=True, max_shard_size="2GB")
+          tok.save_pretrained(out)
+          # transformers 5.x 把 rope_theta 挪进 rope_parameters，mlc_llm 按 v4 读 → TypeError
+          p = os.path.join(out, "config.json")
+          cfg = json.load(open(p))
+          rp = cfg.get("rope_parameters") or {}
+          cfg.setdefault("rope_theta", rp.get("rope_theta", 1000000.0))
+          if "torch_dtype" not in cfg and "dtype" in cfg:
+              cfg["torch_dtype"] = cfg["dtype"]
+          json.dump(cfg, open(p, "w"), ensure_ascii=False, indent=2)
+          print("rope_theta =", cfg["rope_theta"], "| torch_dtype =", cfg.get("torch_dtype"))
+          print("files:", sorted(os.listdir(out)))
+          PY
 
-      - name: Reuse official config and tokenizer
-        run: python .github/scripts/fix_mlc_config.py "dist/tuned"
-
-      - name: Sanity check output
+      - name: Convert weights (q4f16_1)
         run: |
-          test -f dist/tuned/mlc-chat-config.json
-          test -f dist/tuned/ndarray-cache.json
-          ls dist/tuned/params_shard_*.bin | wc -l
-          du -sh dist/tuned
+          set -eux
+          rm -rf model/mlc
+          if command -v mlc_llm >/dev/null 2>&1; then MLC="mlc_llm"; else MLC="python -m mlc_llm"; fi
+          echo "using: $MLC"
+          $MLC convert_weight /tmp/merged --quantization q4f16_1 -o model/mlc
+          du -sh model/mlc
+          ls model/mlc
 
-      - name: Dump diagnostics
-        if: always()
-        continue-on-error: true
+      - name: Copy official config + tokenizer (reuse prebuilt wasm model_lib)
         run: |
-          mkdir -p model
-          {
-            echo "# 转换诊断（CI 自动生成，可删）"
-            echo
-            echo "run id: $GITHUB_RUN_ID"
-            echo
-            echo '```'
-            echo "### 安装与导入"
-            cat /tmp/mlc_diag.txt 2>/dev/null || echo "(无诊断文件：卡在第一步之前)"
-            echo
-            echo "### 权重转换"
-            cat /tmp/conv.txt 2>/dev/null || echo "(无转换日志：没走到转换步骤)"
-            echo '```'
-          } > model/diag.md
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add model/diag.md
-          git diff --cached --quiet || { git commit -m "chore(model): 记录转换诊断 [skip ci]"; git push; }
+          set -eux
+          python - <<'PY'
+          import json, os, shutil
+          from pathlib import Path
+          from huggingface_hub import snapshot_download
+          out = Path("model/mlc")
+          src = snapshot_download("mlc-ai/Qwen2-0.5B-Instruct-q4f16_1-MLC", allow_patterns=["*.json", "*.txt"])
+          for f in ["mlc-chat-config.json", "tokenizer.json", "tokenizer_config.json", "vocab.json", "merges.txt"]:
+              s = os.path.join(src, f)
+              if os.path.exists(s):
+                  shutil.copy(s, out / f)
+          p = out / "mlc-chat-config.json"
+          cfg = json.loads(p.read_text())
+          cfg.update({"temperature": 0.0, "top_p": 1.0, "repetition_penalty": 1.0})
+          p.write_text(json.dumps(cfg, ensure_ascii=False, indent=2))
+          print("model_type=%s quant=%s ctx=%s" % (cfg.get("model_type"), cfg.get("quantization"), cfg.get("context_window_size")))
+          PY
 
-      - name: Commit converted model back to repo
+      - name: Verify artifacts
+        run: |
+          set -eux
+          n=$(ls model/mlc/params_shard_*.bin 2>/dev/null | wc -l)
+          echo "shards: $n"
+          test "$n" -ge 1
+          du -sh model/mlc
+          find model/mlc -type f -size +99M -print | head
+
+      - name: Commit artifacts
         if: success()
         run: |
-          rm -rf model/mlc
-          mkdir -p model
-          cp -r dist/tuned model/mlc
+          set -eux
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add model/mlc
-          if git diff --cached --quiet; then
-            echo "no change, skip commit"
-          else
-            git commit -m "chore(model): convert fine-tuned model to MLC q4f16_1 [skip ci]"
-            git push
-          fi
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f model/mlc
+          git commit -m "chore(model): 后训练模型转为 MLC q4f16_1（CI 稳定版配对）[skip ci]" || echo "nothing to commit"
+          git push
+
+      - name: Dump diagnostics on failure
+        if: failure()
+        run: |
+          set -u
+          {
+            echo "### 失败时间 $(date -u)"
+            echo '```'
+            python -m pip list 2>/dev/null | grep -iE "mlc|tvm|torch|transformers|peft" || true
+            python -c "import mlc_llm, tvm; print('tvm', tvm.__version__)" 2>&1 | tail -5 || true
+            echo '```'
+          } > model/diag.md 2>&1
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add model/diag.md
+          git commit -m "chore(model): 转换失败诊断 [skip ci]" || true
+          git push || true

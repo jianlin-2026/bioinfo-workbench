@@ -3,7 +3,7 @@
   "alpha_pattern": {},
   "arrow_config": null,
   "auto_mapping": null,
-  "base_model_name_or_path": "Qwen/Qwen2-0.5B-Instruct",
+  "base_model_name_or_path": "F:/\u751f\u4fe1\u5e73\u53f0/_hf/m",
   "bias": "none",
   "corda_config": null,
   "ensure_weight_tying": false,
@@ -32,13 +32,13 @@
   "rank_pattern": {},
   "revision": null,
   "target_modules": [
-    "gate_proj",
-    "o_proj",
     "k_proj",
-    "q_proj",
-    "up_proj",
+    "o_proj",
     "v_proj",
-    "down_proj"
+    "gate_proj",
+    "down_proj",
+    "up_proj",
+    "q_proj"
   ],
   "target_parameters": null,
   "task_type": "CAUSAL_LM",
